@@ -6,12 +6,12 @@
 import { availableAssets } from '../assets/registry';
 import table from '../data/voice.json';
 import { Sound } from './audio';
-import type { VoiceCategory } from './voicemap';
+import type { ExtraVoice, VoiceCategory } from './voicemap';
 
-export { categoryForLine, type VoiceCategory } from './voicemap';
+export { categoryForLine, type ExtraVoice, type VoiceCategory } from './voicemap';
 
 interface Clip { file: string; text: string; gain: number }
-interface CharVoice { dir: string; clips: Partial<Record<VoiceCategory, Clip>> }
+interface CharVoice { dir: string; clips: Partial<Record<VoiceCategory, Clip>>; extra?: Partial<Record<ExtraVoice, Clip>> }
 
 const CHARS = (table as unknown as { characters: Record<string, CharVoice> }).characters;
 const files = new Set(availableAssets());
@@ -25,9 +25,9 @@ const last = new Map<string, number>();
 let lastAny = -1e9;
 
 /** そのキャラクターのその分類の音源（置かれていなければ null） */
-export function voiceClip(charId: string, cat: VoiceCategory): { url: string; gain: number; text: string } | null {
+export function voiceClip(charId: string, cat: VoiceCategory | ExtraVoice): { url: string; gain: number; text: string } | null {
   const c = CHARS[charId];
-  const clip = c?.clips[cat];
+  const clip = c?.clips[cat as VoiceCategory] ?? c?.extra?.[cat as ExtraVoice];
   if (!c || !clip) return null;
   const path = `${c.dir}/${clip.file}`;
   if (!files.has(path)) return null;
@@ -37,7 +37,7 @@ export function voiceClip(charId: string, cat: VoiceCategory): { url: string; ga
 export const hasVoice = (charId: string) => !!CHARS[charId] && Object.keys(CHARS[charId].clips).some((k) => voiceClip(charId, k as VoiceCategory));
 
 /** 分類を指定して鳴らす。鳴らしたら true */
-export function playVoice(charId: string, cat: VoiceCategory | null, now = performance.now()): boolean {
+export function playVoice(charId: string, cat: VoiceCategory | ExtraVoice | null, now = performance.now()): boolean {
   if (!cat) return false;
   const clip = voiceClip(charId, cat);
   if (!clip) return false;

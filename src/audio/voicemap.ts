@@ -1,6 +1,8 @@
 /** 台詞の場面と汎用ボイスの分類の対応（画面や音声の再生に依存しない部分） */
 import table from '../data/voice.json';
 
+/** 場面専用の追加ボイス（持っているキャラクターだけ）。自己紹介、勝利、敗北、脱落の確定、裏切りに気づいた時 */
+export type ExtraVoice = 'introduction' | 'victory' | 'defeat' | 'elimination' | 'betrayal';
 export type VoiceCategory = 'greeting' | 'hello' | 'understand' | 'accept' | 'refuse' | 'thinking' | 'surprise' | 'happy' | 'disappointed' | 'thanks';
 const LINES = (table as unknown as { lines: Record<string, VoiceCategory> }).lines;
 

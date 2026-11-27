@@ -4,7 +4,7 @@ import dialogue from '../src/data/dialogue.json';
 import { categoryForLine } from '../src/audio/voicemap';
 import { NPC_IDS } from '../src/data/characters';
 
-const T = table as unknown as { categories: string[]; lines: Record<string, string>; characters: Record<string, { dir: string; clips: Record<string, { file: string; text: string; gain: number }> }> };
+const T = table as unknown as { categories: string[]; lines: Record<string, string>; characters: Record<string, { dir: string; clips: Record<string, { file: string; text: string; gain: number }>; extra?: Record<string, { file: string; text: string; gain: number }> }> };
 
 describe('汎用ボイスの対応表', () => {
   it('登録済みのキャラクターは 10 分類すべてを持ち、ファイル名と分類が一致する', () => {
@@ -18,6 +18,19 @@ describe('汎用ボイスの対応表', () => {
         expect(clip.text.length).toBeGreaterThan(0);
         expect(clip.gain).toBeGreaterThanOrEqual(0.7);
         expect(clip.gain).toBeLessThanOrEqual(1.4);
+      }
+    }
+  });
+
+  it('追加ボイス（自己紹介、勝利、敗北、脱落、裏切り）は、持っている人だけ。ファイル名と分類が一致し、基本の 10 点と重ならない', () => {
+    const EXTRA = ['introduction', 'victory', 'defeat', 'elimination', 'betrayal'];
+    const withExtra = Object.entries(T.characters).filter(([, c]) => c.extra);
+    expect(withExtra.length).toBeGreaterThanOrEqual(2);
+    for (const [, c] of withExtra) {
+      expect(Object.keys(c.extra!).sort()).toEqual([...EXTRA].sort());
+      for (const [cat, clip] of Object.entries(c.extra!)) {
+        expect(clip.file).toMatch(new RegExp(`^1[1-5]_${cat}\\.mp3$`));
+        expect(Object.values(c.clips).some((x) => x.file === clip.file)).toBe(false);
       }
     }
   });

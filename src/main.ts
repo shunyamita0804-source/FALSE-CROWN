@@ -22,6 +22,8 @@ import { FieldScene } from './scenes/FieldScene';
 import { setHeroGender } from './ui/art';
 import { alertDialog, initStage, installErrorScreen, toast, uiKey } from './ui/dom';
 import { playMatch } from './ui/matchui';
+import { playVoice } from './audio/voice';
+import { drainBetrayals } from './npc/negotiation';
 import * as screens from './ui/screens';
 import { talkTo } from './ui/talk';
 
@@ -33,6 +35,10 @@ installErrorScreen(__APP_VERSION__);
 applyUiAssets();
 Sound.init(G.meta.settings.bgm, G.meta.settings.se, G.meta.settings.voice);
 screens.initSettings();
+// 追加ボイス：主人公に裏切られたことに本人が気づいた時だけ、その人の声を鳴らす
+setInterval(() => {
+  for (const b of drainBetrayals()) if (b.traitor === 'hero' && b.aware && G.state?.actors[b.victim]?.alive) playVoice(b.victim, 'betrayal');
+}, 500);
 
 G.ui = {
   playStory: screens.playStory,

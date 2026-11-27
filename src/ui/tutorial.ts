@@ -6,6 +6,8 @@
 import { Sound } from '../audio/audio';
 import { t } from '../i18n/i18n';
 import { L4, M01_DEMO, M01_PRACTICE, SQ } from '../matches/m01';
+import { M03_DEMO, M03_PRACTICE } from '../matches/m03';
+import { LinkBoard } from './linkboard';
 import { M02_PRACTICE } from '../matches/m02';
 import { P01_PRACTICE } from '../matches/p01';
 import { COLORS, P02_PRACTICE, SHAPES } from '../matches/p02';
@@ -176,7 +178,41 @@ function p02Guide(): Guide {
   };
 }
 
-const GUIDES: Record<string, () => Guide> = { m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide };
+// ---- M03 ツイン・リンク ----
+
+const M03_DEMO_SOL = [[0, 4, 8, 12], [1, 2, 3, 7], [5, 6, 10, 14]];
+
+function m03Guide(): Guide {
+  const fig = (paths: number[][], cell: number) => new LinkBoard(M03_DEMO, { readonly: true, cell, paths }).el;
+  return {
+    name: 'ツイン・リンク',
+    pages: [
+      { title: t('tut.m03.t1'), text: t('tut.m03.p1'), figure: () => fig(M03_DEMO_SOL, 76) },
+      { title: t('tut.m03.t2'), text: t('tut.m03.p2'), figure: () => fig([[0, 4, 8], [], [5, 6]], 76) },
+      {
+        title: t('tut.m03.t3'), text: t('tut.m03.p3'),
+        figure: () => h('div', { class: 'tg-row' },
+          h('div', { class: 'tg-fig ok' }, fig(M03_DEMO_SOL, 54), h('div', { class: 'tg-mark ok' }, '○'), h('div', { class: 'tg-cap' }, t('tut.m03.ok'))),
+          h('div', { class: 'tg-fig ng' }, fig([[0, 4, 8, 12], [1, 2, 6, 7], [5, 6, 10, 14]], 54), h('div', { class: 'tg-mark ng' }, '✕'), h('div', { class: 'tg-cap' }, t('tut.m03.ng')))),
+      },
+      {
+        title: t('tut.m03.t4'), text: t('tut.m03.p4'),
+        figure: () => h('div', { class: 'col', style: 'gap:14px;align-items:center' },
+          chips([{ label: t('tut.m03.c1'), value: '20' }, { label: t('tut.m03.c2'), value: '0〜4' }, { label: t('tut.m03.c3'), value: '15' }], ['×', '+']),
+          facts([['5', t('tut.m03.f1')], ['4', t('tut.m03.f2')], ['150', t('tut.m03.f3')]])),
+      },
+    ],
+    practice: {
+      text: t('tut.m03.practice'),
+      build: (onDone) => {
+        const b: LinkBoard = new LinkBoard(M03_PRACTICE, { cell: 84, onComplete: () => { b.lock(); onDone(); } });
+        return b.el;
+      },
+    },
+  };
+}
+
+const GUIDES: Record<string, () => Guide> = { m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide };
 
 export const hasGuide = (id: string) => id in GUIDES;
 

@@ -352,11 +352,19 @@ export function absorb(state: GameState, who: CharId, infoId: string, from: Char
   return true;
 }
 
+/** 直近に記録された裏切り（画面側が、被害者本人が気づいた時の反応に使う。取り出すと空になる） */
+const betrayalLog: { traitor: CharId; victim: CharId; aware: boolean }[] = [];
+export function drainBetrayals(): { traitor: CharId; victim: CharId; aware: boolean }[] {
+  return betrayalLog.splice(0);
+}
+
 export function recordBetrayal(state: GameState, traitor: CharId, victim: CharId, observers: CharId[], text: string, certainty = 1, tag: 'betrayal' | 'nonpayment' | 'lie' = 'betrayal'): Info {
   const info = addInfo(state, { kind: 'betrayal', text, truth: true, about: [traitor, victim], source: observers[0] ?? 'world', value: 2, tags: ['betrayal', tag] });
   for (const o of observers) if (state.actors[o]?.alive) absorb(state, o, info.id, 'self', certainty);
   fact(state, 'betrayal', [traitor, victim], text);
   state.flags[`betrayals_${traitor}`] = Number(state.flags[`betrayals_${traitor}`] ?? 0) + 1;
+  if (tag === 'betrayal') betrayalLog.push({ traitor, victim, aware: observers.includes(victim) });
+  if (betrayalLog.length > 20) betrayalLog.shift();
   return info;
 }
 
