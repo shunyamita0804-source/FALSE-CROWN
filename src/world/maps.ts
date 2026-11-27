@@ -300,7 +300,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,18,11],[9,12,10,12]],
     block: [[1,5,3,8],[7,5,12,8],[16,5,18,9],[1,11,4,11],[15,11,18,11]],
     doors: [D('from_library','down',9,12,2,'library','secret','hidden','図書室')],
-    inspects: [{id:'study_safe',x:10,y:4,text:'六桁のダイヤル式金庫。',event:'h01_safe'}],
+    inspects: [{id:'study_safe',x:10,y:4,text:'六桁のダイヤル式金庫。',event:'h01_safe'},{id:'study_shelf',x:4,y:6,text:'左の棚。古い本と書類が並んでいる。',event:'h01_note1'},{id:'study_desk',x:9,y:9,text:'大きな机。開いたままの手帳が置いてある。',event:'h01_note2'},{id:'study_cabinet',x:15,y:7,text:'右の飾り棚。引き出しが少し開いている。',event:'h01_note3'}],
     spots: S([[6,10],[13,10],[14,5]]),
   },
   {

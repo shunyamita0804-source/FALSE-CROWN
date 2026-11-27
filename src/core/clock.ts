@@ -5,6 +5,7 @@
  * 競技中、強制イベント中、手帳や設定を開いている間は進まない。
  */
 import type { GameState, Phase } from './types';
+import { FINAL_DAY } from '../data/config';
 
 export const CLOCK = {
   /** 実時間 1 秒あたりのゲーム内の分 */
@@ -76,9 +77,9 @@ export interface ScheduleItem {
   hard?: boolean;
 }
 
-/** 1 日の予定（DAY 11 は決勝まで） */
+/** 1 日の予定（決勝の日は決勝まで） */
 export function scheduleOf(day: number): ScheduleItem[] {
-  if (day >= 11) return [
+  if (day >= FINAL_DAY) return [
     { at: CLOCK.wake, key: 'wake' },
     { at: CLOCK.breakfast, key: 'breakfast' },
     { at: CLOCK.prep, key: 'prep' },

@@ -5,7 +5,7 @@
  */
 import { homeOf } from '../world/rooms';
 import { type CharId } from '../data/characters';
-import { CONFIG, scheduleFor } from '../data/config';
+import { CONFIG, FINAL_DAY, scheduleFor } from '../data/config';
 import { expireDeals } from '../npc/negotiation';
 import { dailyDecay } from '../npc/brain';
 import { ROOMS } from '../world/maps';
@@ -149,7 +149,7 @@ export function gatherAt(state: GameState, room: string, ids: CharId[] = aliveId
 }
 
 /** 決勝の日か（最後の 2 人が M11 で戦う日。監獄マッチも夜もなく、その場で大会が終わる） */
-export const isFinalDay = (day: number) => scheduleFor(day).main === 'm11';
+export const isFinalDay = (day: number) => day >= FINAL_DAY;
 
 /** 優勝後の結末を決める数値（すべて暫定。仕様 v05/01） */
 export const ENDING_RULE = { loneBetrayals: 4, bondDeals: 4, bondPeople: 3, bondTrust: 70 };

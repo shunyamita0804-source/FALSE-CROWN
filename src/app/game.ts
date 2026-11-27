@@ -5,6 +5,7 @@
  */
 import { homeOf, isCell, isPrivateRoom, knockable, ownerOfRoom, roomTitle } from '../world/rooms';
 import { Sound, type BgmId } from '../audio/audio';
+import { announce } from '../audio/announce';
 import { engineOf, newSlot, resolveTies, runToEnd } from '../core/runner';
 import { addInfo, adjustRel, aliveIds, learn, log, nameOf, rngOf, shortName, transfer } from '../core/state';
 import { medalIssued, npcRescuePromises } from '../core/rescue';
@@ -82,6 +83,8 @@ export interface RankingView {
   cutLabel: string;
   notes: string[];
   prison?: boolean;
+  /** 決勝の順位（優勝の祝いは戴冠の時に言う） */
+  final?: boolean;
 }
 
 interface FieldLike {
@@ -673,6 +676,8 @@ async function step(s: GameState): Promise<boolean> {
       showField(true);
       Sound.bgm('match_main');
       await fade(false);
+      // 進行の声：決勝の日は「最後の戦い」
+      if (isFinalDay(s.day)) void announce('final');
       await banner(t('banner.gather'));
       await G.ui.rulesScreen(mainMatchId(s.day), { prison: false });
       enter('main');
@@ -708,9 +713,11 @@ async function step(s: GameState): Promise<boolean> {
       if (isFinalDay(s.day)) {
         // 決勝：監獄棟も夜もない。優勝者が決まり、その場で結末へ進む（主人公が負ければ、例外なく敗者の結末）
         const champ = ranking[0];
-        await G.ui.rankingScreen({ title: t('rank.finalTitle'), ranking, scores: s.today.mainScores ?? {}, rewards: {}, cut: 0, cutLabel: '', notes: JSON.parse(String(s.flags.lastNotes ?? '[]')) });
+        await G.ui.rankingScreen({ title: t('rank.finalTitle'), ranking, scores: s.today.mainScores ?? {}, rewards: {}, cut: 0, cutLabel: '', notes: JSON.parse(String(s.flags.lastNotes ?? '[]')), final: true });
         await settleHeroPayments();
         Sound.se('gong');
+        // 進行の声：主人公の優勝だけ祝う（負けた時は何も言わない）
+        if (champ === 'hero') void announce('champion');
         await alertDialog(t('final.crownTitle'), t('final.crownText', { name: nameOf(s, champ) }), t('common.next'), true);
         await finish(champ === 'hero' ? championEnding(s) : 'E_BAD');
         return false;
@@ -725,6 +732,8 @@ async function step(s: GameState): Promise<boolean> {
         notes: JSON.parse(String(s.flags.lastNotes ?? '[]')),
       });
       await G.ui.rescueFlow();
+      // 進行の声：監獄棟へ移る人がいる日だけ
+      if (nPrison > 0) void announce('prison_transfer');
       await settleHeroPayments();
       await story('S_MAIN_RESULT', {}, true);
       if (first()) moveToHouses(s);
@@ -762,6 +771,7 @@ async function step(s: GameState): Promise<boolean> {
         showField(true);
         Sound.bgm('match_prison');
         await fade(false);
+        void announce('prison_start');
         await banner(t('banner.prison'));
         await G.ui.rulesScreen(id, { prison: true });
         showField(false);
@@ -839,6 +849,7 @@ async function step(s: GameState): Promise<boolean> {
       if (!s.seen.includes(`curfew@${s.day}`)) {
         s.seen.push(`curfew@${s.day}`);
         Sound.se('phase');
+        void announce('curfew');
         // 施錠の音：監獄棟は鉄格子、生活棟は扉
         Sound.se(isCell(homeOf(s, 'hero')) ? 'locked' : 'doorClose');
         await alertDialog(t('curfew.title'), t('curfew.text'), t('common.next'));

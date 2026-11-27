@@ -6,6 +6,7 @@ import { G } from '../app/game';
 import { assetUrl } from '../assets/registry';
 import { Sound } from '../audio/audio';
 import { playVoice } from '../audio/voice';
+import { announce } from '../audio/announce';
 import type { CharId, NpcId } from '../data/characters';
 import { aliveIds, nameOf, shortName } from '../core/state';
 import { applyRescue, declineRescue, forgoRescue, issueMedal, npcAcceptsRescue, provisional, rescueCandidates, resolveNpcRescue } from '../core/rescue';
@@ -104,6 +105,8 @@ export async function rescueFlow(): Promise<void> {
   if (r.status === 'pending') {
     await awarded(r.holder);
     if (r.holder === 'hero') {
+      // 進行の声：メダルを使うかの問い（メダルは DAY 1〜9 だけ配られる）
+      void announce('rescue_medal');
       let note = '';
       for (let guard = 0; guard < 6 && r.status === 'pending'; guard++) {
         if (!rescueCandidates(s).length) { forgoRescue(s, 'hero'); break; }

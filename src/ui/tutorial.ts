@@ -54,7 +54,7 @@ import { PolyBoard } from './polyboard';
 import { HIDDEN_GUIDES } from './hiddenguides';
 import { SUB_GUIDES } from './subguides';
 import { VOICED } from './voiceguides';
-import { voicedTutorial } from './voicetut';
+import { voicedTutorial, type TutCtx } from './voicetut';
 
 export interface GuidePage {
   title: string;
@@ -1081,13 +1081,13 @@ const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01:
 export const hasGuide = (id: string) => id in GUIDES || id in VOICED;
 
 /** 試合中の「ルール」から、音声付きの説明を見直す（無ければ false） */
-export function reviewVoiced(matchId: string): Promise<void> | null {
-  return VOICED[matchId] ? voicedTutorial(matchId, VOICED[matchId](), { review: true }) : null;
+export function reviewVoiced(matchId: string, scene: TutCtx = {}): Promise<void> | null {
+  return VOICED[matchId] ? voicedTutorial(matchId, VOICED[matchId](scene), { review: true }) : null;
 }
 
 /** 段階的な説明と練習。終えるか飛ばすと解決する。開いている間、大会の時計は止まる */
-export function tutorialScreen(matchId: string, opts: { cutNote?: string } = {}): Promise<void> {
-  if (VOICED[matchId]) return voicedTutorial(matchId, VOICED[matchId](), opts);
+export function tutorialScreen(matchId: string, opts: { cutNote?: string; scene?: TutCtx } = {}): Promise<void> {
+  if (VOICED[matchId]) return voicedTutorial(matchId, VOICED[matchId](opts.scene), opts);
   const g = GUIDES[matchId]();
   return new Promise((resolve) => {
     let layer: Layer;

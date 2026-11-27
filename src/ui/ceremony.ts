@@ -5,8 +5,9 @@
  */
 import { assetUrl } from '../assets/registry';
 import { Sound } from '../audio/audio';
+import { announce } from '../audio/announce';
 import { HOST, NPC_BY_ID, type NpcId } from '../data/characters';
-import { CONFIG } from '../data/config';
+import { CONFIG, FINAL_DAY } from '../data/config';
 import { t } from '../i18n/i18n';
 import { bgUrl, bust, emblemUrl, icon } from './art';
 import { button, clear, closeLayer, h, openLayer, type Child, type Layer } from './dom';
@@ -23,22 +24,25 @@ const arrow = (s = '→') => h('span', { class: 'cer-arrow' }, s);
 const box = (cls: string, ...c: Child[]) => h('div', { class: `cer-box ${cls}` }, ...c);
 
 function stages(): Stage[] {
-  const days = CONFIG.schedule.filter((d) => d.day <= 11);
+  // 人数と日数は日程から数える（顔ぶれや日程が変わっても合う）
+  const days = CONFIG.schedule.filter((d) => d.day <= FINAL_DAY);
+  const d1 = CONFIG.schedule[0];
+  const fin = days[days.length - 1];
   return [
     {
       title: t('cer.t1'),
-      figure: () => h('div', { class: 'cer-row' }, big('12', t('cer.people')), arrow(), h('img', { class: 'cer-emblem', src: emblemUrl(), alt: '' }), arrow('＝'), big(t('cer.prizeN'), t('cer.prize'), 'gold')),
+      figure: () => h('div', { class: 'cer-row' }, big(String(d1.players), t('cer.people')), arrow(), h('img', { class: 'cer-emblem', src: emblemUrl(), alt: '' }), arrow('＝'), big(t('cer.prizeN'), t('cer.prize'), 'gold')),
       lines: [
-        { who: 'host', text: t('cer.h1') },
+        { who: 'host', text: t('cer.h1', { n: d1.players }) },
         { who: 'npc_09_asahina', text: t('cer.r1a') },
         { who: 'npc_04_mido', text: t('cer.r1b') },
       ],
     },
     {
       title: t('cer.t2'),
-      figure: () => h('div', { class: 'cer-days' }, days.map((d) => h('div', { class: `cer-day${d.day === 11 ? ' final' : ''}` }, h('small', null, `DAY ${d.day}`), h('b', null, String(d.players)), h('i', null, d.day === 11 ? t('cer.final') : '−1')))),
+      figure: () => h('div', { class: 'cer-days' }, days.map((d) => h('div', { class: `cer-day${d.day === FINAL_DAY ? ' final' : ''}` }, h('small', null, `DAY ${d.day}`), h('b', null, String(d.players)), h('i', null, d.day === FINAL_DAY ? t('cer.final') : '−1')))),
       lines: [
-        { who: 'host', text: t('cer.h2') },
+        { who: 'host', text: t('cer.h2', { days: FINAL_DAY, final: fin.players }) },
         { who: 'npc_06_kiryu', text: t('cer.r2a') },
       ],
     },
@@ -58,10 +62,10 @@ function stages(): Stage[] {
     {
       title: t('cer.t4'),
       figure: () => h('div', { class: 'cer-col' },
-        h('div', { class: 'cer-row' }, big('12', t('cer.day1')), arrow(), big('8', t('house.living'), 'living'), h('span', { class: 'cer-plus' }, '＋'), big('4', t('house.prison'), 'prison'), arrow(), big('1', t('cer.outLabel'), 'out')),
+        h('div', { class: 'cer-row' }, big(String(d1.players), t('cer.day1')), arrow(), big(String(d1.players - d1.prison), t('house.living'), 'living'), h('span', { class: 'cer-plus' }, '＋'), big(String(d1.prison), t('house.prison'), 'prison'), arrow(), big('1', t('cer.outLabel'), 'out')),
         h('div', { class: 'cer-note' }, t('cer.n4'))),
       lines: [
-        { who: 'host', text: t('cer.h4') },
+        { who: 'host', text: t('cer.h4', { living: d1.players - d1.prison, prison: d1.prison }) },
         { who: 'npc_03_kurose', text: t('cer.r4a') },
         { who: 'host', text: t('cer.h4b') },
       ],
@@ -115,7 +119,8 @@ export function ceremonyScreen(opts: { review?: boolean; skippable?: boolean } =
     const fig = h('div', { class: 'tut-fig cer-fig' });
     const say = h('div', { class: 'cer-say' });
     const foot = h('div', { class: 'tut-foot' });
-    const done = () => { closeLayer(layer); resolve(); };
+    // 進行の声：始めに歓迎、終わりに開幕の宣言（見返しの時は鳴らさない）
+    const done = () => { closeLayer(layer); if (!opts.review) void announce('tournament_open'); resolve(); };
     const next = () => {
       const st = all[si];
       if (li < st.lines.length - 1) { li++; Sound.se('page'); drawLine(); return; }
@@ -149,6 +154,7 @@ export function ceremonyScreen(opts: { review?: boolean; skippable?: boolean } =
       drawLine();
     };
     draw();
+    if (!opts.review) void announce('opening');
     const bg = bgUrl('opening');
     layer = openLayer(h('div', { class: 'overlay solid cer-bg', style: bg ? `background-image:url("${bg}")` : '' }, h('div', { class: 'tut cer' }, head, fig, say, foot)), { pausesClock: true, name: 'ceremony' });
   });

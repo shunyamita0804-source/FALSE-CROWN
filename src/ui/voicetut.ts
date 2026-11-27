@@ -10,15 +10,28 @@
 import table from '../data/tutorial_voice.json';
 import { availableAssets } from '../assets/registry';
 import { Sound } from '../audio/audio';
+import { fitsScene } from '../audio/voicefit';
 import { t } from '../i18n/i18n';
 import { bust } from './art';
 import { append, button, clear, closeLayer, h, openLayer, type Child, type Layer } from './dom';
 
-interface StepVoice { file: string; text: string; gain: number }
-interface MatchVoice { dir: string; steps: Record<string, StepVoice> }
-const TV = table as unknown as { speaker: string; matches: Record<string, MatchVoice> };
+/** fits：この収録が合う場面（競技の順番、組の数、ステージ数など）。合わない時は部品の声と字幕に切り替える */
+interface StepVoice { file: string; text: string; gain: number; fits?: Record<string, number> }
+interface Clip { file: string; text: string; gain: number }
+interface MatchVoice { dir: string; steps: Record<string, StepVoice>; /** この競技だけの部品（name：競技名だけの声） */ slots?: Record<string, Clip> }
+/** slots：どの競技でも使う部品の声。order は「第N競技」「決勝」など（キーは番号か final）。dir は置き場所 */
+const TV = table as unknown as { speaker: string; slots: { dir: string } & Record<string, Record<string, Clip> | string>; matches: Record<string, MatchVoice> };
 const files = new Set(availableAssets());
 const BASE = import.meta.env.BASE_URL;
+
+/**
+ * 説明を出す場面。順番（第何競技か。決勝は 'final'）と、参加する人。収録の前提（fits）と比べる。
+ * 2 周目以降に競技や人が入れ替わっても、合わない収録は使わず、部品の声と字幕で説明する。
+ */
+export interface TutCtx { order?: number | 'final'; players?: string[]; [k: string]: unknown }
+
+/** 収録が合わない時の代わり：部品の声（slot と key）を順に鳴らし、字幕は text を出す */
+export interface AltVoice { text: string; parts?: { slot: string; key: string }[] }
 
 /** 段階の中身。el は図、task は操作が済むと解決する約束、cues は声の進み（0〜1）に合わせて呼ぶ処理 */
 export interface StepView {
@@ -37,6 +50,12 @@ export interface VoicedStep {
   /** 見出し（画面の上） */
   title: string;
   build: () => StepView;
+  /** 収録が無い段階の字幕（声は無く、字幕と図で説明する） */
+  text?: string;
+  /** 場面の値（fits と同じ名前）。収録の fits と比べる */
+  facts?: Record<string, number>;
+  /** 収録が場面に合わない時の代わり */
+  alt?: () => AltVoice;
 }
 
 export interface VoicedGuide {
@@ -58,13 +77,34 @@ function markSeen(id: string): void {
   } catch { /* 記録できなくても説明は動く */ }
 }
 
-/** 声の音源（置かれていなければ null。字幕は台本から出す） */
-function voiceOf(matchId: string, stepId: string): { url: string | null; gain: number; text: string } | null {
+export interface VoicePart { url: string; gain: number }
+export interface StepAudio { parts: VoicePart[]; text: string; /** 収録をそのまま使ったか（false は部品か字幕だけ） */ recorded: boolean }
+
+const urlOf = (path: string) => (files.has(path) ? `${BASE}assets/${path}` : null);
+
+/** 部品の声（無ければ null）。name は競技ごと、それ以外は共通の部品 */
+function slotClip(matchId: string, slot: string, key: string): VoicePart | null {
   const m = TV.matches[matchId];
-  const v = m?.steps[stepId];
-  if (!m || !v) return null;
-  const path = `${m.dir}/${v.file}`;
-  return { url: files.has(path) ? `${BASE}assets/${path}` : null, gain: v.gain, text: v.text };
+  const c = slot === 'name' ? m?.slots?.name : (TV.slots[slot] as Record<string, Clip> | undefined)?.[key];
+  if (!c) return null;
+  const url = urlOf(`${slot === 'name' ? m!.dir : TV.slots.dir}/${c.file}`);
+  return url ? { url, gain: c.gain } : null;
+}
+
+
+/** 段階の声と字幕を決める。収録が合えばそれ、合わなければ部品の声と代わりの字幕、収録が無ければ字幕だけ */
+export function stepAudio(matchId: string, step: VoicedStep): StepAudio {
+  const m = TV.matches[matchId];
+  const v = m?.steps[step.id];
+  if (m && v && fitsScene(v.fits, step.facts)) {
+    const url = urlOf(`${m.dir}/${v.file}`);
+    return { parts: url ? [{ url, gain: v.gain }] : [], text: v.text, recorded: true };
+  }
+  if (v && step.alt) {
+    const a = step.alt();
+    return { parts: (a.parts ?? []).map((p) => slotClip(matchId, p.slot, p.key)).filter((x): x is VoicePart => !!x), text: a.text, recorded: false };
+  }
+  return { parts: [], text: step.text ?? v?.text ?? '', recorded: false };
 }
 
 export const hasVoicedTutorial = (matchId: string, guides: Record<string, () => VoicedGuide>) => matchId in guides && matchId in TV.matches;
@@ -74,7 +114,8 @@ export const hasVoicedTutorial = (matchId: string, guides: Record<string, () => 
  * cutNote は最後の段階の足もとに出す一言。
  */
 export function voicedTutorial(matchId: string, g: VoicedGuide, opts: { review?: boolean; cutNote?: string } = {}): Promise<void> {
-  const canSkipAll = !!opts.review || tutorialSeen(matchId);
+  // 初めての時も、説明全体を飛ばせる（2026-11-28 本人の指示）。見たかどうかの記録は残す
+  const canSkipAll = true;
   return new Promise((resolve) => {
     let layer: Layer;
     let idx = 0;
@@ -124,16 +165,17 @@ export function voicedTutorial(matchId: string, g: VoicedGuide, opts: { review?:
       if (view.task && taskDone && voiceDone && !view.final) setTimeout(() => { if (alive && view && taskDone) go(idx + 1); }, 900);
     };
 
-    /** 声を流す（無音の時も、字幕は文字数から見積もった時間で出す） */
+    /** 声を流す（無音の時も、字幕は文字数から見積もった時間で出す）。部品が複数なら順に流し、字幕は全体の長さに合わせる */
     const play = () => {
       const step = g.steps[idx];
-      const v = voiceOf(matchId, step.id);
-      const text = v?.text ?? '';
+      const a = stepAudio(matchId, step);
+      const text = a.text;
       cancelAnimationFrame(raf);
       Sound.stopVoice();
       voiceDone = false;
       playing = true;
       renderFoot();
+      const est = Math.max(2.2, text.length * 0.13);
       const startTick = (sec: number) => {
         const t0 = performance.now();
         const tick = () => {
@@ -146,28 +188,37 @@ export function voicedTutorial(matchId: string, g: VoicedGuide, opts: { review?:
         tick();
       };
       const finish = () => {
-        if (!alive || g.steps[idx] !== step) return;
+        if (!alive || g.steps[idx] !== step || !playing) return;
         playing = false;
         voiceDone = true;
         showSub(text, 1);
         runCues(1);
         maybeAdvance();
       };
-      const est = Math.max(2.2, text.length * 0.13);
-      let started = false;
-      if (v?.url) {
-        Sound.voice(v.url, v.gain, {
-          duck: true,
-          onStart: (sec) => { started = true; startTick(sec); },
-          onEnd: () => {
-            if (started) finish();
-            else { startTick(est); setTimeout(finish, est * 1000); }
-          },
-        });
-      } else {
+      const single = a.recorded && a.parts.length === 1;
+      if (!single) {
+        // 字幕だけ、または部品の声：字幕は見積もった時間で出し、声と字幕の両方が終わったら次へ
+        let left = 2;
+        const one = () => { if (--left === 0) finish(); };
         startTick(est);
-        setTimeout(finish, est * 1000);
+        setTimeout(one, est * 1000);
+        const chain = (i: number) => {
+          if (!alive || g.steps[idx] !== step || !playing) return;
+          if (i >= a.parts.length) { one(); return; }
+          Sound.voice(a.parts[i].url, a.parts[i].gain, { duck: true, onEnd: () => chain(i + 1) });
+        };
+        chain(0);
+        return;
       }
+      let started = false;
+      Sound.voice(a.parts[0].url, a.parts[0].gain, {
+        duck: true,
+        onStart: (sec) => { started = true; startTick(sec); },
+        onEnd: () => {
+          if (started) finish();
+          else { startTick(est); setTimeout(finish, est * 1000); }
+        },
+      });
     };
 
     /** 止める：声を止めて字幕を全部出す */
@@ -176,7 +227,7 @@ export function voicedTutorial(matchId: string, g: VoicedGuide, opts: { review?:
       cancelAnimationFrame(raf);
       playing = false;
       voiceDone = true;
-      showSub(voiceOf(matchId, g.steps[idx].id)?.text ?? '', 1);
+      showSub(stepAudio(matchId, g.steps[idx]).text, 1);
       runCues(1);
       maybeAdvance();
     };

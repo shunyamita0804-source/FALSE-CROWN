@@ -38,6 +38,16 @@ def main():
                 clip['gain'] = round(max(LO, min(HI, 10 ** ((TARGET - lufs) / 20))), 3)
                 n += 1
         json.dump(tv, open(tpath, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+    # 大会の進行の声（オブザーバー）も同じ大きさに
+    apath = os.path.join(root, 'src', 'data', 'announcer.json')
+    if os.path.exists(apath):
+        an = json.load(open(apath, encoding='utf-8'))
+        for clip in an['lines'].values():
+            lufs = measure(os.path.join(root, 'public', 'assets', an['dir'], clip['file']))
+            clip['lufs'] = round(lufs, 1)
+            clip['gain'] = round(max(LO, min(HI, 10 ** ((TARGET - lufs) / 20))), 3)
+            n += 1
+        json.dump(an, open(apath, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
     print(f'{n} 点の大きさを {TARGET} LUFS に揃えました')
 
 if __name__ == '__main__':

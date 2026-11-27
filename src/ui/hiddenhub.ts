@@ -8,7 +8,7 @@ import { engineOf, newSlot } from '../core/runner';
 import { log } from '../core/state';
 import { t } from '../i18n/i18n';
 import { saveMeta } from '../save/save';
-import { EVIDENCE, LETTERS } from '../story/hiddendata';
+import { EVIDENCE, H01_CLUES, LETTERS } from '../story/hiddendata';
 import {
   ENTRY_BY_EVENT, GAME_EVENT, HIDDEN_MINUTES, HIDDEN_NOTES, LIFT_MINUTES, VAULT_MINUTES,
   beginHidden, canNotice, canPermit, canPrepareRescue, canStartHidden, canUseLift, collectVault, confirmIsolation, endingOptions,
@@ -255,7 +255,7 @@ export async function hiddenInspect(event: string): Promise<boolean> {
   if (game) { await launchHidden(game); return true; }
   const note = HIDDEN_NOTES[event];
   if (note && s.day >= note.minDay && !(note.nightOnly && s.phase !== 'night')) {
-    await G.ui.showInspect(t(note.key));
+    await G.ui.showInspect(t(note.key, note.clues ? { a: H01_CLUES[note.clues[0]].text, b: H01_CLUES[note.clues[1]].text } : {}));
     if (event === 'archive_records' && !s.flags.passage_open) { s.flags.passage_open = true; toast(t('hid.passage'), 'good'); Sound.se('latch'); }
     gotToast(takeNote(s, event));
     G.save();
