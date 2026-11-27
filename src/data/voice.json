@@ -39,52 +39,62 @@
         "greeting": {
           "file": "01_greeting.mp3",
           "text": "おはようございます。",
-          "gain": 0.7
+          "gain": 0.661,
+          "lufs": -15.4
         },
         "hello": {
           "file": "02_hello.mp3",
           "text": "何か用ですか？",
-          "gain": 0.77
+          "gain": 0.794,
+          "lufs": -17.0
         },
         "understand": {
           "file": "03_understand.mp3",
           "text": "なるほど。",
-          "gain": 1.04
+          "gain": 0.966,
+          "lufs": -18.7
         },
         "accept": {
           "file": "04_accept.mp3",
           "text": "分かりました。",
-          "gain": 0.88
+          "gain": 0.841,
+          "lufs": -17.5
         },
         "refuse": {
           "file": "05_refuse.mp3",
           "text": "お断りします。",
-          "gain": 0.85
+          "gain": 0.767,
+          "lufs": -16.7
         },
         "thinking": {
           "file": "06_thinking.mp3",
           "text": "そうですね……。",
-          "gain": 1.4
+          "gain": 1.318,
+          "lufs": -21.4
         },
         "surprise": {
           "file": "07_surprise.mp3",
           "text": "まさか……。",
-          "gain": 1.4
+          "gain": 1.531,
+          "lufs": -22.7
         },
         "happy": {
           "file": "08_happy.mp3",
           "text": "悪くないですね。",
-          "gain": 0.9
+          "gain": 0.902,
+          "lufs": -18.1
         },
         "disappointed": {
           "file": "09_disappointed.mp3",
           "text": "困りましたね。",
-          "gain": 0.99
+          "gain": 0.977,
+          "lufs": -18.8
         },
         "thanks": {
           "file": "10_thanks.mp3",
           "text": "ありがとうございます。",
-          "gain": 0.78
+          "gain": 0.75,
+          "lufs": -16.5
         }
       }
     },
@@ -94,52 +104,62 @@
         "greeting": {
           "file": "01_greeting.mp3",
           "text": "おはよう。",
-          "gain": 0.75
+          "gain": 0.661,
+          "lufs": -15.4
         },
         "hello": {
           "file": "02_hello.mp3",
           "text": "何か用かしら？",
-          "gain": 0.89
+          "gain": 0.923,
+          "lufs": -18.3
         },
         "understand": {
           "file": "03_understand.mp3",
           "text": "なるほどね。",
-          "gain": 0.99
+          "gain": 1.0,
+          "lufs": -19.0
         },
         "accept": {
           "file": "04_accept.mp3",
           "text": "いいわ、分かった。",
-          "gain": 0.92
+          "gain": 1.0,
+          "lufs": -19.0
         },
         "refuse": {
           "file": "05_refuse.mp3",
           "text": "それはお断りするわ。",
-          "gain": 0.83
+          "gain": 0.822,
+          "lufs": -17.3
         },
         "thinking": {
           "file": "06_thinking.mp3",
           "text": "そうね……。",
-          "gain": 1.4
+          "gain": 1.288,
+          "lufs": -21.2
         },
         "surprise": {
           "file": "07_surprise.mp3",
           "text": "そんな……。",
-          "gain": 1.27
+          "gain": 1.047,
+          "lufs": -19.4
         },
         "happy": {
           "file": "08_happy.mp3",
           "text": "悪くないわね。",
-          "gain": 0.84
+          "gain": 0.794,
+          "lufs": -17.0
         },
         "disappointed": {
           "file": "09_disappointed.mp3",
           "text": "困ったものね。",
-          "gain": 0.97
+          "gain": 1.012,
+          "lufs": -19.1
         },
         "thanks": {
           "file": "10_thanks.mp3",
           "text": "ありがとう。助かったわ。",
-          "gain": 0.93
+          "gain": 0.912,
+          "lufs": -18.2
         }
       }
     },
@@ -149,52 +169,62 @@
         "greeting": {
           "file": "01_greeting.mp3",
           "text": "おはよう。",
-          "gain": 0.88
+          "gain": 0.741,
+          "lufs": -16.4
         },
         "hello": {
           "file": "02_hello.mp3",
           "text": "どうした？",
-          "gain": 1.15
+          "gain": 1.084,
+          "lufs": -19.7
         },
         "understand": {
           "file": "03_understand.mp3",
           "text": "なるほどな。",
-          "gain": 1.33
+          "gain": 1.245,
+          "lufs": -20.9
         },
         "accept": {
           "file": "04_accept.mp3",
           "text": "いいだろう。",
-          "gain": 1.1
+          "gain": 0.944,
+          "lufs": -18.5
         },
         "refuse": {
           "file": "05_refuse.mp3",
           "text": "その話は断る。",
-          "gain": 0.89
+          "gain": 0.841,
+          "lufs": -17.5
         },
         "thinking": {
           "file": "06_thinking.mp3",
           "text": "ふむ……。",
-          "gain": 1.4
+          "gain": 1.202,
+          "lufs": -20.6
         },
         "surprise": {
           "file": "07_surprise.mp3",
           "text": "なんだと？",
-          "gain": 0.95
+          "gain": 0.785,
+          "lufs": -16.9
         },
         "happy": {
           "file": "08_happy.mp3",
           "text": "ははっ、悪くない。",
-          "gain": 1.19
+          "gain": 1.084,
+          "lufs": -19.7
         },
         "disappointed": {
           "file": "09_disappointed.mp3",
           "text": "まったく、参ったな。",
-          "gain": 1.4
+          "gain": 2.239,
+          "lufs": -26.0
         },
         "thanks": {
           "file": "10_thanks.mp3",
           "text": "感謝するよ。",
-          "gain": 1.12
+          "gain": 1.072,
+          "lufs": -19.6
         }
       }
     },
@@ -204,52 +234,62 @@
         "greeting": {
           "file": "01_greeting.mp3",
           "text": "おはようございます。",
-          "gain": 0.79
+          "gain": 0.716,
+          "lufs": -16.1
         },
         "hello": {
           "file": "02_hello.mp3",
           "text": "どうしました？",
-          "gain": 1.08
+          "gain": 1.072,
+          "lufs": -19.6
         },
         "understand": {
           "file": "03_understand.mp3",
           "text": "なるほど、そうなんですね。",
-          "gain": 1.3
+          "gain": 1.23,
+          "lufs": -20.8
         },
         "accept": {
           "file": "04_accept.mp3",
           "text": "ええ、いいですよ。",
-          "gain": 1.08
+          "gain": 0.902,
+          "lufs": -18.1
         },
         "refuse": {
           "file": "05_refuse.mp3",
           "text": "ごめんなさい、それはちょっと。",
-          "gain": 1.4
+          "gain": 1.514,
+          "lufs": -22.6
         },
         "thinking": {
           "file": "06_thinking.mp3",
           "text": "どうしましょうか……。",
-          "gain": 1.4
+          "gain": 2.018,
+          "lufs": -25.1
         },
         "surprise": {
           "file": "07_surprise.mp3",
           "text": "えっ、本当ですか？",
-          "gain": 1.07
+          "gain": 0.933,
+          "lufs": -18.4
         },
         "happy": {
           "file": "08_happy.mp3",
           "text": "ふふ、嬉しいです。",
-          "gain": 1.32
+          "gain": 1.202,
+          "lufs": -20.6
         },
         "disappointed": {
           "file": "09_disappointed.mp3",
           "text": "残念ですね……。",
-          "gain": 1.1
+          "gain": 1.047,
+          "lufs": -19.4
         },
         "thanks": {
           "file": "10_thanks.mp3",
           "text": "ありがとうございます。",
-          "gain": 0.81
+          "gain": 0.741,
+          "lufs": -16.4
         }
       }
     },
@@ -259,79 +299,94 @@
         "greeting": {
           "file": "01_greeting.mp3",
           "text": "おはよっ。",
-          "gain": 0.7
+          "gain": 0.562,
+          "lufs": -14.0
         },
         "hello": {
           "file": "02_hello.mp3",
           "text": "ん？ どうした？",
-          "gain": 1.26
+          "gain": 1.047,
+          "lufs": -19.4
         },
         "understand": {
           "file": "03_understand.mp3",
           "text": "あー、なるほどね。",
-          "gain": 1.4
+          "gain": 1.603,
+          "lufs": -23.1
         },
         "accept": {
           "file": "04_accept.mp3",
           "text": "オッケー、乗った！",
-          "gain": 0.83
+          "gain": 0.7,
+          "lufs": -15.9
         },
         "refuse": {
           "file": "05_refuse.mp3",
           "text": "いや、それは無理だわ。",
-          "gain": 1.2
+          "gain": 1.122,
+          "lufs": -20.0
         },
         "thinking": {
           "file": "06_thinking.mp3",
           "text": "うーん、どうすっかな。",
-          "gain": 1.4
+          "gain": 1.718,
+          "lufs": -23.7
         },
         "surprise": {
           "file": "07_surprise.mp3",
           "text": "えっ、マジで！？",
-          "gain": 0.84
+          "gain": 0.822,
+          "lufs": -17.3
         },
         "happy": {
           "file": "08_happy.mp3",
           "text": "よっしゃ！ いいね！",
-          "gain": 0.7
+          "gain": 0.473,
+          "lufs": -12.5
         },
         "disappointed": {
           "file": "09_disappointed.mp3",
           "text": "くっそー、マジかよ。",
-          "gain": 1.23
+          "gain": 0.944,
+          "lufs": -18.5
         },
         "thanks": {
           "file": "10_thanks.mp3",
           "text": "サンキュー！ 助かったわ。",
-          "gain": 0.72
+          "gain": 0.668,
+          "lufs": -15.5
         }
       },
       "extra": {
         "introduction": {
           "file": "11_introduction.mp3",
           "text": "桐生颯。プロゲーマーやってる。こういう勝負なら、誰にも負ける気しないけどね。",
-          "gain": 0.7
+          "gain": 0.582,
+          "lufs": -14.3
         },
         "victory": {
           "file": "12_victory.mp3",
           "text": "よっしゃ！ 俺の勝ち！ まあ、実力ってやつだね。",
-          "gain": 0.7
+          "gain": 0.575,
+          "lufs": -14.2
         },
         "defeat": {
           "file": "13_defeat.mp3",
           "text": "くそっ！ 次は絶対に負けねえからな。",
-          "gain": 0.7
+          "gain": 0.589,
+          "lufs": -14.4
         },
         "elimination": {
           "file": "14_elimination.mp3",
           "text": "マジかよ……こんなところで終わりか。まだ全然、やり足りねえよ……。",
-          "gain": 1.02
+          "gain": 0.851,
+          "lufs": -17.6
         },
         "betrayal": {
           "file": "15_betrayal.mp3",
           "text": "は？ お前、俺を騙したのかよ！ ふざけんな！",
-          "gain": 0.71
+          "gain": 0.575,
+          "lufs": -14.2
         }
       }
     },
@@ -341,79 +396,94 @@
         "greeting": {
           "file": "01_greeting.mp3",
           "text": "おはよう。よく眠れた？",
-          "gain": 0.97
+          "gain": 0.891,
+          "lufs": -18.0
         },
         "hello": {
           "file": "02_hello.mp3",
           "text": "どうしたの？",
-          "gain": 1.08
+          "gain": 1.084,
+          "lufs": -19.7
         },
         "understand": {
           "file": "03_understand.mp3",
           "text": "そうだったのね。",
-          "gain": 1.26
+          "gain": 1.245,
+          "lufs": -20.9
         },
         "accept": {
           "file": "04_accept.mp3",
           "text": "ええ、もちろんよ。",
-          "gain": 0.89
+          "gain": 0.944,
+          "lufs": -18.5
         },
         "refuse": {
           "file": "05_refuse.mp3",
           "text": "ごめんなさい、それはできないわ。",
-          "gain": 1.06
+          "gain": 1.0,
+          "lufs": -19.0
         },
         "thinking": {
           "file": "06_thinking.mp3",
           "text": "少し考えさせてね。",
-          "gain": 1.04
+          "gain": 1.012,
+          "lufs": -19.1
         },
         "surprise": {
           "file": "07_surprise.mp3",
           "text": "まあ、本当に？",
-          "gain": 0.87
+          "gain": 0.832,
+          "lufs": -17.4
         },
         "happy": {
           "file": "08_happy.mp3",
           "text": "ふふっ、よかったわ。",
-          "gain": 1.4
+          "gain": 1.274,
+          "lufs": -21.1
         },
         "disappointed": {
           "file": "09_disappointed.mp3",
           "text": "そんな……残念ね。",
-          "gain": 1.38
+          "gain": 1.288,
+          "lufs": -21.2
         },
         "thanks": {
           "file": "10_thanks.mp3",
           "text": "ありがとう。本当に助かったわ。",
-          "gain": 1.11
+          "gain": 1.084,
+          "lufs": -19.7
         }
       },
       "extra": {
         "introduction": {
           "file": "11_introduction.mp3",
           "text": "橘香織です。医師をしています。困ったことがあったら、遠慮なく相談してね。",
-          "gain": 1.23
+          "gain": 1.202,
+          "lufs": -20.6
         },
         "victory": {
           "file": "12_victory.mp3",
           "text": "ふぅ……なんとか勝てたわね。安心したわ。",
-          "gain": 1.3
+          "gain": 1.23,
+          "lufs": -20.8
         },
         "defeat": {
           "file": "13_defeat.mp3",
           "text": "負けてしまったわね……次はもっと慎重に考えないと。",
-          "gain": 1.07
+          "gain": 1.059,
+          "lufs": -19.5
         },
         "elimination": {
           "file": "14_elimination.mp3",
           "text": "ここまでみたいね……。みんな、どうか無事でいてね。",
-          "gain": 1.01
+          "gain": 0.966,
+          "lufs": -18.7
         },
         "betrayal": {
           "file": "15_betrayal.mp3",
           "text": "どうして……？ あなたのこと、信じていたのに。",
-          "gain": 1.38
+          "gain": 1.23,
+          "lufs": -20.8
         }
       }
     },
@@ -423,79 +493,94 @@
         "greeting": {
           "file": "01_greeting.mp3",
           "text": "（文面は未確認）",
-          "gain": 0.79
+          "gain": 0.794,
+          "lufs": -17.0
         },
         "hello": {
           "file": "02_hello.mp3",
           "text": "（文面は未確認）",
-          "gain": 1.12
+          "gain": 0.767,
+          "lufs": -16.7
         },
         "understand": {
           "file": "03_understand.mp3",
           "text": "（文面は未確認）",
-          "gain": 1.4
+          "gain": 1.429,
+          "lufs": -22.1
         },
         "accept": {
           "file": "04_accept.mp3",
           "text": "（文面は未確認）",
-          "gain": 1.24
+          "gain": 1.245,
+          "lufs": -20.9
         },
         "refuse": {
           "file": "05_refuse.mp3",
           "text": "（文面は未確認）",
-          "gain": 0.79
+          "gain": 0.684,
+          "lufs": -15.7
         },
         "thinking": {
           "file": "06_thinking.mp3",
           "text": "（文面は未確認）",
-          "gain": 1.4
+          "gain": 1.462,
+          "lufs": -22.3
         },
         "surprise": {
           "file": "07_surprise.mp3",
           "text": "（文面は未確認）",
-          "gain": 1.06
+          "gain": 0.912,
+          "lufs": -18.2
         },
         "happy": {
           "file": "08_happy.mp3",
           "text": "（文面は未確認）",
-          "gain": 0.87
+          "gain": 0.692,
+          "lufs": -15.8
         },
         "disappointed": {
           "file": "09_disappointed.mp3",
           "text": "（文面は未確認）",
-          "gain": 1.4
+          "gain": 1.567,
+          "lufs": -22.9
         },
         "thanks": {
           "file": "10_thanks.mp3",
           "text": "（文面は未確認）",
-          "gain": 1.35
+          "gain": 1.161,
+          "lufs": -20.3
         }
       },
       "extra": {
         "introduction": {
           "file": "11_introduction.mp3",
           "text": "堂島誠司だ。昔は刑事をやっていた。まあ、よろしく頼むよ。",
-          "gain": 0.85
+          "gain": 0.684,
+          "lufs": -15.7
         },
         "victory": {
           "file": "12_victory.mp3",
           "text": "ふう……長年の経験も、まだ捨てたもんじゃないな。",
-          "gain": 1.26
+          "gain": 1.175,
+          "lufs": -20.4
         },
         "defeat": {
           "file": "13_defeat.mp3",
           "text": "まいったな。どうやら俺の読みが甘かったようだ。",
-          "gain": 1.05
+          "gain": 0.955,
+          "lufs": -18.6
         },
         "elimination": {
           "file": "14_elimination.mp3",
           "text": "俺はここまでか……。お前ら、最後まで諦めるんじゃないぞ。",
-          "gain": 0.7
+          "gain": 0.582,
+          "lufs": -14.3
         },
         "betrayal": {
           "file": "15_betrayal.mp3",
           "text": "そうか……俺も随分と人を見る目が鈍ったもんだな。",
-          "gain": 1.06
+          "gain": 0.966,
+          "lufs": -18.7
         }
       }
     },
@@ -505,79 +590,94 @@
         "greeting": {
           "file": "01_greeting.mp3",
           "text": "おはよー！",
-          "gain": 0.85
+          "gain": 0.603,
+          "lufs": -14.6
         },
         "hello": {
           "file": "02_hello.mp3",
           "text": "ん？ なになに？",
-          "gain": 1.22
+          "gain": 1.0,
+          "lufs": -19.0
         },
         "understand": {
           "file": "03_understand.mp3",
           "text": "あっ、そっか！",
-          "gain": 1.4
+          "gain": 1.396,
+          "lufs": -21.9
         },
         "accept": {
           "file": "04_accept.mp3",
           "text": "うん！ いいよ！",
-          "gain": 0.9
+          "gain": 0.684,
+          "lufs": -15.7
         },
         "refuse": {
           "file": "05_refuse.mp3",
           "text": "ごめん、それはちょっと……。",
-          "gain": 1.4
+          "gain": 1.549,
+          "lufs": -22.8
         },
         "thinking": {
           "file": "06_thinking.mp3",
           "text": "うーん、どうしようかな。",
-          "gain": 1.4
+          "gain": 1.82,
+          "lufs": -24.2
         },
         "surprise": {
           "file": "07_surprise.mp3",
           "text": "ええっ！？ うそ！",
-          "gain": 0.78
+          "gain": 0.61,
+          "lufs": -14.7
         },
         "happy": {
           "file": "08_happy.mp3",
           "text": "やったー！ うれしい！",
-          "gain": 0.76
+          "gain": 0.575,
+          "lufs": -14.2
         },
         "disappointed": {
           "file": "09_disappointed.mp3",
           "text": "うぅ……悔しいなぁ。",
-          "gain": 1.4
+          "gain": 2.692,
+          "lufs": -27.6
         },
         "thanks": {
           "file": "10_thanks.mp3",
           "text": "ありがとう！ 本当に助かったよ！",
-          "gain": 0.85
+          "gain": 0.741,
+          "lufs": -16.4
         }
       },
       "extra": {
         "introduction": {
           "file": "11_introduction.mp3",
           "text": "朝比奈ひまりです！ 大学生です。ちょっと緊張してるけど、みんなよろしくね！",
-          "gain": 1.01
+          "gain": 0.861,
+          "lufs": -17.7
         },
         "victory": {
           "file": "12_victory.mp3",
           "text": "やったー！ 私、勝てたんだ！ えへへ、すっごくうれしい！",
-          "gain": 0.81
+          "gain": 0.653,
+          "lufs": -15.3
         },
         "defeat": {
           "file": "13_defeat.mp3",
           "text": "うぅ……負けちゃった。次はもっと頑張るから！",
-          "gain": 1.08
+          "gain": 0.794,
+          "lufs": -17.0
         },
         "elimination": {
           "file": "14_elimination.mp3",
           "text": "そっか……もう終わりなんだね。もっとみんなと一緒にいたかったな……。",
-          "gain": 1.4
+          "gain": 1.567,
+          "lufs": -22.9
         },
         "betrayal": {
           "file": "15_betrayal.mp3",
           "text": "うそ……だよね？ 私、本当に信じてたんだよ……。",
-          "gain": 1.4
+          "gain": 1.245,
+          "lufs": -20.9
         }
       }
     },
@@ -587,79 +687,94 @@
         "greeting": {
           "file": "01_greeting.mp3",
           "text": "やあ、おはよう。",
-          "gain": 0.8
+          "gain": 0.794,
+          "lufs": -17.0
         },
         "hello": {
           "file": "02_hello.mp3",
           "text": "俺に何か用かい？",
-          "gain": 0.7
+          "gain": 0.596,
+          "lufs": -14.5
         },
         "understand": {
           "file": "03_understand.mp3",
           "text": "なるほど、そう来たか。",
-          "gain": 1.4
+          "gain": 1.445,
+          "lufs": -22.2
         },
         "accept": {
           "file": "04_accept.mp3",
           "text": "いいだろう。乗ったよ。",
-          "gain": 0.95
+          "gain": 0.841,
+          "lufs": -17.5
         },
         "refuse": {
           "file": "05_refuse.mp3",
           "text": "悪いね。その話は見送るよ。",
-          "gain": 0.77
+          "gain": 0.692,
+          "lufs": -15.8
         },
         "thinking": {
           "file": "06_thinking.mp3",
           "text": "さて、どう出るべきかな。",
-          "gain": 1.07
+          "gain": 0.902,
+          "lufs": -18.1
         },
         "surprise": {
           "file": "07_surprise.mp3",
           "text": "おっと、これは意外だ。",
-          "gain": 0.93
+          "gain": 0.891,
+          "lufs": -18.0
         },
         "happy": {
           "file": "08_happy.mp3",
           "text": "ふっ、悪くないね。",
-          "gain": 1.0
+          "gain": 0.804,
+          "lufs": -17.1
         },
         "disappointed": {
           "file": "09_disappointed.mp3",
           "text": "参ったね。読み違えたか。",
-          "gain": 1.4
+          "gain": 1.738,
+          "lufs": -23.8
         },
         "thanks": {
           "file": "10_thanks.mp3",
           "text": "ありがとう。借りができたね。",
-          "gain": 0.86
+          "gain": 0.676,
+          "lufs": -15.6
         }
       },
       "extra": {
         "introduction": {
           "file": "11_introduction.mp3",
           "text": "九条蓮司だ。職業はギャンブラー。せっかくの大会だ、楽しませてもらうよ。",
-          "gain": 0.83
+          "gain": 0.724,
+          "lufs": -16.2
         },
         "victory": {
           "file": "12_victory.mp3",
           "text": "ふっ、どうやら今回も俺の読みが正しかったようだね。",
-          "gain": 0.84
+          "gain": 0.708,
+          "lufs": -16.0
         },
         "defeat": {
           "file": "13_defeat.mp3",
           "text": "参ったね。まさか、ここまで読みを外すとは。",
-          "gain": 1.12
+          "gain": 0.955,
+          "lufs": -18.6
         },
         "elimination": {
           "file": "14_elimination.mp3",
           "text": "ここで終わりか。まあ、勝負の世界じゃこんなこともあるさ。楽しかったよ。",
-          "gain": 0.82
+          "gain": 0.7,
+          "lufs": -15.9
         },
         "betrayal": {
           "file": "15_betrayal.mp3",
           "text": "ふっ、俺を出し抜くとはね。大したもんだよ。ただし、忘れないからな。",
-          "gain": 0.89
+          "gain": 0.7,
+          "lufs": -15.9
         }
       }
     },
@@ -669,79 +784,94 @@
         "greeting": {
           "file": "01_greeting.mp3",
           "text": "おはよう。今日もよろしくね。",
-          "gain": 1.11
+          "gain": 0.955,
+          "lufs": -18.6
         },
         "hello": {
           "file": "02_hello.mp3",
           "text": "あら、私に何か用？",
-          "gain": 1.4
+          "gain": 1.334,
+          "lufs": -21.5
         },
         "understand": {
           "file": "03_understand.mp3",
           "text": "なるほどね。そういうこと。",
-          "gain": 1.4
+          "gain": 1.349,
+          "lufs": -21.6
         },
         "accept": {
           "file": "04_accept.mp3",
           "text": "ええ、喜んで。",
-          "gain": 1.02
+          "gain": 0.912,
+          "lufs": -18.2
         },
         "refuse": {
           "file": "05_refuse.mp3",
           "text": "悪いけれど、お断りするわ。",
-          "gain": 1.19
+          "gain": 1.175,
+          "lufs": -20.4
         },
         "thinking": {
           "file": "06_thinking.mp3",
           "text": "そうねぇ……どうしようかしら。",
-          "gain": 1.4
+          "gain": 1.799,
+          "lufs": -24.1
         },
         "surprise": {
           "file": "07_surprise.mp3",
           "text": "まあ！ 驚いたわ。",
-          "gain": 1.0
+          "gain": 0.891,
+          "lufs": -18.0
         },
         "happy": {
           "file": "08_happy.mp3",
           "text": "ふふっ、素晴らしいわね。",
-          "gain": 1.12
+          "gain": 0.933,
+          "lufs": -18.4
         },
         "disappointed": {
           "file": "09_disappointed.mp3",
           "text": "はぁ……期待外れね。",
-          "gain": 1.4
+          "gain": 1.567,
+          "lufs": -22.9
         },
         "thanks": {
           "file": "10_thanks.mp3",
           "text": "ありがとう。感謝しているわ。",
-          "gain": 1.23
+          "gain": 1.072,
+          "lufs": -19.6
         }
       },
       "extra": {
         "introduction": {
           "file": "11_intro.mp3",
           "text": "如月麗華よ。女優をしているわ。ふふ、退屈しない大会になるといいわね。",
-          "gain": 1.19
+          "gain": 1.072,
+          "lufs": -19.6
         },
         "victory": {
           "file": "12_victory.mp3",
           "text": "ふふっ、当然の結果ね。私、負けるのは好きじゃないの。",
-          "gain": 1.22
+          "gain": 1.072,
+          "lufs": -19.6
         },
         "defeat": {
           "file": "13_defeat.mp3",
           "text": "悔しいわね……。次はこんな無様な姿、見せないわ。",
-          "gain": 1.04
+          "gain": 0.832,
+          "lufs": -17.4
         },
         "elimination": {
           "file": "14_elimination.mp3",
           "text": "どうやら、私の出番はここまでのようね。最後まで楽しませてもらったわ。",
-          "gain": 1.02
+          "gain": 0.989,
+          "lufs": -18.9
         },
         "betrayal": {
           "file": "15_betrayal.mp3",
           "text": "あら……随分とお上手な演技だったのね。女優の私が騙されるなんて。",
-          "gain": 1.1
+          "gain": 1.0,
+          "lufs": -19.0
         }
       }
     },
@@ -751,54 +881,100 @@
         "greeting": {
           "file": "01_greeting.mp3",
           "text": "おはよう。今日もよろしく頼むよ。",
-          "gain": 0.98
+          "gain": 0.891,
+          "lufs": -18.0
         },
         "hello": {
           "file": "02_hello.mp3",
           "text": "ふむ、何か用かね？",
-          "gain": 1.19
+          "gain": 1.109,
+          "lufs": -19.9
         },
         "understand": {
           "file": "03_understand.mp3",
           "text": "なるほど、実に興味深い。",
-          "gain": 1.4
+          "gain": 1.928,
+          "lufs": -24.7
         },
         "accept": {
           "file": "04_accept.mp3",
           "text": "よろしい。引き受けよう。",
-          "gain": 1.3
+          "gain": 1.096,
+          "lufs": -19.8
         },
         "refuse": {
           "file": "05_refuse.mp3",
           "text": "残念だが、賛同しかねるね。",
-          "gain": 1.3
+          "gain": 1.245,
+          "lufs": -20.9
         },
         "thinking": {
           "file": "06_thinking.mp3",
           "text": "ふむ……もう少し考える必要があるな。",
-          "gain": 1.4
+          "gain": 1.462,
+          "lufs": -22.3
         },
         "surprise": {
           "file": "07_surprise.mp3",
           "text": "ほう！ これは予想外だ。",
-          "gain": 0.91
+          "gain": 0.767,
+          "lufs": -16.7
         },
         "happy": {
           "file": "08_happy.mp3",
           "text": "はっはっは、実に素晴らしい。",
-          "gain": 1.29
+          "gain": 1.122,
+          "lufs": -20.0
         },
         "disappointed": {
           "file": "09_disappointed.mp3",
           "text": "むぅ……私としたことが。",
-          "gain": 1.4
+          "gain": 2.113,
+          "lufs": -25.5
         },
         "thanks": {
           "file": "10_thanks.mp3",
           "text": "ありがとう。心から感謝するよ。",
-          "gain": 1.24
+          "gain": 1.0,
+          "lufs": -19.0
+        }
+      },
+      "extra": {
+        "introduction": {
+          "file": "11_introduction.mp3",
+          "text": "久世宗一郎と申します。大学で教鞭を執っております。実に興味深い大会だね。",
+          "gain": 0.912,
+          "lufs": -18.2
+        },
+        "victory": {
+          "file": "12_victory.mp3",
+          "text": "はっはっは。どうやら、私の仮説は正しかったようだね。",
+          "gain": 1.096,
+          "lufs": -19.8
+        },
+        "defeat": {
+          "file": "13_defeat.mp3",
+          "text": "なるほど……私の考えには、まだ甘いところがあったようだ。",
+          "gain": 0.933,
+          "lufs": -18.4
+        },
+        "elimination": {
+          "file": "14_elimination.mp3",
+          "text": "残念だが、私の挑戦はここまでだ。諸君の健闘を心から祈っているよ。",
+          "gain": 0.923,
+          "lufs": -18.3
+        },
+        "betrayal": {
+          "file": "15_betrayal.mp3",
+          "text": "そうか……人間の心理というものは、いくつになっても理解しきれないものだね。",
+          "gain": 1.047,
+          "lufs": -19.4
         }
       }
     }
+  },
+  "loudness": {
+    "target": -19.0,
+    "note": "聞こえる大きさ（LUFS）を測り、全員が target に揃う倍率を gain に入れている（scripts/level-voices.py）"
   }
 }
