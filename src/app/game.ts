@@ -5,7 +5,7 @@
  */
 import { Sound, type BgmId } from '../audio/audio';
 import { engineOf, newSlot, resolveTies, runToEnd } from '../core/runner';
-import { addInfo, adjustRel, aliveIds, learn, log, nameOf, shortName, transfer } from '../core/state';
+import { addInfo, adjustRel, aliveIds, learn, log, nameOf, rngOf, shortName, transfer } from '../core/state';
 import { applyMainResult, applyPrisonResult, endDay, gatherAt, mainMatchId, moveToHouses, prisonMatchId, startMorning } from '../core/tournament';
 import type { GameState, MatchSlot, Phase } from '../core/types';
 import type { CharId, NpcId } from '../data/characters';
@@ -14,6 +14,7 @@ import endingsJson from '../data/endings.json';
 import { t } from '../i18n/i18n';
 import { clampPhaseLeft, clockMinutes, crossed, fmtClock, phaseDuration } from '../core/clock';
 import { isImplemented } from '../matches/registry';
+import { addInvite, clearSocial, INVITE_TIME, isBedroom, observeAttitude, ownerOf, witnessEntry } from '../npc/social';
 
 /** その日のメインマッチと監獄マッチが両方とも実装済みか */
 const dayPlayable = (day: number) => isImplemented(mainMatchId(day)) && (!prisonMatchId(day) || isImplemented(prisonMatchId(day)!));
@@ -26,7 +27,7 @@ import { alertDialog, anyModal, choose, clockPaused, confirmDialog, fade, toast,
 import { fxPop } from '../ui/art';
 import { canEnter, denyReason } from '../world/access';
 import { ROOMS } from '../world/maps';
-import { enterDoor, moveActor, placeIn, speedOf } from '../world/sim';
+import { enterDoor, moveActor, placeIn, setRouteTo, speedOf } from '../world/sim';
 import { CHANNEL, dayUnlocked } from './entitlement';
 
 export interface StoryLine {
@@ -88,6 +89,8 @@ export const G = {
   /** プレイヤーがフィールドを操作できる */
   fieldActive: false,
   fieldVisible: false,
+  /** 描画の状況（実機での確認用。設定画面に表示する） */
+  perf: { fps: 0, slow: 0, w: 0, h: 0 },
   /** 会話中など、NPC から話しかけられない状態 */
   heroBusy: false,
   meta: loadMeta() as Meta,
@@ -126,7 +129,7 @@ export const G = {
     }
   },
 
-  interact(target: Target): void {
+  interact(target: Target, quiet = false): void {
     const s = G.state;
     if (!s || !target || !G.fieldActive || anyModal()) return;
     if (target.kind === 'npc') {
@@ -134,13 +137,17 @@ export const G = {
     } else if (target.kind === 'door') {
       const d = target.door;
       if (canEnter(s, 'hero', d.to, d.lock)) {
+        const from = s.actors.hero.pos.room;
         if (enterDoor(s, s.actors.hero, d)) {
+          // 他人の個室へ入るところは、廊下にいた人に見られることがある
+          if (isBedroom(d.to) && d.to !== 'bedroom_hero') witnessEntry(s, ownerOf(d.to), 'hero', from, rngOf(s));
           Sound.se(d.kind === 'iron' ? 'latch' : 'doorOpen');
           lastStepKey = '';
           setFieldBgm();
         }
       } else {
-        const why = denyReason(s, d.to, d.lock);
+        // 歩いて扉に触れただけの時は何も出さない（行動ボタンを押した時だけ理由を伝える）
+        const why = quiet ? '' : denyReason(s, d.to, d.lock);
         if (why) {
           Sound.se('locked');
           toast(why, 'info', 2200);
@@ -187,6 +194,27 @@ function onBrainEvent(e: BrainEvent): void {
     if (anyModal() || G.heroBusy) return;
     Sound.se('notice');
     void G.ui.talkTo(e.npc, { event: e });
+  } else if (e.type === 'invite') {
+    if (anyModal() || G.heroBusy) return;
+    Sound.se('notice');
+    const npc = e.npc;
+    const name = shortName(s, npc);
+    G.heroBusy = true;
+    void choose(t('inviteIn.title', { name }), t('inviteIn.text', { name }), [{ label: t('inviteIn.yes'), value: true, kind: 'primary' }, { label: t('inviteIn.no'), value: false }], { cancel: false, pauses: false }).then((ok) => {
+      G.heroBusy = false;
+      const a = s.actors[npc];
+      if (!ok || !a.alive || !addInvite(s, npc, 'hero')) return;
+      observeAttitude(s, npc, 4);
+      a.goal = { kind: 'goto', room: `bedroom_${npc}`, note: 'host:hero', until: s.simTime + INVITE_TIME };
+      a.path = [];
+      a.route = [];
+      setRouteTo(s, a, `bedroom_${npc}`);
+      toast(t('inviteIn.go', { name }), 'info', 3600);
+    });
+  } else if (e.type === 'sight' && e.other) {
+    G.ui.hudLog(t('log.sawEnter', { a: shortName(s, e.npc), b: shortName(s, e.other) }));
+  } else if (e.type === 'followEnd') {
+    G.ui.hudLog(t('log.followEnd', { a: shortName(s, e.npc) }));
   } else if (e.type === 'talk' && e.other) {
     G.ui.hudLog(t('log.sawTalk', { a: shortName(s, e.npc), b: shortName(s, e.other) }));
   } else if (e.type === 'deal' && e.other) {
@@ -209,7 +237,8 @@ export function setFieldBgm(): void {
   else if (room.id === 'living_hallway') id = 'corridor';
   else if (room.id.endsWith('lounge')) id = 'lounge';
   else if (room.area === 'common' || room.area === 'ground') id = 'common';
-  Sound.bgm(id);
+  // 部屋を移る時は、少し長めに重ねて切り替える
+  Sound.bgm(id, 1500);
 }
 
 // ---------------- 時計 ----------------
@@ -335,6 +364,8 @@ function freePhase(): Promise<void> {
   return new Promise((res) => {
     freeEnd = () => {
       freeEnd = null;
+      // 締切：同行と招待を解く（成立済みの取引は残る）
+      clearSocial(s);
       G.fieldActive = false;
       s.actors.hero.path = [];
       res();

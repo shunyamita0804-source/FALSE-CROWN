@@ -16,6 +16,7 @@ import { getLang, LANGS, setLang, t, type Lang } from '../i18n/i18n';
 import { CATALOG, isImplemented, MATCHES } from '../matches/registry';
 import { TIEBREAK } from '../matches/tiebreak';
 import { describeDeal } from '../npc/negotiation';
+import { attitudeStep } from '../npc/social';
 import { deleteSave, exportSave, hasSave, importSave, saveMeta } from '../save/save';
 import { canEnter } from '../world/access';
 import { ROOMS } from '../world/maps';
@@ -187,7 +188,7 @@ export function showInspect(text: string): Promise<void> {
 // ---------------- HUD ----------------
 
 let hudLayer: Layer | null = null;
-let hudEls: { day: HTMLElement; phase: HTMLElement; timer: HTMLElement; room: HTMLElement; pieces: HTMLElement; prompt: HTMLElement; log: HTMLElement; skip: HTMLElement } | null = null;
+let hudEls: { day: HTMLElement; phase: HTMLElement; timer: HTMLElement; room: HTMLElement; pieces: HTMLElement; prompt: HTMLElement; log: HTMLElement; skip: HTMLElement; act: HTMLElement } | null = null;
 let lastTick = -1;
 
 export function hudShow(v: boolean): void {
@@ -209,7 +210,8 @@ export function hudShow(v: boolean): void {
     if (await confirmDialog(t('hud.skipTitle'), t('hud.skipText'), { ok: t('hud.skipOk'), cancel: t('common.cancel') })) G.skipFree();
   }, { small: true, kind: 'ghost' });
   const pad = h('div', { class: 'touch-pad' }, (['up', 'down', 'left', 'right'] as const).map((d) => h('button', { class: d, type: 'button', 'data-key': d, 'aria-label': d }, { up: '▲', down: '▼', left: '◀', right: '▶' }[d])));
-  const act = h('div', { class: 'touch-act' }, h('button', { type: 'button', 'data-key': 'a' }, t('hud.act')));
+  const actBtn = h('button', { type: 'button', 'data-key': 'a' }, h('span', { class: 'act-label' }, ''));
+  const act = h('div', { class: 'touch-act' }, actBtn);
   const el = h('div', null,
     h('div', { class: 'hud' },
       h('div', { class: 'hud-band' },
@@ -222,7 +224,7 @@ export function hudShow(v: boolean): void {
     logBox, prompt, pad, act,
   );
   hudLayer = openLayer(el, { modal: false, name: 'hud' });
-  hudEls = { day, phase, timer, room, pieces: pc, prompt, log: logBox, skip };
+  hudEls = { day, phase, timer, room, pieces: pc, prompt, log: logBox, skip, act: actBtn };
   hudUpdate();
 }
 
@@ -247,8 +249,14 @@ export function hudUpdate(): void {
   e.pieces.textContent = String(s.actors.hero.pieces);
   e.skip.style.display = free && !curfew ? '' : 'none';
   const tg = G.fieldActive ? G.field?.target : null;
+  // 行動ボタンの文字は、いまできることを 1 語だけ出す（何もなければ空）
+  const actLabel = !tg ? '' : tg.kind === 'npc' ? t('act.talk') : tg.kind === 'door' ? t('act.enter') : t('act.inspect');
+  const al = e.act.firstElementChild as HTMLElement;
+  if (al.textContent !== actLabel) al.textContent = actLabel;
+  e.act.classList.toggle('idle', !tg);
   if (tg) {
-    const label = tg.kind === 'npc' ? t('prompt.talk', { name: shortName(s, tg.id) }) : tg.kind === 'door' ? t('prompt.door', { name: tg.door.label }) : t('prompt.inspect');
+    const owner = tg.kind === 'door' && tg.door.to.startsWith('bedroom_') ? tg.door.to.slice(8) : '';
+    const label = tg.kind === 'npc' ? t('prompt.talk', { name: shortName(s, tg.id) }) : tg.kind === 'door' ? t('prompt.door', { name: owner && owner !== 'hero' ? t('door.roomOf', { name: shortName(s, owner) }) : tg.door.label }) : t('prompt.inspect');
     if (e.prompt.dataset.label !== label) {
       e.prompt.dataset.label = label;
       clear(e.prompt);
@@ -327,13 +335,29 @@ function renderTab(s: GameState, tab: Tab, close: () => void, rerender: () => vo
         const def = NPC_BY_ID[id];
         const met = !!s.flags[`heroMet_${id}`];
         const deals = activeDeals(s, 'hero', id);
-        return h('div', { class: 'entry row', style: 'gap:12px;align-items:flex-start' }, face(id),
+        if (!a.alive) {
+          // 脱落者は状態だけを残す
+          return h('div', { class: 'entry row rel-out', style: 'gap:12px;align-items:center' }, face(id), h('b', null, def.name), h('span', { class: 'tag' }, t('people.out', { day: a.eliminatedDay ?? 0 })));
+        }
+        // 推定の好意：主人公が観測した会話と行動だけから動く（本当の値ではない）
+        const step = attitudeStep(s, id);
+        const gaugeEl = h('div', { class: 'rel-gauge', title: t('people.estimate') }, h('small', null, t('people.estimate')),
+          step === 0 ? h('span', { class: 'dim small' }, t('people.unknown')) : h('span', { class: `rel-steps s${step}` }, [1, 2, 3, 4, 5].map((n) => h('i', { class: n <= step ? 'on' : '' }))),
+          step === 0 ? null : h('small', { class: 'dim' }, t(`people.step${step}`)));
+        // この人物について知っていること：自分で確認した事実と、伝聞や推測を分ける
+        const about = Object.entries(hero.knows).map(([k, kn]) => ({ info: s.infos[k], kn })).filter((x) => x.info && x.info.about.includes(id) && x.info.kind !== 'profile' && x.info.kind !== 'result' && x.info.kind !== 'clue');
+        const facts = about.filter((x) => x.kn.from === 'self' && x.kn.conf >= 0.9 && !x.info.tags.includes('sighting'));
+        const sights = about.filter((x) => x.info.tags.includes('sighting'));
+        const rumors = about.filter((x) => !facts.includes(x) && !sights.includes(x));
+        const lines = (list: typeof about, cls: string, label: string) => list.slice(-3).map((x) => h('div', { class: 'small rel-line' }, h('span', { class: `tag ${cls}` }, label), ' ', x.info.text));
+        return h('div', { class: 'entry row', style: 'gap:12px;align-items:flex-start' }, face(id), gaugeEl,
           h('div', { class: 'col grow', style: 'gap:2px' },
             h('div', null, h('b', null, def.name), '　', h('span', { class: 'dim small' }, met ? `${def.age}${t('people.age')}・${def.job}` : t('people.unmet')),
               a.alive ? (a.house ? h('span', { class: `tag ${a.house === 'living' ? 'living' : ''}` }, t(a.house === 'prison' ? 'house.prison' : 'house.living')) : null) : h('span', { class: 'tag' }, t('people.out', { day: a.eliminatedDay ?? 0 }))),
             met ? h('div', { class: 'small' }, def.profile) : null,
             a.alive ? h('div', { class: 'small dim' }, t('people.pieces'), ' ', String(a.pieces)) : null,
             ...deals.map((d) => h('div', { class: 'small gold' }, describeDeal(s, d))),
+            ...lines(facts, 'fact', t('people.fact')), ...lines(sights, '', t('people.sight')), ...lines(rumors, '', t('people.rumor')),
           ));
       })];
     }
@@ -388,7 +412,7 @@ function renderTab(s: GameState, tab: Tab, close: () => void, rerender: () => vo
             location.reload();
           }
         }, { kind: 'danger' }),
-      )];
+      ), h('div', { class: 'dim small', style: 'margin-top:12px' }, t('system.perf', { v: __APP_VERSION__, fps: Math.round(G.perf.fps), slow: G.perf.slow, w: G.perf.w, h: G.perf.h, sw: Math.round(window.innerWidth), sh: Math.round(window.innerHeight) }))];
   }
 }
 

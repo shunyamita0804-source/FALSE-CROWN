@@ -40,12 +40,15 @@ export const CONFIG = {
     /** NPC の思考間隔（シミュレーション時間ミリ秒） */
     thinkInterval: 1500,
     /** 歩行速度（タイル/秒） */
-    walkSpeed: 3.2,
-    heroWalkSpeed: 4.6,
+    walkSpeed: 2.1,
+    heroWalkSpeed: 4.0,
     /** 会話の最短間隔（同じ相手） */
-    talkCooldown: 45_000,
+    talkCooldown: 80_000,
     /** プレイヤーに話しかける最短間隔 */
-    approachHeroCooldown: 60_000,
+    approachHeroCooldown: 90_000,
+    /** 主人公が近づいた時に立ち止まって待つ時間と、次に待つまでの間隔（ミリ秒） */
+    waitForHero: 7000,
+    waitForHeroCooldown: 12_000,
   },
   /** 難易度ごとの NPC 思考の深さ・誤差（隠し情報は解禁しない） */
   difficulty: {

@@ -130,8 +130,9 @@ export function witnessEntry(state: GameState, host: CharId, guest: CharId, from
     if (o.id === host || o.id === guest || !o.alive) continue;
     // 距離：扉の近く（入った人の直前の位置は分からないので、部屋の主の扉から 9 マス以内）
     const door = ROOMS[fromRoom]?.doors.find((d) => d.to === bedroomOf(host));
-    const dx = door ? Math.abs(o.pos.x - door.x) : 0;
-    const dy = door ? Math.abs(o.pos.y - door.y) : 0;
+    const tile = door?.tiles[0];
+    const dx = tile ? Math.abs(o.pos.x - tile.x) : 0;
+    const dy = tile ? Math.abs(o.pos.y - tile.y) : 0;
     if (dx + dy > 9) continue;
     if (o.id !== 'hero') {
       // 観察力が低い人は見落とすことがある

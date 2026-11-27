@@ -14,6 +14,9 @@
   - 楽曲ページ：https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100806
   - 使用場面：生活棟の廊下
   - 加工：なし（同上）
+- "Avec Soin" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License（https://creativecommons.org/licenses/by/4.0/）
+  - 楽曲ページ：https://remote.incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100860 （公開日 2011-10-03、ISRC USUAN1100860）
+  - 使用箇所：個室。音源ファイルは未加工（avec_soin.mp3）。曲の切り替え時のフェードと繰り返しは再生時の処理で、ファイルには手を加えていない
 - 注意：Shiny Tech は、作者の過去の記事に Content ID の誤検出と類似旋律に関する記述がある。宣伝動画に使う前に確認すること（https://incompetech.com/wordpress/2011/11/music-plus-youtube-update/ 、https://incompetech.com/wordpress/2006/11/electronica-jam-ii/ ）。
 
 ### PeriTune
@@ -29,7 +32,7 @@ Music: PeriTune（https://peritune.com/）
 | ID | 曲名 | 公開日 | 楽曲ページ | 使用場面 | ライセンス | 加工 |
 |---|---|---|---|---|---|---|
 | B03 | TaishoRoman_Theme2 | 2020-11-19 | https://peritune.com/blog/2020/11/19/taishoroman_theme2/ | 共用施設・食堂 | CC BY 4.0 | なし |
-| B03_ALT | Coffee_Lounge | 2016-08-17 | https://peritune.com/blog/2016/08/17/coffee_lounge/ | ラウンジ、個室と生活棟の部屋（暫定） | CC BY 4.0 | なし |
+| B03_ALT | Coffee_Lounge | 2016-08-17 | https://peritune.com/blog/2016/08/17/coffee_lounge/ | ラウンジ、生活棟の部屋（暫定） | CC BY 4.0 | なし |
 | B04 | Suspense3 | 2015-08-29 | https://peritune.com/blog/2015/08/29/suspense3/ ※ | 監獄棟 | CC BY 4.0 | なし |
 | B05 | Investigation2 | 2016-01-17 | https://peritune.com/blog/2016/01/17/investigation2/ ※ | 交渉・メインマッチ | CC BY 4.0 | なし |
 | B07 | Suspense2 | 2015-06-08 | https://peritune.com/blog/2015/06/08/suspense2/ ※ | 監獄マッチ・地下施設 | CC BY 4.0 | なし |

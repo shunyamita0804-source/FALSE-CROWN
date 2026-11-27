@@ -15,7 +15,14 @@ export function canEnter(state: GameState, who: CharId, roomId: string, lock?: s
   if (lock && !state.flags[lock]) return false;
   // 消灯（22:00）後は、自分の個室から出られない
   if (state.phase === 'curfew') return roomId === `bedroom_${who}`;
-  if (roomId.startsWith('bedroom_')) return roomId === `bedroom_${who}`;
+  // 個室は本人と、本人が招いた相手だけ（v10）
+  if (roomId.startsWith('bedroom_')) {
+    if (roomId === `bedroom_${who}`) return true;
+    // 招かれて入った後、話が終わって出るまでは居てよい（入り直すことはできない）
+    if (state.actors[who]?.pos.room === roomId) return true;
+    const inv = (state as GameState & { invites?: { host: CharId; guest: CharId; until: number }[] }).invites;
+    return !!inv?.some((i) => `bedroom_${i.host}` === roomId && i.guest === who && i.until > state.simTime);
+  }
   const a = state.actors[who];
   if (room.area === 'secret') return who === 'hero';
   if (a.house === 'living') return room.area !== 'prison';
@@ -31,7 +38,7 @@ export function passFn(state: GameState, who: CharId) {
 export function denyReason(state: GameState, roomId: string, lock?: string): string {
   const room = ROOMS[roomId];
   if (state.phase === 'curfew') return '消灯時間を過ぎている。朝まで個室から出られない。';
-  if (roomId.startsWith('bedroom_')) return '他の参加者の個室には入れない。';
+  if (roomId.startsWith('bedroom_')) return '他の参加者の個室には、招かれない限り入れない。';
   if (lock && !state.flags[lock]) return room.area === 'secret' ? '' : '鍵がかかっている。';
   const h = state.actors.hero.house;
   if (h === 'living' && room.area === 'prison') return '生活棟の参加者は、いま監獄棟へ下りられない。';
