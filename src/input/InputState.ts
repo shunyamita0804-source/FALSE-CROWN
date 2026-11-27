@@ -62,7 +62,11 @@ class InputStateImpl {
       const name = el.dataset.key as ButtonName;
       const on = (e: PointerEvent) => {
         e.preventDefault();
-        el.setPointerCapture?.(e.pointerId);
+        try {
+          el.setPointerCapture(e.pointerId);
+        } catch {
+          // ポインターを捕捉できない環境では無視する
+        }
         this.touch.add(name);
         el.classList.add('pressed');
       };

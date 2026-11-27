@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
 import { registerSW } from 'virtual:pwa-register';
 import './style.css';
-import { GAME_WIDTH, GAME_HEIGHT, BACKGROUND_COLOR } from './config/display';
-import { installIntegerScaling } from './scale';
+import { BACKGROUND_COLOR } from './config/display';
+import { installNativeResolution } from './display/viewport';
 import { BootScene } from './scenes/BootScene';
-import { PlaceholderScene } from './scenes/PlaceholderScene';
+import { FieldScene } from './scenes/FieldScene';
+import { UIScene } from './scenes/UIScene';
 
 // タッチ端末ではタッチ操作ボタンを表示
 if (window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window) {
@@ -14,21 +15,21 @@ if (window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window) 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',
-  width: GAME_WIDTH,
-  height: GAME_HEIGHT,
+  width: window.innerWidth,
+  height: window.innerHeight,
   backgroundColor: BACKGROUND_COLOR,
-  pixelArt: true,
-  roundPixels: true,
-  antialias: false,
+  // 高精細描画: 端末の実解像度で描き、全画面のピクセル化や拡大フィルターは使わない
+  antialias: true,
+  pixelArt: false,
+  roundPixels: false,
   scale: {
     mode: Phaser.Scale.NONE,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   input: { keyboard: false },
-  scene: [BootScene, PlaceholderScene],
+  scene: [BootScene, FieldScene, UIScene],
 });
 
-installIntegerScaling(game);
+installNativeResolution(game);
 
 // オフライン用 Service Worker（Capacitor アプリ内では不要なので登録しない）
 const isNative = !!(window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.();
