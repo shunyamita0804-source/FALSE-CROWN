@@ -8,6 +8,7 @@ import { Sound, type BgmId } from '../audio/audio';
 import { engineOf, newSlot, resolveTies, runToEnd } from '../core/runner';
 import { addInfo, adjustRel, aliveIds, learn, log, nameOf, rngOf, shortName, transfer } from '../core/state';
 import { medalIssued, npcRescuePromises } from '../core/rescue';
+import { subGamesScreen } from '../ui/subhub';
 import { applyMainResult, applyPrisonResult, championEnding, endDay, gatherAt, isFinalDay, mainMatchId, moveToHouses, prisonMatchId, startMorning } from '../core/tournament';
 import { scheduleFor } from '../data/config';
 import type { GameState, MatchSlot, Phase } from '../core/types';
@@ -396,7 +397,9 @@ async function inspect(id: string, text: string, event?: string): Promise<void> 
         log(s, t('meal.log'));
       }
     }
-  } else if (event === 'shop' || event === 'sub_games') {
+  } else if (event === 'sub_games' && freeEnd) {
+    await subGamesScreen();
+  } else if (event === 'shop') {
     toast(t('toast.notYet'), 'info');
   }
 }
