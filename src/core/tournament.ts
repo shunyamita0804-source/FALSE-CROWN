@@ -10,7 +10,7 @@ import { expireDeals } from '../npc/negotiation';
 import { dailyDecay } from '../npc/brain';
 import { ROOMS } from '../world/maps';
 import { placeIn } from '../world/sim';
-import { aliveIds, fact, log, nameOf, publish, transfer } from './state';
+import { aliveIds, fact, log, nameOf, publish, rel, transfer } from './state';
 import type { DayRecord, GameState } from './types';
 
 export function mainMatchId(day: number): string {
@@ -53,7 +53,7 @@ export function applyMainResult(state: GameState, ranking: CharId[], scores: Par
     value: 0,
     tags: ['result', 'main'],
   });
-  state.board.push({ day: state.day, text: `DAY${state.day} メインマッチ「${sch.main.toUpperCase()}」　監獄棟：${prison.map((id) => nameOf(state, id)).join('、')}` });
+  state.board.push({ day: state.day, text: nPrison ? `DAY${state.day} メインマッチ「${sch.main.toUpperCase()}」　監獄棟：${prison.map((id) => nameOf(state, id)).join('、')}` : `DAY${state.day} 決勝「${sch.main.toUpperCase()}」　優勝：${nameOf(state, ranking[0])}` });
   fact(state, 'main_result', ranking, `DAY${state.day} メイン結果`, { ranking, scores });
   return { living, prison, rewards };
 }
@@ -146,4 +146,24 @@ export function startMorning(state: GameState): void {
 export function gatherAt(state: GameState, room: string, ids: CharId[] = aliveIds(state)): void {
   const spots = ROOMS[room].spots;
   ids.forEach((id, i) => placeIn(state, id, room, spots[i % spots.length]));
+}
+
+/** 決勝の日か（最後の 2 人が M11 で戦う日。監獄マッチも夜もなく、その場で大会が終わる） */
+export const isFinalDay = (day: number) => scheduleFor(day).main === 'm11';
+
+/** 優勝後の結末を決める数値（すべて暫定。仕様 v05/01） */
+export const ENDING_RULE = { loneBetrayals: 4, bondDeals: 4, bondPeople: 3, bondTrust: 70 };
+
+/**
+ * 通常の優勝の結末。主人公が自分から破り、相手に知られた約束が 4 つ以上なら「孤独な王」。
+ * そうでなく、果たした約束が 4 つ以上で、3 人以上から信頼 70 以上を得ていれば「信頼の証」。それ以外は「王者」。
+ * 脱落した人との関係は、脱落したときの値をそのまま使う。
+ */
+export function championEnding(state: GameState): 'E_WIN' | 'E_LONE' | 'E_BOND' {
+  const broken = Number(state.flags.betrayals_hero ?? 0);
+  if (broken >= ENDING_RULE.loneBetrayals) return 'E_LONE';
+  const kept = state.deals.filter((d) => d.status === 'fulfilled' && (d.from === 'hero' || d.to === 'hero')).length;
+  const trusting = Object.values(state.actors).filter((a) => a.id !== 'hero' && rel(state, a.id, 'hero').trust >= ENDING_RULE.bondTrust).length;
+  if (kept >= ENDING_RULE.bondDeals && trusting >= ENDING_RULE.bondPeople) return 'E_BOND';
+  return 'E_WIN';
 }

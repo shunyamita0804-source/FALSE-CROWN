@@ -8,7 +8,7 @@ import { Sound, type BgmId } from '../audio/audio';
 import { engineOf, newSlot, resolveTies, runToEnd } from '../core/runner';
 import { addInfo, adjustRel, aliveIds, learn, log, nameOf, rngOf, shortName, transfer } from '../core/state';
 import { medalIssued, npcRescuePromises } from '../core/rescue';
-import { applyMainResult, applyPrisonResult, endDay, gatherAt, mainMatchId, moveToHouses, prisonMatchId, startMorning } from '../core/tournament';
+import { applyMainResult, applyPrisonResult, championEnding, endDay, gatherAt, isFinalDay, mainMatchId, moveToHouses, prisonMatchId, startMorning } from '../core/tournament';
 import { scheduleFor } from '../data/config';
 import type { GameState, MatchSlot, Phase } from '../core/types';
 import type { CharId, NpcId } from '../data/characters';
@@ -639,6 +639,16 @@ async function step(s: GameState): Promise<boolean> {
       const ranking = s.today.mainRanking ?? [];
       const nPrison = scheduleFor(s.day).prison;
       Sound.se('result');
+      if (isFinalDay(s.day)) {
+        // 決勝：監獄棟も夜もない。優勝者が決まり、その場で結末へ進む（主人公が負ければ、例外なく敗者の結末）
+        const champ = ranking[0];
+        await G.ui.rankingScreen({ title: t('rank.finalTitle'), ranking, scores: s.today.mainScores ?? {}, rewards: {}, cut: 0, cutLabel: '', notes: JSON.parse(String(s.flags.lastNotes ?? '[]')) });
+        await settleHeroPayments();
+        Sound.se('gong');
+        await alertDialog(t('final.crownTitle'), t('final.crownText', { name: nameOf(s, champ) }), t('common.next'), true);
+        await finish(champ === 'hero' ? championEnding(s) : 'E_BAD');
+        return false;
+      }
       await G.ui.rankingScreen({
         title: t('rank.mainTitle', { day: s.day }),
         ranking,

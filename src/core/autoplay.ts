@@ -11,7 +11,7 @@ import { phaseDuration } from './clock';
 import type { CharId } from '../data/characters';
 import { engineOf, newSlot, resolveTies, runToEnd } from './runner';
 import { aliveIds } from './state';
-import { applyMainResult, applyPrisonResult, endDay, gatherAt, mainMatchId, moveToHouses, prisonMatchId, startMorning } from './tournament';
+import { applyMainResult, applyPrisonResult, endDay, gatherAt, isFinalDay, mainMatchId, moveToHouses, prisonMatchId, startMorning } from './tournament';
 import type { GameState, Phase } from './types';
 import { placeIn } from '../world/sim';
 
@@ -67,6 +67,8 @@ export async function autoAdvance(s: GameState, untilDay: number, untilPhase: Ph
         break;
       }
       case 'reward':
+        // 決勝の日は順位発表で大会が終わる
+        if (isFinalDay(s.day)) return false;
         autoRescue(s);
         moveToHouses(s);
         s.phase = 'house';

@@ -21,7 +21,7 @@ export function engineOf(id: string): MatchEngine {
 export function buildCtx(state: GameState, id: CharId, matchId: string, rng: Rng): AiCtx {
   const def = NPC_BY_ID[id as NpcId];
   const diff = CONFIG.difficulty[state.difficulty];
-  const stats = def?.stats ?? { logic: 6, strategy: 6, memory: 6, negotiation: 6, acting: 6, observation: 6 };
+  const stats = def?.stats ?? HERO_STANDIN;
   const personality = def?.personality ?? { greed: 50, loyalty: 50, ambition: 50, morality: 50, risk: 50, explore: 50 };
   const deals = activeDeals(state, id);
   const partner = (d: { from: CharId; to: CharId }) => (d.from === id ? d.to : d.from);
@@ -56,6 +56,9 @@ export function buildCtx(state: GameState, id: CharId, matchId: string, rng: Rng
     spend: (n, reason) => transfer(state, id, 'host', n, reason),
   };
 }
+
+/** プレイヤーの代わりに CPU が動かすとき（自動対戦、開発用の検証）の能力値。NPC 11 人の平均に合わせる（旧値は全て 6 で、平均より低く、自動対戦では主人公だけ早く脱落していた） */
+const HERO_STANDIN = { logic: 8, strategy: 8, memory: 8, negotiation: 7, acting: 6, observation: 8 };
 
 /** 手番待ちの NPC 全員に手を出させる。プレイヤーの手番は触らない。戻り値は進行があったか */
 export function stepNpcs(state: GameState, slot: MatchSlot, opts: { includeHero?: boolean; holdNegotiation?: boolean } = {}): boolean {

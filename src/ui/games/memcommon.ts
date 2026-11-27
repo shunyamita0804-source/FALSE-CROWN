@@ -49,7 +49,7 @@ export function boostButton(ui: MatchUi, v: { boostOn: boolean; boostUsed: numbe
     if (!ui.engine.validate(ui.slot.state, 'hero', { t: 'boost' }) || hero.pieces < cost || !transfer(ui.state, 'hero', 'host', cost, reason)) return;
     Sound.se('coins');
     ui.submit({ t: 'boost' });
-  }, { small: true, disabled: left <= 0 || hero.pieces < cost, title: t('mq.boostLeft', { n: left }) });
+  }, { small: true, cls: 'fin-hide', disabled: left <= 0 || hero.pieces < cost, title: t('mq.boostLeft', { n: left }) });
 }
 
 export function talkRow(players: CharId[], me: CharId, ui: MatchUi): HTMLElement {

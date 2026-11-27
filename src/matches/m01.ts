@@ -178,9 +178,11 @@ export const M01: MatchEngine<M01State, M01Move, M01View> = {
     '合計点が同じ時は、完成した数、完成にかかった時間の合計の順で決めます。それでも同じなら共通決定戦です。',
     '時間切れの場合：その時点で置いてあるピースで採点します。',
   ],
-  init(players, rng: Rng) {
+  init(players, rng: Rng, opts) {
     const order = rng.shuffle([...players]);
-    const gens = STAGE_SPECS.slice(0, STAGES).map((sp) => generate(rng, sp));
+    // 決勝（M11）の種目として使う時は、4×4、5×5、6×6 の 3 問
+    const specs = opts?.final ? [STAGE_SPECS[0], STAGE_SPECS[2], STAGE_SPECS[5]] : STAGE_SPECS.slice(0, STAGES);
+    const gens = specs.map((sp) => generate(rng, sp));
     return {
       players: [...players],
       groups: makeGroups(order),

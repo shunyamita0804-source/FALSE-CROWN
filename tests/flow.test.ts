@@ -53,7 +53,7 @@ describe('1日の進行（自動対戦）', () => {
       s.phase = 'morning';
       // 実装と確認が済んでいる最後の日
       let lastDay = 0;
-      for (let d = 1; d <= 10; d++) {
+      for (let d = 1; d <= 11; d++) {
         const sch = scheduleFor(d);
         if (!isImplemented(sch.main) || (sch.prisonGame && !isImplemented(sch.prisonGame))) break;
         lastDay = d;
@@ -61,6 +61,15 @@ describe('1日の進行（自動対戦）', () => {
       const ok = await autoAdvance(s, lastDay + 2, 'morning');
       expect(ok).toBe(false);
       if (!s.actors.hero.alive) continue;
+      if (lastDay === 11) {
+        // 決勝の日：順位発表で大会が終わる。2 人のまま、優勝者が決まっている
+        expect(s.day).toBe(11);
+        expect(s.phase).toBe('reward');
+        expect(aliveIds(s).length).toBe(2);
+        expect(s.today.mainRanking!.length).toBe(2);
+        for (let d = 1; d <= 10; d++) expect(s.history[d - 1].mainRanking!.length).toBe(13 - d);
+        continue;
+      }
       expect(s.day).toBe(lastDay + 1);
       expect(s.phase).toBe('morning');
       expect(aliveIds(s).length).toBe(12 - lastDay);

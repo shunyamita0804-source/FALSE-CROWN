@@ -51,6 +51,8 @@ export interface P02State {
   round: number;
   phase: 'prep' | 'quiz' | 'break' | 'done';
   sets: MemSet[];
+  /** 決勝（M11）用に問題を差し替えた時の、ラウンドごとの仕様 */
+  specs?: typeof ROUND_SPECS;
   boostUsed: Record<string, number>;
   boostOn: Record<string, boolean>;
   ready: Record<string, boolean>;
@@ -146,12 +148,15 @@ export const P02: MatchEngine<P02State, P02Move, P02View> = {
     `ピースを ${BOOST_COST} 個支払うと、そのラウンドだけ表示時間が 2 秒延びます（この競技で 1 回だけ。条件は全員同じです）。`,
     '合計点の最下位が脱落します。同点は、正解した数、正解にかかった時間の合計が短い順で決めます。それでも同じなら共通決定戦です。',
   ],
-  init(players, rng) {
+  init(players, rng, opts) {
+    // 決勝（M11）の種目として使う時は、4×4 の 10 個、5×5 の 13 個、5×5 の 16 個の 3 問
+    const specs = opts?.final ? [ROUND_SPECS[2], ROUND_SPECS[4], ROUND_SPECS[6]] : ROUND_SPECS;
     return {
       players: [...players],
       round: 0,
       phase: 'prep',
-      sets: ROUND_SPECS.map((sp) => makeSet(rng, sp)),
+      specs: opts?.final ? specs : undefined,
+      sets: specs.map((sp) => makeSet(rng, sp)),
       boostUsed: Object.fromEntries(players.map((p) => [p, 0])),
       boostOn: {},
       ready: Object.fromEntries(players.map((p) => [p, false])),
@@ -216,7 +221,7 @@ export const P02: MatchEngine<P02State, P02Move, P02View> = {
       round: s.round,
       rounds: ROUNDS,
       phase: s.phase,
-      spec: ROUND_SPECS[r],
+      spec: (s.specs ?? ROUND_SPECS)[Math.min(r, (s.specs ?? ROUND_SPECS).length - 1)],
       set: base ? { ...base, showMs: base.showMs + (me && s.boostOn[me] ? BOOST_MS : 0) } : null,
       boostOn: !!me && !!s.boostOn[me],
       boostUsed: me ? s.boostUsed[me] : BOOST_MAX,
