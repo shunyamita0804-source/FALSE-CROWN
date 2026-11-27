@@ -9,35 +9,35 @@
       "lines": [
         {
           "speaker": "narrator",
-          "text": "黒い封筒には、差出人の名前がなかった。"
+          "text": "一通の招待状が届いた。差出人は、頭脳競技大会「FALSE CROWN」運営事務局。"
         },
         {
           "speaker": "narrator",
-          "text": "参加者十二名。十一日間。優勝賞金十億円。最後の一人になる覚悟はありますか？"
+          "text": "参加者十二名。十一日間。優勝賞金十億円。知恵と交渉だけで頂点を決める大会だ。"
         },
         {
           "speaker": "narrator",
-          "text": "招待状の住所にたどり着くと、重い扉が背後で閉じた。"
+          "text": "会場は、森の奥に建つ貸し切りの施設。到着すると、ほかの参加者たちもすでに顔をそろえていた。"
         },
         {
           "speaker": "host_observer",
-          "text": "ようこそ、FALSE CROWNへ。私はオブザーバー。この大会の進行を担当します。"
+          "text": "ようこそ、FALSE CROWNへ。進行役のオブザーバーです。十一日間、どうぞよろしくお願いします。"
         },
         {
           "speaker": "host_observer",
-          "text": "毎日、全員でメインマッチを行います。下位者は監獄棟へ。監獄マッチの最下位は大会から脱落します。"
+          "text": "毎日、全員でメインマッチを行います。下位の方は監獄棟へ移り、監獄マッチに挑みます。その最下位の方が大会から脱落となります。"
         },
         {
           "speaker": "host_observer",
-          "text": "ピースは自由に取引できます。ただし、所持数がゼロでも脱落にはなりません。"
+          "text": "ピースは自由に取引できます。所持数がゼロになっても脱落にはなりません。"
         },
         {
           "speaker": "host_observer",
-          "text": "外部への連絡は禁止です。競技の規則は全員に等しく適用します。"
+          "text": "公平のため、大会期間中は外部との連絡をお控えください。食事や館内の設備は自由にお使いいただけます。"
         },
         {
           "speaker": "host_observer",
-          "text": "それでは、最初の朝をお楽しみください。"
+          "text": "同盟も駆け引きも、すべて競技のうちです。それでは、最初の朝をお楽しみください。"
         }
       ]
     },
@@ -49,11 +49,11 @@
       "lines": [
         {
           "speaker": "narrator",
-          "text": "まだ誰も、誰の言葉を信用してよいか知らない。"
+          "text": "初日の朝。食堂やラウンジでは、参加者たちが挨拶を交わしはじめている。"
         },
         {
           "speaker": "host_observer",
-          "text": "まずは互いの名前を覚えてください。"
+          "text": "まずは互いの名前を覚えてください。競技の説明は、のちほど競技場で行います。"
         }
       ]
     },
@@ -65,7 +65,7 @@
       "lines": [
         {
           "speaker": "narrator",
-          "text": "昨日とは異なる顔ぶれで朝が始まった。"
+          "text": "二日目の朝。昨日の順位を受けて、顔ぶれが少し入れ替わった。"
         },
         {
           "speaker": "host_observer",
@@ -81,11 +81,11 @@
       "lines": [
         {
           "speaker": "narrator",
-          "text": "空いた個室には、荷物の跡さえ残っていなかった。"
+          "text": "三日目。同盟の形も、警戒すべき相手も、少しずつ見えてきた。"
         },
         {
           "speaker": "host_observer",
-          "text": "脱落者の居室は順次整理されます。"
+          "text": "人数が減るほど、一人ひとりの選択が重くなります。"
         }
       ]
     },
@@ -97,11 +97,11 @@
       "lines": [
         {
           "speaker": "narrator",
-          "text": "中央ホールの掲示板には、古い記録が混じっている。"
+          "text": "中央ホールの掲示板に、これまでの対戦記録が貼り出された。"
         },
         {
           "speaker": "host_observer",
-          "text": "施設内の公開資料は自由に閲覧できます。"
+          "text": "公開資料は自由に閲覧できます。作戦の参考にどうぞ。"
         }
       ]
     },
@@ -113,7 +113,7 @@
       "lines": [
         {
           "speaker": "narrator",
-          "text": "誰かの肩書と、実際の行動が一致するとは限らない。"
+          "text": "大会も折り返しが近い。誰と組み、誰を警戒するか。"
         },
         {
           "speaker": "host_observer",
@@ -129,11 +129,11 @@
       "lines": [
         {
           "speaker": "narrator",
-          "text": "床下から短い振動が伝わった。"
+          "text": "六日目。残った参加者の実力は、もう互いによく分かっている。"
         },
         {
           "speaker": "host_observer",
-          "text": "立入制限を守ってお過ごしください。"
+          "text": "後半戦です。体調を整えて臨んでください。"
         }
       ]
     },
@@ -145,7 +145,7 @@
       "lines": [
         {
           "speaker": "narrator",
-          "text": "共用廊下に保守案内が掲示された。"
+          "text": "共用廊下の掲示板に、施設からのお知らせが増えていた。"
         },
         {
           "speaker": "host_observer",
@@ -161,11 +161,11 @@
       "lines": [
         {
           "speaker": "narrator",
-          "text": "施設に来た理由を、もう一度考える時かもしれない。"
+          "text": "残りは四日。ここまで来たら、狙うのは優勝だけだ。"
         },
         {
           "speaker": "host_observer",
-          "text": "旧記録の閲覧許可をお持ちの方は、指定時間内にご利用ください。"
+          "text": "ここからは一戦ごとに、賞金への距離が大きく変わります。"
         }
       ]
     },
@@ -177,7 +177,7 @@
       "lines": [
         {
           "speaker": "narrator",
-          "text": "広い食堂が、以前よりも静かに感じられた。"
+          "text": "食堂の席にも余裕ができた。残った顔ぶれは、誰もが手強い。"
         },
         {
           "speaker": "host_observer",
@@ -193,7 +193,7 @@
       "lines": [
         {
           "speaker": "narrator",
-          "text": "最後の夜が近づいている。"
+          "text": "決勝前日。今日を勝ち抜いた二人が、最後の舞台に立つ。"
         },
         {
           "speaker": "host_observer",
@@ -225,15 +225,15 @@
       "lines": [
         {
           "speaker": "host_observer",
-          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+          "text": "監獄マッチの結果が確定しました。本日の脱落者は{eliminated}です。"
         },
         {
           "speaker": "host_observer",
-          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+          "text": "脱落された方は、ここで大会を離れます。健闘を称えましょう。"
         },
         {
           "speaker": "narrator",
-          "text": "また一つ、参加者の名前が掲示板から消えた。"
+          "text": "残る参加者は、明日の競技に備える。"
         }
       ]
     },
@@ -245,15 +245,15 @@
       "lines": [
         {
           "speaker": "host_observer",
-          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+          "text": "監獄マッチの結果が確定しました。本日の脱落者は{eliminated}です。"
         },
         {
           "speaker": "host_observer",
-          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+          "text": "脱落された方は、ここで大会を離れます。健闘を称えましょう。"
         },
         {
           "speaker": "narrator",
-          "text": "また一つ、参加者の名前が掲示板から消えた。"
+          "text": "残る参加者は、明日の競技に備える。"
         }
       ]
     },
@@ -265,15 +265,15 @@
       "lines": [
         {
           "speaker": "host_observer",
-          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+          "text": "監獄マッチの結果が確定しました。本日の脱落者は{eliminated}です。"
         },
         {
           "speaker": "host_observer",
-          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+          "text": "脱落された方は、ここで大会を離れます。健闘を称えましょう。"
         },
         {
           "speaker": "narrator",
-          "text": "また一つ、参加者の名前が掲示板から消えた。"
+          "text": "残る参加者は、明日の競技に備える。"
         }
       ]
     },
@@ -285,15 +285,15 @@
       "lines": [
         {
           "speaker": "host_observer",
-          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+          "text": "監獄マッチの結果が確定しました。本日の脱落者は{eliminated}です。"
         },
         {
           "speaker": "host_observer",
-          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+          "text": "脱落された方は、ここで大会を離れます。健闘を称えましょう。"
         },
         {
           "speaker": "narrator",
-          "text": "また一つ、参加者の名前が掲示板から消えた。"
+          "text": "残る参加者は、明日の競技に備える。"
         }
       ]
     },
@@ -305,15 +305,15 @@
       "lines": [
         {
           "speaker": "host_observer",
-          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+          "text": "監獄マッチの結果が確定しました。本日の脱落者は{eliminated}です。"
         },
         {
           "speaker": "host_observer",
-          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+          "text": "脱落された方は、ここで大会を離れます。健闘を称えましょう。"
         },
         {
           "speaker": "narrator",
-          "text": "また一つ、参加者の名前が掲示板から消えた。"
+          "text": "残る参加者は、明日の競技に備える。"
         }
       ]
     },
@@ -325,15 +325,15 @@
       "lines": [
         {
           "speaker": "host_observer",
-          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+          "text": "監獄マッチの結果が確定しました。本日の脱落者は{eliminated}です。"
         },
         {
           "speaker": "host_observer",
-          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+          "text": "脱落された方は、ここで大会を離れます。健闘を称えましょう。"
         },
         {
           "speaker": "narrator",
-          "text": "また一つ、参加者の名前が掲示板から消えた。"
+          "text": "残る参加者は、明日の競技に備える。"
         }
       ]
     },
@@ -345,15 +345,15 @@
       "lines": [
         {
           "speaker": "host_observer",
-          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+          "text": "監獄マッチの結果が確定しました。本日の脱落者は{eliminated}です。"
         },
         {
           "speaker": "host_observer",
-          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+          "text": "脱落された方は、ここで大会を離れます。健闘を称えましょう。"
         },
         {
           "speaker": "narrator",
-          "text": "また一つ、参加者の名前が掲示板から消えた。"
+          "text": "残る参加者は、明日の競技に備える。"
         }
       ]
     },
@@ -365,15 +365,15 @@
       "lines": [
         {
           "speaker": "host_observer",
-          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+          "text": "監獄マッチの結果が確定しました。本日の脱落者は{eliminated}です。"
         },
         {
           "speaker": "host_observer",
-          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+          "text": "脱落された方は、ここで大会を離れます。健闘を称えましょう。"
         },
         {
           "speaker": "narrator",
-          "text": "また一つ、参加者の名前が掲示板から消えた。"
+          "text": "残る参加者は、明日の競技に備える。"
         }
       ]
     },
@@ -385,15 +385,15 @@
       "lines": [
         {
           "speaker": "host_observer",
-          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+          "text": "監獄マッチの結果が確定しました。本日の脱落者は{eliminated}です。"
         },
         {
           "speaker": "host_observer",
-          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+          "text": "脱落された方は、ここで大会を離れます。健闘を称えましょう。"
         },
         {
           "speaker": "narrator",
-          "text": "また一つ、参加者の名前が掲示板から消えた。"
+          "text": "残る参加者は、明日の競技に備える。"
         }
       ]
     },
@@ -405,15 +405,15 @@
       "lines": [
         {
           "speaker": "host_observer",
-          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+          "text": "監獄マッチの結果が確定しました。本日の脱落者は{eliminated}です。"
         },
         {
           "speaker": "host_observer",
-          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+          "text": "脱落された方は、ここで大会を離れます。健闘を称えましょう。"
         },
         {
           "speaker": "narrator",
-          "text": "また一つ、参加者の名前が掲示板から消えた。"
+          "text": "残る参加者は、明日の競技に備える。"
         }
       ]
     },
@@ -454,7 +454,7 @@
       "lines": [
         {
           "speaker": "narrator",
-          "text": "過去の記録の端に、移送先B2-Iという記号があった。退場と退館は同じ意味ではないのかもしれない。"
+          "text": "過去の記録の端に、B2-I という見慣れない記号があった。館内案内図には載っていない区画だ。"
         }
       ],
       "triggerFlag": "v04_board_record",
@@ -500,11 +500,11 @@
       "lines": [
         {
           "speaker": "narrator",
-          "text": "隔離区画の窓の向こうに、確かに生存者の姿が見えた。"
+          "text": "待機区画の窓の向こうに、脱落した参加者たちの姿が見えた。"
         },
         {
           "speaker": "narrator",
-          "text": "脱落は死を意味しなかった。しかし、彼らは自由ではない。"
+          "text": "大会が終わるまで、ここで過ごす決まりらしい。参加者には知らされていない仕組みだ。"
         }
       ],
       "triggerFlag": "ISOLATION_CONFIRMED",
@@ -550,7 +550,7 @@
     },
     {
       "id": "C02B",
-      "day": 1,
+      "day": 5,
       "phase": "inspect",
       "mandatory": false,
       "lines": [
@@ -583,7 +583,7 @@
     },
     {
       "id": "C03B",
-      "day": 1,
+      "day": 5,
       "phase": "inspect",
       "mandatory": false,
       "lines": [
@@ -616,7 +616,7 @@
     },
     {
       "id": "C04B",
-      "day": 1,
+      "day": 5,
       "phase": "inspect",
       "mandatory": false,
       "lines": [
@@ -649,7 +649,7 @@
     },
     {
       "id": "C05B",
-      "day": 1,
+      "day": 5,
       "phase": "inspect",
       "mandatory": false,
       "lines": [
@@ -682,7 +682,7 @@
     },
     {
       "id": "C06B",
-      "day": 1,
+      "day": 5,
       "phase": "inspect",
       "mandatory": false,
       "lines": [
@@ -715,7 +715,7 @@
     },
     {
       "id": "C07B",
-      "day": 1,
+      "day": 5,
       "phase": "inspect",
       "mandatory": false,
       "lines": [
@@ -748,13 +748,13 @@
     },
     {
       "id": "C08B",
-      "day": 1,
+      "day": 5,
       "phase": "inspect",
       "mandatory": false,
       "lines": [
         {
           "speaker": "npc_08_dojima",
-          "text": "失踪事件を追っていた。ここがその調査先の一つだ。"
+          "text": "連絡の取れない知人を捜している。この大会の元参加者だ。"
         }
       ],
       "requiresActiveSpeaker": true,
@@ -781,7 +781,7 @@
     },
     {
       "id": "C09B",
-      "day": 1,
+      "day": 5,
       "phase": "inspect",
       "mandatory": false,
       "lines": [
@@ -814,7 +814,7 @@
     },
     {
       "id": "C10B",
-      "day": 1,
+      "day": 5,
       "phase": "inspect",
       "mandatory": false,
       "lines": [
@@ -847,7 +847,7 @@
     },
     {
       "id": "C11B",
-      "day": 1,
+      "day": 5,
       "phase": "inspect",
       "mandatory": false,
       "lines": [
@@ -880,7 +880,7 @@
     },
     {
       "id": "C12B",
-      "day": 1,
+      "day": 5,
       "phase": "inspect",
       "mandatory": false,
       "lines": [

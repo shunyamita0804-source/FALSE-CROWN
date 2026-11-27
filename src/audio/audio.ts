@@ -1,3 +1,4 @@
+import bgmTable from '../data/bgm.json';
 /**
  * 音声の再生（仕様 v07）。BGM と効果音は別系統のゲインで音量を個別に設定する。
  * - 初回のユーザー操作後に再生を開始する（ブラウザの自動再生制限）
@@ -8,25 +9,11 @@
  */
 const BASE = import.meta.env.BASE_URL;
 
-export type BgmId = 'B01' | 'B02' | 'B03' | 'B03_ALT' | 'B04' | 'B05' | 'B07' | 'B08' | 'B10' | 'B11' | 'B12';
-
-/**
- * docs/specs/v07/bgm_manifest.json と v07_2/bgm_manifest_addon.json の割当（全 11 曲）。
- * xfade: 専用ループ音源ではない曲。末尾と先頭を短くクロスフェードして繋ぎ目を目立たなくする（音源自体は無加工）。
- */
-export const BGM: Record<BgmId, { file: string; loop: boolean; title: string; scene: string; xfade?: boolean }> = {
-  B01: { file: 'B01_echoed_art.m4a', loop: true, title: 'Echoed_Art', scene: 'タイトル', xfade: true },
-  B02: { file: 'B02_mystery_detective.m4a', loop: true, title: 'Mystery_Detective', scene: '生活棟' },
-  B03: { file: 'B03_taishoroman_theme2.m4a', loop: true, title: 'TaishoRoman_Theme2', scene: '共用施設・食堂' },
-  B03_ALT: { file: 'B03_alt_coffee_lounge.m4a', loop: true, title: 'Coffee_Lounge', scene: 'ラウンジ' },
-  B04: { file: 'B04_suspense3.m4a', loop: true, title: 'Suspense3', scene: '監獄棟', xfade: true },
-  B08: { file: 'B08_investigation.m4a', loop: true, title: 'Investigation', scene: '裏ゲーム・隠し部屋', xfade: true },
-  B05: { file: 'B05_investigation2.m4a', loop: true, title: 'Investigation2', scene: '交渉・メインマッチ' },
-  B07: { file: 'B07_suspense2.m4a', loop: true, title: 'Suspense2', scene: '監獄マッチ・地下施設' },
-  B10: { file: 'B10_taishoroman_battle.m4a', loop: true, title: 'TaishoRoman_Battle', scene: '決勝戦' },
-  B11: { file: 'B11_scene_tragic.m4a', loop: false, title: 'Scene_Tragic', scene: '脱落・ゲームオーバー' },
-  B12: { file: 'B12_piano_melancholy3.m4a', loop: true, title: 'Piano_Melancholy3', scene: 'エンディング' },
-};
+export type BgmId = 'title' | 'living' | 'common' | 'lounge' | 'prison' | 'hidden' | 'match_main' | 'match_prison' | 'final' | 'elimination' | 'ending';
+export interface BgmDef { label: string; file: string; title: string; loop: boolean; xfade?: boolean }
+/** 場面 → 音源の対応は src/data/bgm.json で管理する（差し替え手順は docs/bgm.md） */
+export const BGM = (bgmTable as unknown as { scenes: Record<BgmId, BgmDef> }).scenes;
+export const BGM_CREDIT = (bgmTable as unknown as { credit: { name: string; url: string; license: string } }).credit;
 
 /** 効果音の論理名 → 素材（複数ある場合は順に使い分ける） */
 export const SE = {
@@ -173,6 +160,7 @@ class AudioManager {
     }
     if (!id) return;
     const def = BGM[id];
+    if (!def || !def.file) return;
     const el = new Audio();
     el.src = `${BASE}assets/audio/bgm/${def.file}`;
     el.loop = def.loop;

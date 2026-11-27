@@ -103,7 +103,7 @@ function bedroom(owner: string, i: number): RoomSrc {
     block: [[1, 4, 4, 9], [5, 5, 5, 7], [14, 7, 17, 10], [18, 4, 18, 11], [1, 10, 1, 11]],
     doors: [D('out', 'down', 9, 12, 2, 'living_hallway', `room${i}`, 'door', '廊下')],
     inspects: [
-      { id: `bed_${owner}`, x: 5, y: 8, text: '上質な寝台。シーツは糊が利いていて、誰かが毎日整えているらしい。', event: mine ? 'rest_bed' : undefined },
+      { id: `bed_${owner}`, x: 5, y: 8, text: '上質な寝台。シーツはきれいに整えられている。', event: mine ? 'rest_bed' : undefined },
       { id: `desk_${owner}`, x: 13, y: 8, text: '机の引き出しには、施設の簡易な見取り図が入っていた。', event: mine ? 'desk_map' : undefined },
     ],
     spots: S([[10, 7], [8, 10], [12, 10]]),
@@ -116,7 +116,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[0,4,29,7]],
     block: [],
     doors: [...BEDROOM_OWNERS.map((o, i) => D(`room${i}`, i < 6 ? 'up' : 'down', BEDROOM_DOOR_X[i % 6], i < 6 ? 4 : 7, 2, `bedroom_${o}`, 'out', 'door', o === 'hero' ? '自分の個室' : '個室')),D('to_library','left',0,4,4,'library','to_hall','open','図書室'),D('to_lounge','right',29,4,4,'living_lounge','to_hall','open','生活棟ラウンジ')],
-    inspects: [{id:'hall_plate',x:5,y:4,text:'各扉には参加者の名札。名札の裏に小さく番号が刻まれている。',event:'nameplates'}],
+    inspects: [{id:'hall_plate',x:5,y:4,text:'各扉に参加者の名札が掛かっている。裏には部屋番号が刻まれている。',event:'nameplates'}],
     spots: S([[10,5],[20,6],[15,6],[6,6],[24,5]]),
   },
   {
@@ -125,7 +125,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,24,16],[12,17,13,17]],
     block: [[3,4,4,4],[6,4,9,5],[16,4,19,5],[22,4,23,4],[1,6,2,8],[1,9,2,12],[4,6,8,8],[4,9,8,11],[11,6,14,8],[17,6,21,8],[17,9,21,11],[23,6,24,8],[23,9,24,12],[11,12,14,14],[9,13,10,14],[15,13,16,14],[3,14,6,15],[1,14,1,15],[20,14,22,15],[24,14,24,15],[10,16,11,16],[14,16,15,16]],
     doors: [D('to_hall','down',12,17,2,'living_hallway','to_library','door','廊下'),D('secret','up',12,4,2,'secret_study','from_library','hidden','隠し書斎','h01_open')],
-    inspects: [{id:'lib_shelf_order',x:10,y:4,text:'背表紙の番号が不揃いに並んでいる。誰かが意図的に順番を入れ替えたようだ。',event:'h01_shelf'},{id:'lib_diary',x:12,y:9,text:'机の上に古い日記。「王は六つの数を愛した」とだけ読める。',event:'h01_diary'},{id:'lib_rules',x:19,y:14,text:'過去の大会規則の写本。頭脳戦の歴史が綴られている。',event:'lib_rulebook'}],
+    inspects: [{id:'lib_shelf_order',x:10,y:4,text:'背表紙の番号が不揃いに並んでいる。並べ替えると何かの順番になりそうだ。',event:'h01_shelf'},{id:'lib_diary',x:12,y:9,text:'机の上に古い詩集。「王は六つの数を愛した」という一節に栞が挟んである。',event:'h01_diary'},{id:'lib_rules',x:19,y:14,text:'過去の大会規則の写本。頭脳戦の歴史が綴られている。',event:'lib_rulebook'}],
     spots: S([[12,10],[10,5],[15,10],[9,12],[16,12]]),
   },
   {
@@ -133,7 +133,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,26,16],[13,2,14,3],[13,17,14,17]],
     block: [[3,4,7,6],[2,4,2,4],[20,4,25,6],[26,4,26,4],[2,11,7,16],[1,13,1,15],[21,11,25,16],[26,13,26,15],[11,16,12,16],[15,16,16,16],[1,16,1,16],[26,16,26,16]],
     doors: [D('to_hall','up',13,2,2,'living_hallway','to_lounge','open','廊下'),D('stairs','down',13,17,2,'common_hall','stairs_up','stairs_down','2F 共用棟')],
-    inspects: [{id:'lounge_piano',x:9,y:4,text:'飾り棚の本の間に、十二音だけで書かれた奇妙な楽譜が挟まっている。',event:'piano'}],
+    inspects: [{id:'lounge_piano',x:9,y:4,text:'飾り棚の本の間に、十二音だけで書かれた短い楽譜が挟まっている。',event:'piano'}],
     spots: S([[13,8],[10,10],[17,7],[9,13],[18,13],[13,12]]),
   },
   {
@@ -150,7 +150,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,22,14],[11,15,12,15]],
     block: [[5,4,7,4],[3,4,3,4],[10,4,13,4],[16,4,18,4],[20,4,20,4],[11,6,13,8],[2,6,4,9],[19,6,21,8],[2,11,6,12],[1,11,1,13],[18,11,21,12],[22,11,22,13],[9,14,10,14],[13,14,14,14]],
     doors: [D('to_game','down',11,15,2,'game_room','to_obs','door','遊戯室'),D('secret','up',17,5,1,'moon_casino','from_obs','hidden','月下の賭場','h02_open')],
-    inspects: [{id:'obs_clock',x:12,y:5,text:'壁一面の大時計。夜になると歯車の音が妙に大きく響く。',event:'h02_clock'},{id:'obs_scope',x:12,y:9,text:'望遠鏡の先は真っ暗な森。灯りはどこにも見えない。',event:'obs_scope'}],
+    inspects: [{id:'obs_clock',x:12,y:5,text:'壁一面の大時計。夜になると、文字盤の奥で仕掛けの動く音がする。',event:'h02_clock'},{id:'obs_scope',x:12,y:9,text:'望遠鏡をのぞくと、森の向こうに山並みが見える。夜は星がよく見えそうだ。',event:'obs_scope'}],
     spots: S([[8,8],[15,10],[12,11],[7,6],[16,6]]),
   },
   {
@@ -158,7 +158,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,26,9],[7,3,8,3],[13,2,14,3],[13,10,14,11]],
     block: [[1,8,6,9],[21,8,26,9]],
     doors: [D('stairs_up','up',7,3,2,'living_lounge','stairs','stairs_up','3F 生活棟'),D('to_dining','up',13,2,2,'dining','to_hall','open','食堂'),D('to_game','up',19,4,4,'game_room','to_hall','door','昇降機（3F 遊戯室）'),D('stairs_down','down',13,11,2,'main_hall','stairs_l','stairs_down','1F 中央ホール')],
-    inspects: [{id:'common_map',x:17,y:4,text:'昇降機の脇の館内案内図。地下へ続く階段の表記だけが塗り潰されている。',event:'floor_guide'}],
+    inspects: [{id:'common_map',x:17,y:4,text:'昇降機の脇の館内案内図。3 階から地下 1 階まで、施設の配置が分かる。',event:'floor_guide'}],
     spots: S([[13,6],[9,6],[18,6],[10,8],[17,8]]),
   },
   {
@@ -166,7 +166,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,28,17],[1,1,2,3],[28,1,28,3],[14,18,15,19]],
     block: [[10,4,19,5],[8,4,8,4],[21,4,21,4],[5,4,7,4],[4,4,4,4],[22,4,24,4],[25,4,26,4],[4,5,6,7],[4,9,6,11],[24,5,26,7],[24,9,26,11],[10,8,13,11],[16,8,19,11],[3,14,8,16],[21,14,26,16],[1,15,1,17],[28,15,28,17],[12,17,13,17],[16,17,18,17]],
     doors: [D('to_hall','down',14,19,2,'common_hall','to_dining','double','廊下'),D('to_lounge','up',1,1,2,'common_lounge','to_dining','open','共用ラウンジ'),D('to_garden','up',28,1,1,'garden','to_dining','open','庭園')],
-    inspects: [{id:'dining_buffet',x:14,y:6,text:'配膳台には温かい料理が並ぶ。人数分きっちり、一皿も余らない。',event:'dining_meal'}],
+    inspects: [{id:'dining_buffet',x:14,y:6,text:'配膳台には温かい料理が並ぶ。好きな時間に食べられるようだ。',event:'dining_meal'}],
     spots: S([[15,13],[8,12],[21,12],[15,7],[9,8],[20,8],[15,15]]),
   },
   {
@@ -191,7 +191,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,20,14],[10,15,11,15]],
     block: [[8,6,13,9],[1,10,3,13],[4,11,4,13],[16,10,20,13],[1,4,1,4],[20,4,20,4],[8,14,9,14],[12,14,13,14]],
     doors: [D('to_garden','down',10,15,2,'garden','to_bath','door','庭園'),D('secret','up',18,4,2,'mirror_room','from_bath','hidden','鏡の間','h03_open')],
-    inspects: [{id:'bath_mirror',x:16,y:4,text:'曇った鏡に、指でなぞったような記号が浮かんでいる。',event:'h03_mirror'}],
+    inspects: [{id:'bath_mirror',x:16,y:4,text:'曇った鏡に、左右が逆になった記号が浮かんでいる。誰かの悪戯だろうか。',event:'h03_mirror'}],
     spots: S([[10,11],[6,7],[15,7],[10,5],[7,12]]),
   },
   {
@@ -207,7 +207,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,5,30,19],[15,20,16,21]],
     block: [[12,5,19,6],[3,5,5,5],[26,5,28,5],[24,5,24,5],[10,8,22,13],[9,10,9,11],[2,16,7,18],[1,18,1,19],[4,19,5,19],[24,16,29,18],[26,19,27,19],[30,18,30,19],[1,19,14,19],[17,19,30,19]],
     doors: [D('to_hall','down',15,21,2,'main_hall','to_arena','double','中央ホール')],
-    inspects: [{id:'arena_judge',x:16,y:7,text:'審判台。仮面の主催者がいつもここに立つ。台の裏に小さな鍵穴がある。',event:'arena_judge'}],
+    inspects: [{id:'arena_judge',x:16,y:7,text:'審判台。進行役のオブザーバーがここに立つ。台の裏に小さな鍵穴がある。',event:'arena_judge'}],
     spots: S([[11,14],[13,14],[15,14],[17,14],[19,14],[21,14],[11,7],[13,7],[15,7],[17,7],[19,7],[21,7]]),
   },
   {
@@ -223,7 +223,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,3,18,11],[9,12,10,12]],
     block: [[2,4,4,6],[2,7,4,9],[15,4,18,6],[15,7,18,9],[8,6,11,7],[1,11,5,11],[14,11,18,11]],
     doors: [D('to_hall','down',9,12,2,'main_hall','to_infirmary','door','中央ホール')],
-    inspects: [{id:'inf_records',x:3,y:3,text:'薬品棚の奥に古いカルテの束。日付は十年前で止まっている。',event:'inf_records'}],
+    inspects: [{id:'inf_records',x:3,y:3,text:'薬品棚と診察用の寝台。体調が悪いときは、ここで休めるようだ。',event:'inf_records'}],
     spots: S([[10,9],[6,5],[13,5],[10,4],[7,9]]),
   },
   {
@@ -231,7 +231,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,22,14],[11,15,12,15]],
     block: [[3,5,7,6],[3,4,3,4],[16,5,20,6],[20,4,20,4],[1,4,1,4],[22,4,22,4],[3,10,6,12],[18,10,20,12],[1,12,1,14],[22,12,22,14],[9,14,10,14],[13,14,14,14]],
     doors: [D('to_hall','down',11,15,2,'main_hall','to_entrance','double','中央ホール')],
-    inspects: [{id:'entrance_door',x:12,y:4,text:'外へ続く扉は鋼鉄の閂で封鎖されている。電子錠の表示は「11」。',event:'entrance_lock'}],
+    inspects: [{id:'entrance_door',x:12,y:4,text:'正面玄関。大会期間中は施錠されている。表示板には残り日数が出ている。',event:'entrance_lock'}],
     spots: S([[12,8],[9,9],[15,9],[12,11]]),
   },
   {
@@ -239,7 +239,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[0,3,27,7],[13,1,14,2],[13,8,14,10]],
     block: [],
     doors: [D('stairs_up','up',13,1,2,'main_hall','to_b1','iron','1F 中央ホール'),D('to_cells','down',13,10,2,'prison_cells','to_hall','iron','共同牢'),D('to_archive','left',0,3,5,'old_archive','to_hall','open','旧書庫'),D('to_arena','right',27,3,5,'prison_arena','to_hall','open','監獄マッチ会場')],
-    inspects: [{id:'b1_pipe',x:20,y:3,text:'壁の配管から、規則的な金属音。誰かが向こう側で叩いている…？',event:'b1_noise'}],
+    inspects: [{id:'b1_pipe',x:20,y:3,text:'壁を古い配管が走っている。時々、水の流れる音がする。',event:'b1_noise'}],
     spots: S([[9,5],[18,5],[14,5],[5,6],[22,4]]),
   },
   {
@@ -248,7 +248,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,5,26,12],[13,13,14,17]],
     block: [[1,5,1,5],[1,6,1,8],[1,9,1,11],[2,10,3,11],[26,5,26,6],[25,7,26,8],[26,9,26,12]],
     doors: [D('to_hall','down',13,17,2,'prison_hallway','to_cells','iron','通路'),D('secret','up',13,5,2,'cell_zero','from_cells','hidden','第零牢','h04_open')],
-    inspects: [{id:'cells_wall',x:12,y:5,text:'通路脇の石壁に刻まれた数字の列。爪で刻んだように浅い。',event:'h04_wall'}],
+    inspects: [{id:'cells_wall',x:12,y:5,text:'通路脇の石壁に、数字の列が浅く刻まれている。過去の参加者の落書きらしい。',event:'h04_wall'}],
     spots: S([[8,8],[19,8],[14,9],[6,11],[21,6],[10,6],[17,11]]),
   },
   {
@@ -256,7 +256,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,22,15],[11,16,12,17]],
     block: [[9,4,14,4],[7,6,16,6],[7,7,7,12],[16,7,16,12],[8,12,10,12],[13,12,15,12],[2,6,4,7],[2,12,4,13],[19,6,21,7],[20,12,21,13],[9,15,10,15],[13,15,14,15]],
     doors: [D('to_hall','down',11,17,2,'prison_hallway','to_arena','iron','通路')],
-    inspects: [{id:'parena_table',x:11,y:11,text:'鉄柵に囲まれた競技区画。床は無数の傷で曇っている。ここで何人が去っていったのだろう。',event:'prison_table'}],
+    inspects: [{id:'parena_table',x:11,y:11,text:'鉄柵に囲まれた競技区画。ここでの勝負に負けると、大会から脱落となる。',event:'prison_table'}],
     spots: S([[9,8],[14,8],[9,10],[14,10],[5,9],[18,9],[12,14]]),
   },
   {
@@ -264,7 +264,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,20,14],[10,15,11,15]],
     block: [[2,5,6,6],[2,8,6,9],[15,5,19,6],[15,8,19,9],[9,8,12,10],[3,11,6,13],[15,11,18,13],[1,11,1,12],[20,11,20,13],[8,14,9,14],[12,14,13,14]],
     doors: [D('to_hall','down',10,15,2,'prison_hallway','to_archive','door','通路'),D('to_passage','up',10,4,2,'underground_passage','to_archive','iron','地下通路','passage_open')],
-    inspects: [{id:'archive_letters',x:11,y:11,text:'机に古い手紙が五通。宛名はすべて「次の参加者へ」。',event:'h04_letters'},{id:'archive_records',x:4,y:7,text:'棚には参加者の記録。脱落した人の私物や手記もここに収められるらしい。',event:'archive_records'}],
+    inspects: [{id:'archive_letters',x:11,y:11,text:'机に古い手紙が五通。宛名はすべて「次の参加者へ」。',event:'h04_letters'},{id:'archive_records',x:4,y:7,text:'棚には過去の大会の記録。歴代の対戦表や順位が綴じられている。',event:'archive_records'}],
     spots: S([[8,6],[13,6],[10,12],[8,12],[13,12]]),
   },
   {
@@ -304,7 +304,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,16,11],[8,12,9,12]],
     block: [[2,6,4,8],[13,6,16,8],[1,10,1,11],[2,11,3,11],[16,10,16,11],[16,4,16,5]],
     doors: [D('from_cells','down',8,12,2,'prison_cells','secret','hidden','共同牢')],
-    inspects: [{id:'zero_letters',x:5,y:7,text:'囚人の遺言と書かれた封筒の束。',event:'h04_game'}],
+    inspects: [{id:'zero_letters',x:5,y:7,text:'「挑戦状」と書かれた封筒の束。以前の参加者が残したものらしい。',event:'h04_game'}],
     spots: S([[9,6],[9,9],[11,5]]),
   },
   {
@@ -353,7 +353,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,26,13],[13,14,14,17]],
     block: [[7,6,20,9],[10,10,17,10],[1,6,3,10],[24,6,26,10]],
     doors: [D('from_lab','down',13,17,2,'research_lab','to_iso','iron','研究室'),D('to_core','up',15,4,2,'core','from_lab','black','最深部','h07_cleared')],
-    inspects: [{id:'iso_beds',x:11,y:4,text:'扉の小窓の向こうに、眠る人々。脱落した参加者たちが、ここで生かされている。',event:'iso_found'}],
+    inspects: [{id:'iso_beds',x:11,y:4,text:'扉の小窓の向こうに、脱落した参加者たちの姿。大会が終わるまで、ここで過ごしているらしい。',event:'iso_found'}],
     spots: S([[13,12],[6,12],[21,12],[13,5]]),
   },
   {

@@ -24,6 +24,7 @@
   "prompt.talk": "{name}と話す", "prompt.door": "{name}へ", "prompt.inspect": "調べる",
   "log.morning": "DAY{day} の朝。", "log.sawTalk": "{a}と{b}が話し込んでいる。", "log.sawDeal": "{a}と{b}が、何か約束を交わしたようだ。", "log.sawSearch": "{a}が何かを調べている。",
   "rank.first": "第 1 位", "fx.discovery": "手掛かりを発見", "toast.noted": "手帳に記録した。", "toast.notYet": "この機能は開発中です。",
+  "meal.title": "食事をとる", "meal.text": "配膳台の料理で食事にしますか？　少しだけ時間を使います。", "meal.ok": "食べる", "meal.with": "{names}{more}と同じ卓で食事をした。他愛のない話で、少し打ち解けた気がする。", "meal.more": "たち", "meal.alone": "一人で食事をとった。温かい料理で、頭がすっきりした。", "meal.log": "食堂で食事をとった。",
   "rest.title": "休む", "rest.text": "寝台で休み、{time}の残りを過ごしますか？　その間も他の参加者は行動を続けます。", "rest.ok": "休む",
 
   "banner.gather": "全参加者は競技場へ集合してください", "banner.prison": "監獄マッチを開始します", "banner.prisonAway": "地下で監獄マッチが行われています…",
@@ -36,7 +37,7 @@
   "pay.title": "成功報酬の支払い", "pay.text": "{name}は約束「{plan}」を守りました。約束した成功報酬 {n} ピースを支払いますか？　支払わなければ、相手はそれを裏切りとして記憶します。", "pay.yes": "{n} ピース支払う", "pay.no": "支払わない", "pay.cannot": "ピースが足りず、成功報酬を支払えなかった。",
 
   "rank.mainTitle": "DAY {day}　メインマッチ結果", "rank.prisonTitle": "DAY {day}　監獄マッチ結果", "rank.toPrison": "監獄棟", "rank.eliminated": "脱落", "rank.pts": "点",
-  "elim.title": "脱　落", "elim.hero": "あなたは大会から脱落した。", "elim.npc": "{name}は大会から脱落した。所持していたピースは主催者が回収する。",
+  "elim.title": "脱　落", "elim.hero": "あなたの大会は、ここで終わった。", "elim.npc": "{name}は、ここで大会を離れる。所持していたピースは運営が回収する。",
   "ending.label": "エンディング", "ending.reached": "到達：DAY {day}", "ending.badNote": "大会はここで終わりです。この周回で見つけた記録は残ります。新しい大会では、展開も結果も変わります。", "ending.note": "大会は終わりました。",
 
   "menu.title": "手帳", "menu.status": "状況", "menu.people": "人物", "menu.deals": "約束", "menu.info": "情報", "menu.history": "記録", "menu.rules": "ルール", "menu.map": "館内図", "menu.system": "設定",

@@ -1,0 +1,17 @@
+{
+  "note": "場面ごとの BGM の割り当て。曲を差し替えるときは、音源を public/assets/audio/bgm/ に置き、該当する場面の file と title、credit を書き換えるだけでよい。file を空文字にするとその場面は無音になる。loop は繰り返し再生、xfade は専用ループ音源でない曲の末尾と先頭を短く重ねる指定。手順は docs/bgm.md。",
+  "scenes": {
+    "title": { "label": "タイトル", "file": "B01_echoed_art.m4a", "title": "Echoed_Art", "loop": true, "xfade": true },
+    "living": { "label": "生活棟（個室、廊下、図書室など）", "file": "B02_mystery_detective.m4a", "title": "Mystery_Detective", "loop": true },
+    "common": { "label": "共用施設、食堂、1 階", "file": "B03_taishoroman_theme2.m4a", "title": "TaishoRoman_Theme2", "loop": true },
+    "lounge": { "label": "ラウンジ", "file": "B03_alt_coffee_lounge.m4a", "title": "Coffee_Lounge", "loop": true },
+    "prison": { "label": "監獄棟", "file": "B04_suspense3.m4a", "title": "Suspense3", "loop": true, "xfade": true },
+    "hidden": { "label": "隠し部屋、裏ゲーム", "file": "B08_investigation.m4a", "title": "Investigation", "loop": true, "xfade": true },
+    "match_main": { "label": "競技説明、作戦時間、メインマッチ", "file": "B05_investigation2.m4a", "title": "Investigation2", "loop": true },
+    "match_prison": { "label": "監獄マッチ", "file": "B07_suspense2.m4a", "title": "Suspense2", "loop": true },
+    "final": { "label": "決勝戦", "file": "B10_taishoroman_battle.m4a", "title": "TaishoRoman_Battle", "loop": true },
+    "elimination": { "label": "脱落、敗退の結末", "file": "B11_scene_tragic.m4a", "title": "Scene_Tragic", "loop": false },
+    "ending": { "label": "エンディング", "file": "B12_piano_melancholy3.m4a", "title": "Piano_Melancholy3", "loop": true }
+  },
+  "credit": { "name": "PeriTune", "url": "https://peritune.com/", "license": "CC BY 4.0（https://creativecommons.org/licenses/by/4.0/）。音源は未加工です。" }
+}
