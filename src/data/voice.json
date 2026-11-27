@@ -307,6 +307,61 @@
           "gain": 0.72
         }
       }
+    },
+    "npc_07_tachibana": {
+      "dir": "audio/voice/npc_07_tachibana",
+      "clips": {
+        "greeting": {
+          "file": "01_greeting.mp3",
+          "text": "おはよう。よく眠れた？",
+          "gain": 0.97
+        },
+        "hello": {
+          "file": "02_hello.mp3",
+          "text": "どうしたの？",
+          "gain": 1.08
+        },
+        "understand": {
+          "file": "03_understand.mp3",
+          "text": "そうだったのね。",
+          "gain": 1.26
+        },
+        "accept": {
+          "file": "04_accept.mp3",
+          "text": "ええ、もちろんよ。",
+          "gain": 0.89
+        },
+        "refuse": {
+          "file": "05_refuse.mp3",
+          "text": "ごめんなさい、それはできないわ。",
+          "gain": 1.06
+        },
+        "thinking": {
+          "file": "06_thinking.mp3",
+          "text": "少し考えさせてね。",
+          "gain": 1.04
+        },
+        "surprise": {
+          "file": "07_surprise.mp3",
+          "text": "まあ、本当に？",
+          "gain": 0.87
+        },
+        "happy": {
+          "file": "08_happy.mp3",
+          "text": "ふふっ、よかったわ。",
+          "gain": 1.4
+        },
+        "disappointed": {
+          "file": "09_disappointed.mp3",
+          "text": "そんな……残念ね。",
+          "gain": 1.38
+        },
+        "thanks": {
+          "file": "10_thanks.mp3",
+          "text": "ありがとう。本当に助かったわ。",
+          "gain": 1.11
+        }
+      }
     }
   }
 }

@@ -68,6 +68,7 @@ Kenney（https://kenney.nl/）— Casino Audio / Interface Sounds / RPG Audio
 | 御堂 隆臣（npc_04_mido） | FALSE_CROWN_voice_03_mido.zip | 10 | 収録済み（`public/assets/audio/voice/`） |
 | 白石 紗夜（npc_05_shiraishi） | FALSE_CROWN_voice_04_shiraishi.zip | 10 | 収録済み（`public/assets/audio/voice/`） |
 | 桐生 颯（npc_06_kiryu） | FALSE_CROWN_voice_05_kiryu.zip | 10 | 収録済み（同上。先の 4 人と同じ制作元、同じ注意書きのため同じ扱い） |
+| 橘 香織（npc_07_tachibana） | FALSE_CROWN_voice_06_tachibana.zip | 10 | 収録済み（同上。先の 5 人と同じ制作元、同じ注意書きのため同じ扱い） |
 
 ## キャラクター・アイコン
 
