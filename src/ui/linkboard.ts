@@ -3,12 +3,15 @@
  * 端点に触れてそのままなぞると経路が伸びる。引いた経路の途中に触れると、そこから引き直せる。来た道を戻ると 1 マスずつ消える。
  * 記号は色と文字の両方で区別する。結び終えた記号は、端点に輪が付く。
  */
+import { assetUrl } from '../assets/registry';
 import { Sound } from '../audio/audio';
 import { linkComplete, linked, neighbours, type LinkPuzzle } from '../matches/link';
 import { h } from './dom';
 
 export const LINK_COLORS = ['#e6b84f', '#5fb8e6', '#e67a6a', '#7ed48a', '#c59be8', '#f0a05a', '#6fd6c8', '#e88ab8'];
 const LETTERS = 'ABCDEFGH';
+/** 端点の素材（中立の銀色。色はプログラムで下に敷き、乗算で重ねる。画像そのものは変えない） */
+const TOKEN = assetUrl('ui/v11/m03/endpoint_token');
 
 export interface LinkMark { color: number; cells: number[] }
 
@@ -209,7 +212,7 @@ export class LinkBoard {
       const col = LINK_COLORS[i % LINK_COLORS.length];
       for (const c of e) {
         if (this.isDone(i)) out.push(`<circle cx="${cx(c)}" cy="${cy(c)}" r="${S * 0.42}" fill="none" stroke="${col}" stroke-width="2.5" opacity="0.9"/>`);
-        out.push(`<circle class="lb-end" data-end="${c}" cx="${cx(c)}" cy="${cy(c)}" r="${S * 0.33}" fill="${col}"/><text class="lb-letter" x="${cx(c)}" y="${cy(c)}" font-size="${S * 0.36}">${LETTERS[i]}</text>`);
+        out.push(`<circle class="lb-end" data-end="${c}" cx="${cx(c)}" cy="${cy(c)}" r="${S * 0.33}" fill="${col}"/>${TOKEN ? `<image class="lb-token" href="${TOKEN}" x="${cx(c) - S * 0.36}" y="${cy(c) - S * 0.36}" width="${S * 0.72}" height="${S * 0.72}"/>` : ''}<text class="lb-letter" x="${cx(c)}" y="${cy(c)}" font-size="${S * 0.36}">${LETTERS[i]}</text>`);
       }
     });
     this.svg.innerHTML = `<svg viewBox="0 0 ${n * S} ${n * S}" width="${n * S}" height="${n * S}">${out.join('')}</svg>`;
