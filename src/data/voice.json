@@ -470,6 +470,33 @@
           "text": "（文面は未確認）",
           "gain": 1.35
         }
+      },
+      "extra": {
+        "introduction": {
+          "file": "11_introduction.mp3",
+          "text": "堂島誠司だ。昔は刑事をやっていた。まあ、よろしく頼むよ。",
+          "gain": 0.85
+        },
+        "victory": {
+          "file": "12_victory.mp3",
+          "text": "ふう……長年の経験も、まだ捨てたもんじゃないな。",
+          "gain": 1.26
+        },
+        "defeat": {
+          "file": "13_defeat.mp3",
+          "text": "まいったな。どうやら俺の読みが甘かったようだ。",
+          "gain": 1.05
+        },
+        "elimination": {
+          "file": "14_elimination.mp3",
+          "text": "俺はここまでか……。お前ら、最後まで諦めるんじゃないぞ。",
+          "gain": 0.7
+        },
+        "betrayal": {
+          "file": "15_betrayal.mp3",
+          "text": "そうか……俺も随分と人を見る目が鈍ったもんだな。",
+          "gain": 1.06
+        }
       }
     },
     "npc_09_asahina": {
@@ -524,6 +551,33 @@
           "file": "10_thanks.mp3",
           "text": "ありがとう！ 本当に助かったよ！",
           "gain": 0.85
+        }
+      },
+      "extra": {
+        "introduction": {
+          "file": "11_introduction.mp3",
+          "text": "朝比奈ひまりです！ 大学生です。ちょっと緊張してるけど、みんなよろしくね！",
+          "gain": 1.01
+        },
+        "victory": {
+          "file": "12_victory.mp3",
+          "text": "やったー！ 私、勝てたんだ！ えへへ、すっごくうれしい！",
+          "gain": 0.81
+        },
+        "defeat": {
+          "file": "13_defeat.mp3",
+          "text": "うぅ……負けちゃった。次はもっと頑張るから！",
+          "gain": 1.08
+        },
+        "elimination": {
+          "file": "14_elimination.mp3",
+          "text": "そっか……もう終わりなんだね。もっとみんなと一緒にいたかったな……。",
+          "gain": 1.4
+        },
+        "betrayal": {
+          "file": "15_betrayal.mp3",
+          "text": "うそ……だよね？ 私、本当に信じてたんだよ……。",
+          "gain": 1.4
         }
       }
     },
