@@ -20,6 +20,12 @@ import { M07 } from './m07';
 import { M10 } from './m10';
 import { P10 } from './p10';
 import { M11 } from './m11';
+import { S01 } from './s01';
+import { S02 } from './s02';
+import { S03 } from './s03';
+import { S04 } from './s04';
+import { S05 } from './s05';
+import { S06 } from './s06';
 
 /** 実装済みの競技。未実装の競技は IMPLEMENTED に含めない（完成扱いしない）。 */
 export const MATCHES: Record<string, MatchEngine> = {
@@ -44,6 +50,12 @@ export const MATCHES: Record<string, MatchEngine> = {
   m10: M10,
   p10: P10,
   m11: M11,
+  s01: S01,
+  s02: S02,
+  s03: S03,
+  s04: S04,
+  s05: S05,
+  s06: S06,
 };
 
 export interface CatalogEntry {

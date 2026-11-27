@@ -33,6 +33,7 @@ import { renderM10 } from './games/m10';
 import { renderP10 } from './games/p10';
 import { renderM11 } from './games/m11';
 import { renderDuel } from './games/duel';
+import { renderS01, renderS02, renderS03, renderS04, renderS05, renderS06 } from './games/subs';
 import { renderM09 } from './games/m09';
 import { renderM06 } from './games/m06';
 import { renderP06 } from './games/p06';
@@ -62,6 +63,12 @@ export interface MatchUi {
 export type Renderer = (view: never, ui: MatchUi) => { main: Child; side?: Child };
 
 const RENDERERS: Record<string, Renderer> = {
+  s01: renderS01 as Renderer,
+  s02: renderS02 as Renderer,
+  s03: renderS03 as Renderer,
+  s04: renderS04 as Renderer,
+  s05: renderS05 as Renderer,
+  s06: renderS06 as Renderer,
   m07: renderM07 as Renderer,
   p07: renderP07 as Renderer,
   m08: renderM08 as Renderer,
@@ -248,7 +255,9 @@ export function playMatch(slot: MatchSlot): Promise<void> {
     layer = openLayer(el, { pausesClock: false, name: 'match' });
     // 開発版のみ：画面の自動確認から、進行中の競技を参照できるようにする
     if (import.meta.env.VITE_CHANNEL !== 'product') {
-      const w = window as unknown as { __fcSlot?: MatchSlot; __fcAuto?: () => boolean };
+      const w = window as unknown as { __fcSlot?: MatchSlot; __fcAuto?: () => boolean; __fcHint?: () => unknown };
+      // 開発版のみ：CPU と同じ考え方で選んだ主人公の手を返す（出さない）。画面の自動確認が、その手を指の操作で入力するために使う
+      w.__fcHint = () => (closed || engine.done(slot.state) || !engine.pending(slot.state).includes('hero') ? null : engine.ai(engine.view(slot.state, 'hero'), buildCtx(s, 'hero', slot.id, rngOf(s))));
       w.__fcSlot = slot;
       // 開発版のみ：主人公の手を CPU と同じ考え方で 1 手進める（長い競技の自動確認用）
       w.__fcAuto = () => {
