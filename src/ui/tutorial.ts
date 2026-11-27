@@ -40,7 +40,7 @@ import { toolBar as p09Tools } from './games/p09';
 import { MirrorBoard } from './mirrorboard';
 import { DELIVER_PTS as M10_DELIVER, M10_PRACTICE, actsOf as m10Acts, applyAct as m10Apply, startBoard as m10Start, type Board as M10Board } from '../matches/m10';
 import { triBoard } from './triboard';
-import { CENTERS as P10_CENTERS, applyStep as p10Apply, startPieces as p10Start, stepsOf as p10Steps, type Piece as P10Piece } from '../matches/p10';
+import { CENTERS as P10_CENTERS, applyStep as p10Apply, h06Start, startPieces as p10Start, stepsOf as p10Steps, type Piece as P10Piece } from '../matches/p10';
 import { P10_COLORS } from './games/p10';
 import { EVENTS as M11_EVENTS } from '../matches/m11';
 import type { CharId } from '../data/characters';
@@ -51,6 +51,7 @@ import { append, button, clear, closeLayer, h, openLayer, type Child, type Layer
 import { candCard } from './games/m02';
 import { boardFigure, COLOR_NAME, itemEl, MemQuiz, SHAPE_NAME } from './memquiz';
 import { PolyBoard } from './polyboard';
+import { HIDDEN_GUIDES } from './hiddenguides';
 import { SUB_GUIDES } from './subguides';
 
 export interface GuidePage {
@@ -947,22 +948,28 @@ function m10Guide(): Guide {
 
 // ---- P10 最後の一手 ----
 
-function p10Guide(): Guide {
+export function p10Guide(h06 = false): Guide {
   const at = (x: number, y: number) => y * 5 + x;
-  const centers = (extra: Record<number, string> = {}) => { const m: Record<number, string> = {}; for (const c of P10_CENTERS) m[c] = 'center'; for (const [c, v] of Object.entries(extra)) m[Number(c)] = `${m[Number(c)] ?? ''} ${v}`; return m; };
+  const centers = (extra: Record<number, string> = {}) => { const m: Record<number, string> = {}; for (const c of h06 ? [12] : P10_CENTERS) m[c] = 'center'; for (const [c, v] of Object.entries(extra)) m[Number(c)] = `${m[Number(c)] ?? ''} ${v}`; return m; };
   const fig = (ps: P10Piece[], cell: number, marks: Record<number, string> = {}) => pieceBoard({ n: 5, cell, pieces: ps.map((p) => ({ pos: p.pos, seat: p.seat, kind: 'pawn' as const })), colors: P10_COLORS, me: 0, marks: centers(marks) });
   const cap = (el: HTMLElement, text: string) => h('div', { class: 'tg-fig' }, el, h('div', { class: 'tg-cap' }, text));
   const mid: P10Piece[] = [{ seat: 0, pos: at(1, 1) }, { seat: 1, pos: at(2, 1) }, { seat: 1, pos: at(4, 3) }, { seat: 0, pos: at(0, 3) }];
   const hold: P10Piece[] = [{ seat: 0, pos: at(2, 2) }, { seat: 0, pos: at(1, 2) }, { seat: 1, pos: at(3, 2) }, { seat: 1, pos: at(4, 0) }, { seat: 0, pos: at(0, 4) }];
+  const capPage = {
+    title: t('tut.p10.t2'), text: t('tut.p10.p2'),
+    figure: () => h('div', { class: 'tg-row' }, cap(fig(mid, 54, { [at(1, 1)]: 'sel', [at(3, 1)]: 'can cap' }), t('tut.m09.before')), h('span', { class: 'dq-arrow' }, '▶'),
+      cap(fig(p10Apply(mid, 0, { from: at(1, 1), to: at(3, 1), cap: at(2, 1) }), 54, { [at(1, 1)]: 'from', [at(2, 1)]: 'to hit', [at(3, 1)]: 'to' }), t('tut.m09.after'))),
+  };
   return {
-    name: '最後の一手',
-    pages: [
+    name: h06 ? '影の対戦者' : '最後の一手',
+    pages: h06 ? [
+      { title: t('tut.h06.t1'), text: t('tut.h06.p1'), figure: () => fig(h06Start(), 70) },
+      capPage,
+      { title: t('tut.h06.t3'), text: t('tut.h06.p3'), figure: () => h('div', { class: 'tg-row' }, fig([{ seat: 0, pos: at(2, 2) }, { seat: 0, pos: at(0, 4) }, { seat: 1, pos: at(3, 1) }], 62), facts([['+1', t('tut.h06.f1')], ['+1', t('tut.h06.f2')]])) },
+      { title: t('tut.h06.t4'), text: t('tut.h06.p4'), figure: () => facts([['15', t('tut.p10.g1')], ['1', t('tut.p10.g2')], ['15', t('tut.p10.g3')]]) },
+    ] : [
       { title: t('tut.p10.t1'), text: t('tut.p10.p1'), figure: () => fig(p10Start(), 70) },
-      {
-        title: t('tut.p10.t2'), text: t('tut.p10.p2'),
-        figure: () => h('div', { class: 'tg-row' }, cap(fig(mid, 54, { [at(1, 1)]: 'sel', [at(3, 1)]: 'can cap' }), t('tut.m09.before')), h('span', { class: 'dq-arrow' }, '▶'),
-          cap(fig(p10Apply(mid, 0, { from: at(1, 1), to: at(3, 1), cap: at(2, 1) }), 54, { [at(1, 1)]: 'from', [at(2, 1)]: 'to hit', [at(3, 1)]: 'to' }), t('tut.m09.after'))),
-      },
+      capPage,
       { title: t('tut.p10.t3'), text: t('tut.p10.p3'), figure: () => h('div', { class: 'tg-row' }, fig(hold, 62), facts([['+2', t('tut.p10.f1')], ['+1', t('tut.p10.f2')]])) },
       { title: t('tut.p10.t4'), text: t('tut.p10.p4'), figure: () => facts([['20', t('tut.p10.g1')], ['2', t('tut.p10.g2')], ['15', t('tut.p10.g3')]]) },
     ],
@@ -1067,7 +1074,7 @@ function m11Guide(): Guide {
   };
 }
 
-const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide, m07: m07Guide, p07: p07Guide, m08: m08Guide, p08: p08Guide, m09: m09Guide, p09: p09Guide, m10: m10Guide, p10: p10Guide, m11: m11Guide , ...SUB_GUIDES };
+const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide, m07: m07Guide, p07: p07Guide, m08: m08Guide, p08: p08Guide, m09: m09Guide, p09: p09Guide, m10: m10Guide, p10: p10Guide, m11: m11Guide, h06: () => p10Guide(true), ...SUB_GUIDES, ...HIDDEN_GUIDES };
 
 export const hasGuide = (id: string) => id in GUIDES;
 

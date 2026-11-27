@@ -6,7 +6,7 @@
 import { Sound } from '../../audio/audio';
 import type { CharId, NpcId } from '../../data/characters';
 import { t } from '../../i18n/i18n';
-import { CAP_PTS, CENTERS, CENTER_PTS, applyStep, startPieces, stepsOf, type P10Log, type P10Move, type P10View, type Piece } from '../../matches/p10';
+import { CAP_PTS, CENTER_PTS, applyStep, stepsOf, type P10Log, type P10Move, type P10View, type Piece } from '../../matches/p10';
 import { face } from '../art';
 import { button, h, type Child } from '../dom';
 import { HEX_COLORS } from '../hexboard';
@@ -44,7 +44,7 @@ export function renderP10(v: P10View, ui: MatchUi): { main: Child; side: Child }
   const last: P10Log | undefined = St.n > 0 ? v.log[St.n - 1] : undefined;
   // 表示中のゲーム：再生中は記録のゲーム、追いついたら今のゲーム
   const shownGame = replaying ? v.log[St.n].game : v.game;
-  const pieces: Piece[] = !replaying ? v.pieces : last && last.game === shownGame ? last.pieces : startPieces();
+  const pieces: Piece[] = !replaying ? v.pieces : last && last.game === shownGame ? last.pieces : v.start;
   const done = v.phase === 'done' && !replaying;
   const points = !replaying ? v.points : last ? last.points : [0, 0];
   const turnOf = replaying ? (v.log[St.n].seat >= 0 ? v.players[v.log[St.n].seat] : null) : v.toMove;
@@ -61,13 +61,13 @@ export function renderP10(v: P10View, ui: MatchUi): { main: Child; side: Child }
   }));
   const side = [
     h('div', { class: 'box scroll grow' }, h('h4', null, t('m01.rank')), table, h('div', { class: 'small dim', style: 'margin-top:6px' }, t('p10.tableNote', { c: CAP_PTS, m: CENTER_PTS }))),
-    h('div', { class: 'box' }, h('h4', null, t('p10.gameTitle', { n: shownGame + 1 })), h('div', { class: 'small' }, t('p10.firstNote', { name: ui.name(v.players[(shownGame) % 2]) })),
+    v.games === 1 ? h('div', { class: 'box' }, h('div', { class: 'small' }, t('h06.sideNote'))) : h('div', { class: 'box' }, h('h4', null, t('p10.gameTitle', { n: shownGame + 1 })), h('div', { class: 'small' }, t('p10.firstNote', { name: ui.name(v.players[(shownGame) % 2]) })),
       [0, 1].filter((g) => g <= v.game).map((g) => h('div', { class: 'small dim' }, t('p10.gameRow', { n: g + 1, na: ui.name(v.players[0]), a: v.gamePts[g][0], b: v.gamePts[g][1], nb: ui.name(v.players[1]) })))),
   ];
 
   const marks: Record<number, string> = {};
   const add = (c: number, cls: string) => { marks[c] = `${marks[c] ?? ''} ${cls}`; };
-  for (const c of CENTERS) add(c, last?.kind === 'score' && pieces.some((p) => p.pos === c) ? 'center award' : 'center');
+  for (const c of v.centers) add(c, last?.kind === 'score' && pieces.some((p) => p.pos === c) ? 'center award' : 'center');
   if (last?.kind === 'move' && last.game === shownGame) { add(last.from!, 'from'); add(last.to!, 'to'); if (last.cap !== undefined) add(last.cap, 'to hit'); }
   const steps = myTurn ? stepsOf(pieces, seat) : [];
   const mine = pieces.filter((p) => p.seat === seat);
@@ -112,7 +112,7 @@ export function renderP10(v: P10View, ui: MatchUi): { main: Child; side: Child }
   const foot: Child[] = [];
   if (done) {
     head = h('div', { class: 'm01-big' }, t('p01.finished'));
-    body = h('div', { class: 'small dim' }, t('p10.doneNote'));
+    body = h('div', { class: 'small dim' }, t(v.games === 1 ? 'h06.doneNote' : 'p10.doneNote'));
   } else if (v.phase === 'break' && !replaying) {
     head = h('div', { class: 'm01-big' }, v.round === 0 ? t('p10.breakGame', { n: v.game + 1 }) : t('m07.breakTitle', { n: v.round + 1 }));
     body = [
@@ -133,7 +133,7 @@ export function renderP10(v: P10View, ui: MatchUi): { main: Child; side: Child }
         if (!sel) note = t('m09.howPick');
         else if (!chosen) note = t('p10.howMove');
         else {
-          const gain = chosen.cap !== undefined ? t('p10.gainCap', { n: CAP_PTS }) : CENTERS.includes(chosen.to) ? t('p10.gainCenter', { n: CENTER_PTS }) : '';
+          const gain = chosen.cap !== undefined ? t('p10.gainCap', { n: CAP_PTS }) : v.centers.includes(chosen.to) ? t('p10.gainCenter', { n: CENTER_PTS }) : '';
           note = [gain ? h('span', { class: 'gold' }, gain) : null, danger ? h('span', { class: 'pz-warn' }, t('p10.warn')) : gain ? null : t('m08.moveReady')];
         }
         foot.push(button(t('m09.doMove'), confirm, { kind: 'primary', disabled: !chosen }));

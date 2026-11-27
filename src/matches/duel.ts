@@ -150,3 +150,23 @@ export const DUEL: MatchEngine<DuelState, DuelMove, DuelView> = {
     return sortGroups(s.players, (p) => s.wins[s.players.indexOf(p)]);
   },
 };
+
+/** H02 月下の賭場：カード対決を 1 から 5 のカードで行う（賭けるピースは、競技の外で扱う） */
+export const H02: MatchEngine<DuelState, DuelMove, DuelView> = {
+  ...DUEL,
+  id: 'h02',
+  name: '月下の賭場',
+  kind: 'hidden',
+  summary: '仮面のディーラーと、1 から 5 のカードで勝負する。目標の数に近いカードを同時に出す。',
+  rules: [
+    '始める前に、賭けるピース（1 から 3）を決めます。ディーラーも同じ数を出します。',
+    '2 人とも、1 から 5 のカードを 1 枚ずつ持ちます。全 5 ラウンドです。',
+    'ラウンドごとに目標の数が公開されます。目標は 1 から 5 が 1 回ずつで、順番はくじです。',
+    '2 人が同時にカードを 1 枚出し、目標との差が小さい方が 1 勝。差が同じ時は 0.5 勝ずつです。',
+    '勝ち数の多い方が、賭けたピースを全部受け取ります。同じ勝ち数なら、賭けたピースは戻ります。',
+    '時間切れの場合：手札の一番小さいカードが出ます。',
+  ],
+  init(players, rng, opts) {
+    return DUEL.init(players, rng, { ...opts, cards: 5 });
+  },
+};

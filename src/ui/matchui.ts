@@ -33,6 +33,7 @@ import { renderM10 } from './games/m10';
 import { renderP10 } from './games/p10';
 import { renderM11 } from './games/m11';
 import { renderDuel } from './games/duel';
+import { renderH01, renderH03, renderH04, renderH05, renderH07, renderH08 } from './games/hidden';
 import { renderS01, renderS02, renderS03, renderS04, renderS05, renderS06 } from './games/subs';
 import { renderM09 } from './games/m09';
 import { renderM06 } from './games/m06';
@@ -63,6 +64,14 @@ export interface MatchUi {
 export type Renderer = (view: never, ui: MatchUi) => { main: Child; side?: Child };
 
 const RENDERERS: Record<string, Renderer> = {
+  h01: renderH01 as Renderer,
+  h02: renderDuel as Renderer,
+  h03: renderH03 as Renderer,
+  h04: renderH04 as Renderer,
+  h05: renderH05 as Renderer,
+  h06: renderP10 as Renderer,
+  h07: renderH07 as Renderer,
+  h08: renderH08 as Renderer,
   s01: renderS01 as Renderer,
   s02: renderS02 as Renderer,
   s03: renderS03 as Renderer,

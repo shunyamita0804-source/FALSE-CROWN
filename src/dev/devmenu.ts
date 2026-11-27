@@ -37,11 +37,12 @@ async function testMatch(id: string): Promise<void> {
   const s = fresh();
   G.state = s;
   const n = Math.min(eng.maxPlayers, id.startsWith('p') ? 4 : 12);
-  const players: CharId[] = ['hero', ...NPC_IDS.slice(0, n - 1)];
+  const players: CharId[] = id === 'h02' ? ['hero', 'dealer' as CharId] : id === 'h06' ? ['hero', 'mask' as CharId] : ['hero', ...NPC_IDS.slice(0, n - 1)];
   await rulesScreen(id, { prison: eng.kind === 'prison' });
   const slot = newSlot(s, id, players, eng.kind === 'prison' ? 'prison' : 'main');
   slot.practice = true;
   await playMatch(slot);
+  if (eng.kind === 'hidden') { G.state = null; return; }
   const notes: string[] = [];
   const ranking = await resolveTies(s, engineOf(id).ranking(slot.state), (tb) => playMatch(tb), (e) => notes.push(e.lottery ? '抽選順位を使用' : `決定戦：${e.result.join(' > ')}`));
   await rankingScreen({ title: `${id.toUpperCase()} ${eng.name}（テスト）`, ranking, scores: engineOf(id).scores(slot.state), cut: eng.kind === 'prison' ? 1 : 4, cutLabel: eng.kind === 'prison' ? t('rank.eliminated') : t('rank.toPrison'), notes, prison: eng.kind === 'prison' });
