@@ -527,6 +527,61 @@
           "gain": 0.86
         }
       }
+    },
+    "npc_11_kisaragi": {
+      "dir": "audio/voice/npc_11_kisaragi",
+      "clips": {
+        "greeting": {
+          "file": "01_greeting.mp3",
+          "text": "おはよう。今日もよろしくね。",
+          "gain": 1.11
+        },
+        "hello": {
+          "file": "02_hello.mp3",
+          "text": "あら、私に何か用？",
+          "gain": 1.4
+        },
+        "understand": {
+          "file": "03_understand.mp3",
+          "text": "なるほどね。そういうこと。",
+          "gain": 1.4
+        },
+        "accept": {
+          "file": "04_accept.mp3",
+          "text": "ええ、喜んで。",
+          "gain": 1.02
+        },
+        "refuse": {
+          "file": "05_refuse.mp3",
+          "text": "悪いけれど、お断りするわ。",
+          "gain": 1.19
+        },
+        "thinking": {
+          "file": "06_thinking.mp3",
+          "text": "そうねぇ……どうしようかしら。",
+          "gain": 1.4
+        },
+        "surprise": {
+          "file": "07_surprise.mp3",
+          "text": "まあ！ 驚いたわ。",
+          "gain": 1.0
+        },
+        "happy": {
+          "file": "08_happy.mp3",
+          "text": "ふふっ、素晴らしいわね。",
+          "gain": 1.12
+        },
+        "disappointed": {
+          "file": "09_disappointed.mp3",
+          "text": "はぁ……期待外れね。",
+          "gain": 1.4
+        },
+        "thanks": {
+          "file": "10_thanks.mp3",
+          "text": "ありがとう。感謝しているわ。",
+          "gain": 1.23
+        }
+      }
     }
   }
 }

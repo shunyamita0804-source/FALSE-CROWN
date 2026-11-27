@@ -83,6 +83,7 @@ Kenney（https://kenney.nl/）— Casino Audio / Interface Sounds / RPG Audio
 | 堂島（npc_08_dojima） | MP3 10 点（管理表なし。元ファイル名 ElevenLabs_2026-11-27T13_42_37〜13_44_28_堂島_eleven_v4.mp3） | 10 | 収録済み（同じ制作元のため同じ扱い）。**分類への割り当ては生成順による暫定**：管理表のある 8 人は、すべて生成順と分類の順が一致しているため同じ順に当てた。台詞の文面は未確認 |
 | 朝比奈 ひまり（npc_09_asahina） | FALSE_CROWN_voice_08_asahina.zip | 10 | 収録済み（同じ制作元、同じ趣旨の注意書きのため同じ扱い） |
 | 九条 蓮司（npc_10_kujo） | FALSE_CROWN_voice_09_kujo.zip | 10 | 収録済み（同上） |
+| 如月 麗華（npc_11_kisaragi） | FALSE_CROWN_voice_10_kisaragi.zip | 10 | 収録済み（同上） |
 
 ## キャラクター・アイコン
 
