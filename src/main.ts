@@ -1,3 +1,4 @@
+import { Input } from './input/InputState';
 import Phaser from 'phaser';
 import { registerSW } from 'virtual:pwa-register';
 import './style.css';
@@ -68,7 +69,8 @@ const game = new Phaser.Game({
   pixelArt: false,
   roundPixels: false,
   scale: { mode: Phaser.Scale.NONE },
-  input: { keyboard: false },
+  // 画面上のボタンや HUD への操作を、フィールドへのタップとして拾わない
+  input: { keyboard: false, windowEvents: false },
   audio: { noAudio: true },
   scene: [BootScene, FieldScene],
 });
@@ -103,7 +105,7 @@ async function boot(): Promise<void> {
     await runGame();
   }
 }
-if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G };
+if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input };
 void boot();
 
 // オフライン用 Service Worker（Capacitor アプリ内では不要なので登録しない）

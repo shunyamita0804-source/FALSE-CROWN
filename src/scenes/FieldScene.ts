@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { G } from '../app/game';
-import { assetFile, CHAR_FOOT, CHAR_H, CHAR_W, charFolder, TILE } from '../assets/registry';
-import { drawCharSheet, drawGlow, drawLightmap, drawProp, drawRoom, drawShadow } from '../assets/placeholders';
+import { assetFile, CHAR_FOOT, CHAR_H, CHAR_SCALE, CHAR_W, charFolder, TILE } from '../assets/registry';
+import { drawCharSheet, drawLightmap, drawProp, drawRoom, drawShadow } from '../assets/placeholders';
 import { hashString } from '../core/rng';
 import type { Actor, Dir } from '../core/types';
 import { ALL_IDS, HERO_PALETTES, NPC_BY_ID, type CharId, type NpcId } from '../data/characters';
@@ -36,6 +36,9 @@ export class FieldScene extends Phaser.Scene {
   private roomId = '';
   private roomObjects: Phaser.GameObjects.GameObject[] = [];
   private roomTextures: string[] = [];
+  /** 読み込み済みの正式背景（新しい順）。メモリを抑えるため古いものから解放する */
+  private mapCache: string[] = [];
+  private loading = new Set<string>();
   private actors = new Map<CharId, ActorView>();
   private marks: Phaser.GameObjects.Image[] = [];
   private flagsKey = '';
@@ -49,6 +52,7 @@ export class FieldScene extends Phaser.Scene {
 
   create(): void {
     G.field = this;
+    this.load.setBaseURL(import.meta.env.BASE_URL);
     fitCameraToReference(this, (view) => {
       this.view = view;
       this.applyBounds();
@@ -74,6 +78,17 @@ export class FieldScene extends Phaser.Scene {
       g.lineWidth = 2;
       g.beginPath(); g.moveTo(24, 8); g.lineTo(24, 40); g.moveTo(8, 24); g.lineTo(40, 24); g.stroke();
       this.textures.addCanvas('mark', c);
+    }
+    if (!this.textures.exists('arrow')) {
+      const c = document.createElement('canvas');
+      c.width = c.height = 64;
+      const g = c.getContext('2d')!;
+      g.beginPath(); g.moveTo(32, 10); g.lineTo(54, 44); g.lineTo(32, 36); g.lineTo(10, 44); g.closePath();
+      g.fillStyle = 'rgba(244,222,150,0.95)';
+      g.shadowColor = 'rgba(0,0,0,0.8)'; g.shadowBlur = 6;
+      g.fill();
+      g.lineWidth = 2; g.strokeStyle = 'rgba(40,28,8,0.9)'; g.stroke();
+      this.textures.addCanvas('arrow', c);
     }
   }
 
@@ -103,6 +118,47 @@ export class FieldScene extends Phaser.Scene {
     const key = `prop:${type}`;
     if (!this.textures.exists(key)) this.textures.addCanvas(key, drawProp(type, TILE * TEX));
     return key;
+  }
+
+  /** 正式背景を必要になった時に読み込む（全マップを起動時に読むと初回が重いため） */
+  private requestAssets(keys: string[]): void {
+    let added = false;
+    for (const key of keys) {
+      if (this.textures.exists(key) || this.loading.has(key)) continue;
+      const file = assetFile(key.slice('asset:'.length));
+      if (!file) continue;
+      this.loading.add(key);
+      this.load.image(key, `assets/${file}`);
+      added = true;
+    }
+    if (!added) return;
+    this.load.once(Phaser.Loader.Events.COMPLETE, () => {
+      for (const key of keys) this.loading.delete(key);
+      const room = G.state ? ROOMS[G.state.actors.hero.pos.room] : null;
+      if (room && this.roomId === room.id && keys.some((k) => k === `asset:${room.image}` || k === `asset:${room.overlay?.image}`)) this.buildRoom();
+    });
+    this.load.start();
+  }
+
+  private touchMap(key: string): void {
+    this.mapCache = [key, ...this.mapCache.filter((k) => k !== key)];
+  }
+
+  /** 隣の部屋の背景を先読みし、離れた部屋の背景は解放する */
+  private preloadNeighbours(room: RoomDef): void {
+    const s = G.state!;
+    const near = new Set<string>([`asset:${room.image}`]);
+    if (room.overlay) near.add(`asset:${room.overlay.image}`);
+    for (const d of room.doors) {
+      if (d.lock && !s.flags[d.lock]) continue;
+      const t = ROOMS[d.to];
+      if (t) near.add(`asset:${t.image}`);
+    }
+    if (this.textures.exists(`asset:${room.image}`)) this.requestAssets([...near].filter((k) => !k.includes('_overlay') || (room.overlay && s.flags[room.overlay.flag])));
+    const keep = 8;
+    for (const k of this.mapCache.slice(keep)) if (!near.has(k) && this.textures.exists(k)) this.textures.remove(k);
+    this.mapCache = this.mapCache.filter((k) => this.textures.exists(k));
+    for (const k of near) if (this.textures.exists(k) && !this.mapCache.includes(k)) this.mapCache.push(k);
   }
 
   private clearRoom(): void {
@@ -139,12 +195,21 @@ export class FieldScene extends Phaser.Scene {
     const H = room.h * TILE;
     const formal = assetFile(room.image);
     const bgKey = `room:${room.id}`;
-    if (formal && this.textures.exists(`asset:${room.image}`)) {
-      // 正式背景（家具込み）。衝突・扉・調査地点はデータ側のまま
-      this.roomObjects.push(this.add.image(0, 0, `asset:${room.image}`).setOrigin(0).setDisplaySize(W, H).setDepth(0));
-      if (room.overlay && s.flags[room.overlay.flag] && this.textures.exists(`asset:${room.overlay.image}`)) {
-        this.roomObjects.push(this.add.image(0, 0, `asset:${room.overlay.image}`).setOrigin(0).setDisplaySize(W, H).setDepth(0.6));
+    if (formal) {
+      // 正式背景（家具込みの一枚絵）。画像は加工せず等倍の縦横比で表示し、衝突・扉・調査地点はデータ側で持つ
+      const key = `asset:${room.image}`;
+      const ovKey = room.overlay && s.flags[room.overlay.flag] ? `asset:${room.overlay.image}` : null;
+      const need = [key, ovKey].filter((k): k is string => !!k && !this.textures.exists(k));
+      if (need.length) {
+        this.requestAssets(need);
+        this.cameras.main.setBackgroundColor('#05060c');
       }
+      if (this.textures.exists(key)) {
+        this.touchMap(key);
+        this.roomObjects.push(this.add.image(0, 0, key).setOrigin(0).setDisplaySize(W, H).setDepth(0));
+        if (ovKey && this.textures.exists(ovKey)) this.roomObjects.push(this.add.image(0, 0, ovKey).setOrigin(0).setDisplaySize(W, H).setDepth(0.6));
+      }
+      this.preloadNeighbours(room);
     } else {
       this.textures.addCanvas(bgKey, drawRoom(room, TILE * TEX, s.flags));
       this.roomTextures.push(bgKey);
@@ -159,22 +224,22 @@ export class FieldScene extends Phaser.Scene {
         if (def.ceiling) img.setAlpha(0.92);
         this.roomObjects.push(img);
       }
+      // 仮素材の時だけ、環境光と光源を重ねる（正式背景は絵の照明をそのまま使い、色を変えない）
+      const lmKey = `light:${room.id}`;
+      this.textures.addCanvas(lmKey, drawLightmap(room, 24, s.flags, s.phase === 'night'));
+      this.roomTextures.push(lmKey);
+      this.roomObjects.push(this.add.image(0, 0, lmKey).setOrigin(0).setDisplaySize(W, H).setDepth(8000));
     }
-    // 光源（環境光で暗くし、光源の周囲だけ明るくする）
-    const lmKey = `light:${room.id}`;
-    this.textures.addCanvas(lmKey, drawLightmap(room, 24, s.flags, s.phase === 'night'));
-    this.roomTextures.push(lmKey);
-    this.roomObjects.push(this.add.image(0, 0, lmKey).setOrigin(0).setDisplaySize(W, H).setDepth(8000));
-    for (const p of room.props) {
-      if (!propVisible(p, s.flags)) continue;
-      const def = PROPS[p.type];
-      if (!def?.light) continue;
-      const gk = `glow:${def.light.color}`;
-      if (!this.textures.exists(gk)) this.textures.addCanvas(gk, drawGlow(def.light.color, 256));
-      const r = def.light.radius * TILE;
-      const glow = this.add.image((p.x + def.w / 2 + (def.light.dx ?? 0)) * TILE, (p.y + def.h / 2 + (def.light.dy ?? 0)) * TILE, gk)
-        .setDisplaySize(r * 2, r * 2).setBlendMode(Phaser.BlendModes.ADD).setAlpha(def.light.intensity * 0.55).setDepth(8001);
-      this.roomObjects.push(glow);
+    // 出入口の目印（通れる扉だけ。隠し扉は解錠後に表示）
+    for (const d of room.doors) {
+      if (d.lock && !s.flags[d.lock]) continue;
+      const v = DIRS[d.dir];
+      const cx = d.tiles.reduce((a, t) => a + t.x, 0) / d.tiles.length + 0.5 + v.dx * 0.55;
+      const cy = d.tiles.reduce((a, t) => a + t.y, 0) / d.tiles.length + 0.5 + v.dy * 0.55;
+      const m = this.add.image(cx * TILE, cy * TILE, 'arrow').setDisplaySize(34, 34).setDepth(8590).setAlpha(0.75)
+        .setAngle({ up: 0, right: 90, down: 180, left: 270 }[d.dir]);
+      this.tweens.add({ targets: m, alpha: 0.3, x: m.x + v.dx * 6, y: m.y + v.dy * 6, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      this.marks.push(m);
     }
     // 調査地点の目印
     for (const ins of room.inspects) {
@@ -206,8 +271,8 @@ export class FieldScene extends Phaser.Scene {
   private makeActor(a: Actor): ActorView {
     const s = G.state!;
     const key = this.charTexture(a.id);
-    const shadow = this.add.image(0, 0, 'shadow').setDisplaySize(64, 26).setAlpha(0.75);
-    const sprite = this.add.sprite(0, 0, key, 0).setOrigin(CHAR_FOOT.x / CHAR_W, CHAR_FOOT.y / CHAR_H).setDisplaySize(CHAR_W, CHAR_H);
+    const shadow = this.add.image(0, 0, 'shadow').setDisplaySize(64 * CHAR_SCALE, 26 * CHAR_SCALE).setAlpha(0.75);
+    const sprite = this.add.sprite(0, 0, key, 0).setOrigin(CHAR_FOOT.x / CHAR_W, CHAR_FOOT.y / CHAR_H).setDisplaySize(CHAR_W * CHAR_SCALE, CHAR_H * CHAR_SCALE);
     const name = a.id === 'hero' ? '' : NPC_BY_ID[a.id as NpcId].short;
     const style = { fontFamily: '"Hiragino Sans","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif', fontSize: '15px', color: '#f2ecdc', stroke: '#05060c', strokeThickness: 4 };
     const label = this.add.text(0, 0, name, style).setOrigin(0.5, 1);
@@ -250,11 +315,11 @@ export class FieldScene extends Phaser.Scene {
         if (v.sprite.texture.key !== walkKey) v.sprite.setTexture(walkKey);
         v.sprite.setFrame(DIR_ROW[a.pos.dir] * 4 + (walking ? Math.floor(v.anim) % 4 : 1));
       }
-      v.sprite.setDisplaySize(CHAR_W, CHAR_H);
+      v.sprite.setDisplaySize(CHAR_W * CHAR_SCALE, CHAR_H * CHAR_SCALE);
       v.sprite.setDepth(py);
       v.shadow.setDepth(py - 1);
-      v.label.setPosition(px, py - CHAR_H + 12).setDepth(8700);
-      if (a.bubble && a.bubble.until > s.simTime) v.bubble.setText(a.bubble.text).setPosition(px, py - CHAR_H - 6).setDepth(8701).setVisible(true);
+      v.label.setPosition(px, py - CHAR_H * CHAR_SCALE + 14).setDepth(8700);
+      if (a.bubble && a.bubble.until > s.simTime) v.bubble.setText(a.bubble.text).setPosition(px, py - CHAR_H * CHAR_SCALE - 4).setDepth(8701).setVisible(true);
       else v.bubble.setVisible(false);
     }
     for (const [id, v] of this.actors) {
@@ -298,6 +363,7 @@ export class FieldScene extends Phaser.Scene {
   private onTap(p: Phaser.Input.Pointer): void {
     const s = G.state;
     if (!s || !G.fieldActive || anyModal() || G.heroBusy) return;
+    if (p.event && p.event.target !== this.game.canvas) return;
     const cam = this.cameras.main;
     const wp = cam.getWorldPoint(p.x, p.y);
     const tx = Math.floor(wp.x / TILE);
@@ -330,12 +396,8 @@ export class FieldScene extends Phaser.Scene {
     // 扉
     for (const d of room.doors) {
       const tiles = doorApproach(room, d);
-      const hit = tiles.some((t) => {
-        if (d.side === 'top') return t.x === tx && ty <= 2;
-        if (d.side === 'bottom') return t.x === tx && ty >= room.h - 2;
-        if (d.side === 'left') return t.y === ty && tx <= 1;
-        return t.y === ty && tx >= room.w - 2;
-      });
+      const v = DIRS[d.dir];
+      const hit = tiles.some((t) => [0, 1, 2].some((k) => t.x + v.dx * k === tx && t.y + v.dy * k === ty));
       if (hit) {
         this.pendingTarget = { kind: 'door', door: d };
         const t = tiles.reduce((a, b) => (Math.abs(a.x - hero.pos.x) + Math.abs(a.y - hero.pos.y) <= Math.abs(b.x - hero.pos.x) + Math.abs(b.y - hero.pos.y) ? a : b));

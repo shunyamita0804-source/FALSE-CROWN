@@ -17,9 +17,9 @@ export interface ClueDef {
 }
 
 export const CLUES: ClueDef[] = [
-  { id: 'clue_h01_shelf', event: 'h01_shelf', text: '図書室の左奥の書棚は、背表紙の番号が意図的に入れ替えられている。', value: 2, tags: ['h01', 'hidden'] },
+  { id: 'clue_h01_shelf', event: 'h01_shelf', text: '図書室の奥の書棚は、背表紙の番号が意図的に入れ替えられている。', value: 2, tags: ['h01', 'hidden'] },
   { id: 'clue_h01_diary', event: 'h01_diary', text: '図書室の日記に「王は六つの数を愛した」とある。六桁の暗証を示すらしい。', value: 2, tags: ['h01', 'hidden'] },
-  { id: 'clue_h02_clock', event: 'h02_clock', text: '展望室の振り子時計は、深夜になると文字盤の裏で何かが動く音がする。', value: 2, tags: ['h02', 'hidden'], nightOnly: true },
+  { id: 'clue_h02_clock', event: 'h02_clock', text: '展望室の壁の大時計は、深夜になると文字盤の裏で何かが動く音がする。', value: 2, tags: ['h02', 'hidden'], nightOnly: true },
   { id: 'clue_h03_mirror', event: 'h03_mirror', text: '浴室の右の鏡に、湯気でだけ浮かぶ左右反転の記号がある。', value: 2, tags: ['h03', 'hidden'] },
   { id: 'clue_h04_wall', event: 'h04_wall', text: '共同牢の壁に、爪で刻んだ数字の列がある。隣の壁の向こうは空洞らしい。', value: 2, tags: ['h04', 'hidden'] },
   { id: 'clue_h04_letters', event: 'h04_letters', text: '旧書庫に「次の参加者へ」と書かれた古い手紙が五通ある。', value: 2, tags: ['h04', 'hidden'] },
@@ -31,7 +31,7 @@ export const CLUES: ClueDef[] = [
   { id: 'clue_b1_noise', event: 'b1_noise', text: '監獄棟の配管の向こうから、誰かが規則的に叩く音が聞こえる。', value: 2, tags: ['story', 'isolation'], fromDay: 2 },
   { id: 'clue_arena_judge', event: 'arena_judge', text: '競技場の審判台の裏に、小さな鍵穴がある。', value: 1, tags: ['facility'] },
   { id: 'clue_hall_emblem', event: 'hall_emblem', text: '中央ホールの紋章は、中心の石だけ色が違う。下に何かあるのかもしれない。', value: 1, tags: ['facility'] },
-  { id: 'clue_piano', event: 'piano', text: 'ラウンジのピアノに、十二音だけで書かれた奇妙な楽譜が置かれている。', value: 1, tags: ['facility'] },
+  { id: 'clue_piano', event: 'piano', text: 'ラウンジの飾り棚に、十二音だけで書かれた奇妙な楽譜が挟まっている。', value: 1, tags: ['facility'] },
   { id: 'clue_archive_records', event: 'archive_records', text: '旧書庫には、脱落した参加者の私物や手記が収められる棚がある。', value: 2, tags: ['story', 'records'] },
   { id: 'clue_game_box', event: 'game_box', text: '遊戯室の棚に、王冠の刻印がある空箱が一つだけある。', value: 1, tags: ['facility'] },
   { id: 'clue_nameplates', event: 'nameplates', text: '個室の名札の裏には、参加者ごとの番号が刻まれている。', value: 1, tags: ['facility', 'h07'] },

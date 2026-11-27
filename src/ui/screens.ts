@@ -12,14 +12,13 @@ import { DEFAULT_HERO_NAMES, NPC_BY_ID, NPC_IDS, type CharId, type NpcId } from 
 import { CONFIG, scheduleFor, type Difficulty } from '../data/config';
 import guideJson from '../data/match_guide.json';
 import { getLang, LANGS, setLang, t, type Lang } from '../i18n/i18n';
-import { Input } from '../input/InputState';
 import { CATALOG, isImplemented, MATCHES } from '../matches/registry';
 import { TIEBREAK } from '../matches/tiebreak';
 import { describeDeal } from '../npc/negotiation';
 import { deleteSave, exportSave, hasSave, importSave, saveMeta } from '../save/save';
 import { canEnter } from '../world/access';
 import { ROOMS } from '../world/maps';
-import { emblemUrl, face, portraitUrl, setHeroGender } from './art';
+import { bgUrl, emblemUrl, face, portraitUrl, setHeroGender } from './art';
 import { alertDialog, append, button, clear, closeLayer, confirmDialog, fmtTime, h, openLayer, panel, toast, type Child, type Layer } from './dom';
 
 const GUIDE = Object.fromEntries((guideJson as { id: string; goal: string; practice: string; attention: string }[]).map((g) => [g.id.toLowerCase(), g]));
@@ -163,7 +162,8 @@ export function playStory(lines: StoryLine[], opts: { bg?: string; expr?: string
       else show();
     };
     const box = h('div', { class: 'dlg-box', onclick: next, 'data-focus': '', tabIndex: 0 }, name, text, h('div', { class: 'dlg-next' }, '▼'));
-    const el = h('div', { class: `overlay ${G.fieldVisible ? 'clear' : 'solid'} dlg-screen` }, portrait, box, lines.length > 1 ? h('div', { class: 'dlg-skip' }, button(t('common.skip'), done, { small: true, kind: 'ghost' })) : null);
+    const bg = opts.bg ? bgUrl(opts.bg) : null;
+    const el = h('div', { class: `overlay ${bg ? 'solid story-bg' : G.fieldVisible ? 'clear' : 'solid'} dlg-screen`, style: bg ? `background-image:url("${bg}")` : '' }, portrait, box, lines.length > 1 ? h('div', { class: 'dlg-skip' }, button(t('common.skip'), done, { small: true, kind: 'ghost' })) : null);
     show();
     layer = openLayer(el, { pausesClock: true, name: 'story', onCancel: next, onKey: (k) => (k === 'a' ? (next(), true) : false) });
   });
@@ -217,7 +217,6 @@ export function hudShow(v: boolean): void {
     ),
     logBox, prompt, pad, act,
   );
-  Input.bindTouch(el);
   hudLayer = openLayer(el, { modal: false, name: 'hud' });
   hudEls = { day, phase, timer, room, pieces: pc, prompt, log: logBox, skip };
   hudUpdate();
@@ -552,10 +551,16 @@ export function eliminationScreen(id: CharId): Promise<void> {
   });
 }
 
+/** エンディングごとのストーリー背景（正式素材。未納品の組み合わせは背景なし） */
+const ENDING_BG: Record<string, string> = {
+  E_BAD: 'prison_night', E_WIN: 'ending_winner', E_LONE: 'ending_winner', E_BOND: 'ending_winner',
+  E_ESCAPE: 'ending_escape', E_RESCUE: 'isolation', E_REPORT: 'secret_lab', E_TRUE: 'ending_truth',
+};
+
 export async function endingScreen(id: string): Promise<void> {
   const s = G.state;
   const e = ENDINGS.find((x) => x.id === id) ?? ENDINGS[0];
-  await playStory(e.lines.map((text) => ({ speaker: 'narrator', text })));
+  await playStory(e.lines.map((text) => ({ speaker: 'narrator', text })), { bg: ENDING_BG[id] });
   const reached = s ? t('ending.reached', { day: s.day }) : '';
   await new Promise<void>((resolve) => {
     let layer: Layer;
