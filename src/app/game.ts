@@ -5,7 +5,7 @@
  */
 import { Sound, type BgmId } from '../audio/audio';
 import { engineOf, newSlot, resolveTies, runToEnd } from '../core/runner';
-import { addInfo, aliveIds, learn, log, nameOf, shortName, transfer } from '../core/state';
+import { addInfo, adjustRel, aliveIds, learn, log, nameOf, shortName, transfer } from '../core/state';
 import { applyMainResult, applyPrisonResult, endDay, gatherAt, mainMatchId, moveToHouses, prisonMatchId, startMorning } from '../core/tournament';
 import type { GameState, MatchSlot, Phase } from '../core/types';
 import type { CharId, NpcId } from '../data/characters';
@@ -183,12 +183,12 @@ export function setFieldBgm(): void {
   const s = G.state;
   if (!s) return;
   const room = ROOMS[s.actors.hero.pos.room];
-  let id: BgmId = 'B02';
-  if (room.area === 'secret') id = 'B08';
-  else if (room.area === 'prison') id = 'B04';
-  else if (s.phase === 'strategy' || s.phase === 'rules') id = 'B05';
-  else if (room.id.endsWith('lounge')) id = 'B03_ALT';
-  else if (room.area === 'common' || room.area === 'ground') id = 'B03';
+  let id: BgmId = 'living';
+  if (room.area === 'secret') id = 'hidden';
+  else if (room.area === 'prison') id = 'prison';
+  else if (s.phase === 'strategy' || s.phase === 'rules') id = 'match_main';
+  else if (room.id.endsWith('lounge')) id = 'lounge';
+  else if (room.area === 'common' || room.area === 'ground') id = 'common';
   Sound.bgm(id);
 }
 
@@ -219,6 +219,24 @@ async function inspect(id: string, text: string, event?: string): Promise<void> 
       await fade(true);
       G.skipFree();
       await fade(false);
+    }
+  } else if (event === 'dining_meal' && freeEnd) {
+    // 食事：同じ時間帯に 1 回、その場にいる参加者と少し打ち解ける（日常の交流）
+    const key = `meal:${s.day}:${s.phase}`;
+    if (!s.flags[key]) {
+      const ok = await confirmDialog(t('meal.title'), t('meal.text'), { ok: t('meal.ok'), cancel: t('common.cancel') });
+      if (ok) {
+        s.flags[key] = true;
+        const mates = aliveIds(s).filter((x) => x !== 'hero' && s.actors[x].pos.room === hero.pos.room);
+        for (const x of mates) {
+          adjustRel(s, x, 'hero', { like: 3, trust: 1 });
+          adjustRel(s, 'hero', x, { like: 3, trust: 1 });
+        }
+        s.phaseLeft = Math.max(5000, s.phaseLeft - 15000);
+        Sound.se('confirm');
+        await G.ui.showInspect(mates.length ? t('meal.with', { names: mates.slice(0, 4).map((x) => shortName(s, x)).join('、'), more: mates.length > 4 ? t('meal.more') : '' }) : t('meal.alone'));
+        log(s, t('meal.log'));
+      }
     }
   } else if (event === 'shop' || event === 'sub_games') {
     toast(t('toast.notYet'), 'info');
@@ -336,7 +354,7 @@ async function finish(endingId: string): Promise<void> {
   if (!G.meta.endings.includes(endingId)) G.meta.endings.push(endingId);
   saveMeta(G.meta);
   showField(false);
-  Sound.bgm(endingId === 'E_BAD' ? 'B11' : 'B12');
+  Sound.bgm(endingId === 'E_BAD' ? 'elimination' : 'ending');
   await G.ui.endingScreen(endingId);
 }
 
@@ -372,7 +390,7 @@ async function step(s: GameState): Promise<boolean> {
   switch (s.phase) {
     case 'prologue': {
       showField(false);
-      Sound.bgm('B01');
+      Sound.bgm('title');
       await story('S00', {}, false, 'arrival');
       enter('morning');
       return true;
@@ -407,7 +425,7 @@ async function step(s: GameState): Promise<boolean> {
     case 'rules': {
       if (first()) gatherAt(s, 'main_arena');
       showField(true);
-      Sound.bgm('B05');
+      Sound.bgm('match_main');
       await banner(t('banner.gather'));
       await G.ui.rulesScreen(mainMatchId(s.day), { prison: false });
       enter('strategy');
@@ -421,7 +439,7 @@ async function step(s: GameState): Promise<boolean> {
     }
     case 'main': {
       showField(false);
-      Sound.bgm('B05');
+      Sound.bgm('match_main');
       const id = mainMatchId(s.day);
       if (!s.match || s.match.kind !== 'main' || s.match.day !== s.day) s.match = newSlot(s, id, aliveIds(s), 'main');
       const slot = s.match;
@@ -483,7 +501,7 @@ async function step(s: GameState): Promise<boolean> {
       }
       if (heroIn) {
         showField(true);
-        Sound.bgm('B07');
+        Sound.bgm('match_prison');
         await banner(t('banner.prison'));
         await G.ui.rulesScreen(id, { prison: true });
         showField(false);
@@ -515,7 +533,7 @@ async function step(s: GameState): Promise<boolean> {
         notes: JSON.parse(String(s.flags.lastNotes ?? '[]')),
         prison: true,
       });
-      Sound.bgm('B11');
+      Sound.bgm('elimination');
       await G.ui.eliminationScreen(out);
       if (out === 'hero') {
         // 例外なく終局。救済はしない

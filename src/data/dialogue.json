@@ -237,7 +237,7 @@
       "id": "npc_02_kanzaki.investigate.01",
       "npcId": "npc_02_kanzaki",
       "event": "investigate",
-      "text": "この配置には意図がある。記録を探してみよう。",
+      "text": "空き時間に館内を見て回る。配置を把握しておきたい。",
       "condition": {}
     },
     {
@@ -553,7 +553,7 @@
       "id": "npc_03_kurose.eliminated.02",
       "npcId": "npc_03_kurose",
       "event": "eliminated",
-      "text": "残された記録を見捨てないで。",
+      "text": "いい勝負だったわ。あとは任せる。",
       "condition": {}
     },
     {
@@ -576,7 +576,7 @@
       "id": "npc_03_kurose.investigate.01",
       "npcId": "npc_03_kurose",
       "event": "investigate",
-      "text": "記録と証言の食い違いを調べたいの。",
+      "text": "規則集を読み直してくるわ。",
       "condition": {}
     },
     {
@@ -1231,7 +1231,7 @@
       "id": "npc_05_shiraishi.eliminated.02",
       "npcId": "npc_05_shiraishi",
       "event": "eliminated",
-      "text": "最後に見た表情、忘れないわ。",
+      "text": "楽しかったわ。続きは外から見ているわね。",
       "condition": {}
     },
     {
@@ -1254,7 +1254,7 @@
       "id": "npc_05_shiraishi.investigate.01",
       "npcId": "npc_05_shiraishi",
       "event": "investigate",
-      "text": "この場所、誰かが隠したものがありそうね。",
+      "text": "館内を散歩してくるわ。面白いものがあるかも。",
       "condition": {}
     },
     {
@@ -1593,7 +1593,7 @@
       "id": "npc_06_kiryu.investigate.01",
       "npcId": "npc_06_kiryu",
       "event": "investigate",
-      "text": "隠しゲームがあるなら攻略したいよな。",
+      "text": "遊戯室のゲーム、全部試したいんだよな。",
       "condition": {}
     },
     {
@@ -1902,7 +1902,7 @@
       "id": "npc_07_tachibana.eliminated.01",
       "npcId": "npc_07_tachibana",
       "event": "eliminated",
-      "text": "どうか、自分を責めないでください。",
+      "text": "負けてしまいました。皆さん、頑張ってくださいね。",
       "condition": {}
     },
     {
@@ -1932,7 +1932,7 @@
       "id": "npc_07_tachibana.investigate.01",
       "npcId": "npc_07_tachibana",
       "event": "investigate",
-      "text": "誰かが残した記録なら、確かめたいですね。",
+      "text": "少し館内を歩いてきますね。",
       "condition": {}
     },
     {
@@ -2041,14 +2041,14 @@
       "id": "npc_08_dojima.greeting.01",
       "npcId": "npc_08_dojima",
       "event": "greeting",
-      "text": "何か変わったことはなかったか。",
+      "text": "よう。調子はどうだ。",
       "condition": {}
     },
     {
       "id": "npc_08_dojima.greeting.02",
       "npcId": "npc_08_dojima",
       "event": "greeting",
-      "text": "この施設、妙な点が多いな。",
+      "text": "体がなまるな。少し歩いてくるか。",
       "condition": {}
     },
     {
@@ -2220,14 +2220,14 @@
       "id": "npc_08_dojima.prison_before.02",
       "npcId": "npc_08_dojima",
       "event": "prison_before",
-      "text": "ここに来た以上、手掛かりも探す。",
+      "text": "ここからでも巻き返せる。",
       "condition": {}
     },
     {
       "id": "npc_08_dojima.prison_survive.01",
       "npcId": "npc_08_dojima",
       "event": "prison_survive",
-      "text": "まだ調査を続けられる。",
+      "text": "まだ勝負を続けられる。",
       "condition": {}
     },
     {
@@ -2241,14 +2241,14 @@
       "id": "npc_08_dojima.eliminated.01",
       "npcId": "npc_08_dojima",
       "event": "eliminated",
-      "text": "俺がいなくても、記録を追ってくれ。",
+      "text": "負けは負けだ。いい勝負だった。",
       "condition": {}
     },
     {
       "id": "npc_08_dojima.eliminated.02",
       "npcId": "npc_08_dojima",
       "event": "eliminated",
-      "text": "見たものを忘れるなよ。",
+      "text": "最後まで気を抜くなよ。",
       "condition": {}
     },
     {
@@ -2271,14 +2271,14 @@
       "id": "npc_08_dojima.investigate.01",
       "npcId": "npc_08_dojima",
       "event": "investigate",
-      "text": "壁や扉の位置を確認しに行く。",
+      "text": "館内を一回りしてくる。",
       "condition": {}
     },
     {
       "id": "npc_08_dojima.loan_request.01",
       "npcId": "npc_08_dojima",
       "event": "loan_request",
-      "text": "調査に必要な分だけ借りられないか。",
+      "text": "次の勝負に必要な分だけ借りられないか。",
       "condition": {}
     },
     {
@@ -2331,7 +2331,7 @@
       "id": "npc_08_dojima.day_end.01",
       "npcId": "npc_08_dojima",
       "event": "day_end",
-      "text": "今日は記録を整理する。",
+      "text": "今日は早めに休む。",
       "condition": {}
     },
     {
@@ -2580,14 +2580,14 @@
       "id": "npc_09_asahina.eliminated.01",
       "npcId": "npc_09_asahina",
       "event": "eliminated",
-      "text": "ごめん、先に行くね。",
+      "text": "あーあ、負けちゃった。",
       "condition": {}
     },
     {
       "id": "npc_09_asahina.eliminated.02",
       "npcId": "npc_09_asahina",
       "event": "eliminated",
-      "text": "お願い、あのことを覚えていて。",
+      "text": "楽しかった！ 優勝してね。",
       "condition": {}
     },
     {
@@ -2949,7 +2949,7 @@
       "id": "npc_10_kujo.investigate.01",
       "npcId": "npc_10_kujo",
       "event": "investigate",
-      "text": "裏に勝負場があるなら見逃せねえな。",
+      "text": "遊戯室でも覗いてくるか。",
       "condition": {}
     },
     {
@@ -3149,7 +3149,7 @@
       "id": "npc_11_kisaragi.info_offer.02",
       "npcId": "npc_11_kisaragi",
       "event": "info_offer",
-      "text": "舞台裏のこと、知りたくない？",
+      "text": "あの人の今日の狙い、知りたくない？",
       "condition": {}
     },
     {
@@ -3288,7 +3288,7 @@
       "id": "npc_11_kisaragi.investigate.01",
       "npcId": "npc_11_kisaragi",
       "event": "investigate",
-      "text": "舞台裏を少し覗いてみようかしら。",
+      "text": "館内を少し見て回ろうかしら。",
       "condition": {}
     },
     {
@@ -3488,7 +3488,7 @@
       "id": "npc_12_kuze.info_offer.02",
       "npcId": "npc_12_kuze",
       "event": "info_offer",
-      "text": "記録を照合してみないか。",
+      "text": "互いの見立てを照らし合わせてみないか。",
       "condition": {}
     },
     {
@@ -3576,7 +3576,7 @@
       "id": "npc_12_kuze.prison_before.02",
       "npcId": "npc_12_kuze",
       "event": "prison_before",
-      "text": "この場所にも記憶が残っているはずじゃ。",
+      "text": "年の功を見せるとしよう。",
       "condition": {}
     },
     {
@@ -3597,14 +3597,14 @@
       "id": "npc_12_kuze.eliminated.01",
       "npcId": "npc_12_kuze",
       "event": "eliminated",
-      "text": "わしの役目はここまでかもしれん。",
+      "text": "わしはここまでじゃな。よい勝負だった。",
       "condition": {}
     },
     {
       "id": "npc_12_kuze.eliminated.02",
       "npcId": "npc_12_kuze",
       "event": "eliminated",
-      "text": "答えを見つけたなら、どうか正しく使ってほしい。",
+      "text": "君たちの勝負、楽しみに見ておるよ。",
       "condition": {}
     },
     {
@@ -3627,7 +3627,7 @@
       "id": "npc_12_kuze.investigate.01",
       "npcId": "npc_12_kuze",
       "event": "investigate",
-      "text": "古い資料が残っておらんか、探してみたい。",
+      "text": "図書室の蔵書を見てこよう。",
       "condition": {}
     },
     {
@@ -3666,7 +3666,7 @@
       "id": "npc_12_kuze.report_received.01",
       "npcId": "npc_12_kuze",
       "event": "report_received",
-      "text": "複数の記録から検証する必要があるな。",
+      "text": "複数の話を突き合わせて確かめる必要があるな。",
       "condition": {}
     },
     {

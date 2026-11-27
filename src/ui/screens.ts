@@ -5,7 +5,7 @@
  */
 import { CHANNEL, fullUnlocked, Purchase } from '../app/entitlement';
 import { ENDINGS, G, phaseName, type RankingView, type StoryLine } from '../app/game';
-import { BGM, Sound } from '../audio/audio';
+import { BGM, BGM_CREDIT, Sound } from '../audio/audio';
 import { activeDeals, nameOf, shortName } from '../core/state';
 import type { GameState } from '../core/types';
 import { DEFAULT_HERO_NAMES, NPC_BY_ID, NPC_IDS, type CharId, type NpcId } from '../data/characters';
@@ -30,7 +30,7 @@ export const pieces = (n: number): HTMLElement => h('span', { class: 'piece' }, 
 export type TitleChoice = 'new' | 'continue' | 'dev';
 
 export function titleScreen(): Promise<TitleChoice> {
-  Sound.bgm('B01');
+  Sound.bgm('title');
   return new Promise((resolve) => {
     let layer: Layer;
     const done = (c: TitleChoice) => {
@@ -459,7 +459,7 @@ export function howtoScreen(): Promise<void> {
 
 export function creditsScreen(): Promise<void> {
   return alertDialog(t('title.credits'), h('div', { class: 'col small', style: 'gap:8px' }, [
-    h('div', null, h('b', { class: 'gold' }, t('credits.bgm')), h('div', null, 'PeriTune（https://peritune.com/）'), h('div', { class: 'dim' }, Object.values(BGM).map((b) => b.title).join(' / ')), h('div', { class: 'dim' }, t('credits.bgmLicense'))),
+    h('div', null, h('b', { class: 'gold' }, t('credits.bgm')), h('div', null, `${BGM_CREDIT.name}（${BGM_CREDIT.url}）`), h('div', { class: 'dim' }, [...new Set(Object.values(BGM).filter((b) => b.file).map((b) => b.title))].join(' / ')), h('div', { class: 'dim' }, BGM_CREDIT.license)),
     h('div', null, h('b', { class: 'gold' }, t('credits.se')), h('div', null, 'Kenney（https://kenney.nl/）— Casino Audio / Interface Sounds / RPG Audio'), h('div', { class: 'dim' }, t('credits.seLicense'))),
     h('div', null, h('b', { class: 'gold' }, t('credits.engine')), h('div', null, 'Phaser 4 (MIT) / Vite / TypeScript')),
     h('div', { class: 'dim' }, t('credits.note')),
