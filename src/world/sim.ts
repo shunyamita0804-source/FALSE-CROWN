@@ -49,6 +49,13 @@ export function dirTo(fx: number, fy: number, tx: number, ty: number): Dir {
   return dy > 0 ? 'down' : 'up';
 }
 
+/** 扉の通過の記録（画面側が開閉の演出と音に使う。保存はしない） */
+export interface DoorPass { room: string; door: string; who: CharId; arrive: boolean }
+const passes: DoorPass[] = [];
+export function drainDoorPasses(): DoorPass[] {
+  return passes.splice(0);
+}
+
 /** 扉を通って隣の部屋へ移動する */
 export function enterDoor(state: GameState, a: Actor, door: DoorDef): boolean {
   if (!canEnter(state, a.id, door.to, door.lock)) return false;
@@ -62,6 +69,8 @@ export function enterDoor(state: GameState, a: Actor, door: DoorDef): boolean {
   if (!spot) spot = nearestFree(grid, tiles[0], occ);
   const d = doorDir(td);
   const facing: Dir = d === 'up' ? 'down' : d === 'down' ? 'up' : d === 'left' ? 'right' : 'left';
+  if (passes.length > 64) passes.splice(0, 32);
+  passes.push({ room: a.pos.room, door: door.id, who: a.id, arrive: false }, { room: target.id, door: td.id, who: a.id, arrive: true });
   a.pos = { room: target.id, x: spot.x, y: spot.y, dir: facing };
   a.step = undefined;
   a.path = [];

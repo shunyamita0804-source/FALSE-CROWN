@@ -4,6 +4,7 @@
  * 個室で第三者がいない状態を「私的な場所」とし、そこでの取引は他の参加者に知られない。
  * 目撃者が知るのは「誰と誰が個室に入った」という事実だけで、話の中身は分からない。
  */
+import { homeOf, isPrivateRoom, ownerOfRoom } from '../world/rooms';
 import { clockMinutes, lifeSlot, nextSchedule } from '../core/clock';
 import type { Rng } from '../core/rng';
 import { activeDeals, addInfo, adjustRel, allied, learn, nameOf, rel, shortName } from '../core/state';
@@ -23,9 +24,9 @@ export interface Invite {
 export const MEETING_CAP = 4;
 export const INVITE_TIME = 110_000;
 
-const bedroomOf = (id: CharId) => `bedroom_${id}`;
-export const isBedroom = (room: string) => room.startsWith('bedroom_');
-export const ownerOf = (room: string) => room.slice('bedroom_'.length) as CharId;
+export const isBedroom = (room: string) => isPrivateRoom(room);
+/** 個室の持ち主（空室の時は呼ばない） */
+export const ownerOf = (state: GameState, room: string) => ownerOfRoom(state, room) as CharId;
 
 export function invitesOf(state: GameState): Invite[] {
   const st = state as GameState & { invites?: Invite[] };
@@ -82,6 +83,29 @@ export function followersOf(state: GameState, leader: CharId): Actor[] {
   return Object.values(state.actors).filter((x) => x.alive && x.goal?.kind === 'follow' && x.goal.target === leader);
 }
 
+/**
+ * owner（NPC）が、自分の個室を訪ねてきた visitor を部屋へ入れるか。主人公も NPC も同じ基準。
+ * 先客がいる時、締切が近い時、相手を警戒している時は断る。
+ */
+export function visitVerdict(state: GameState, visitor: CharId, owner: NpcId, rng: Rng): InviteVerdict {
+  if (state.phase === 'curfew') return { accept: false, reason: 'deadline' };
+  const next = nextSchedule(state);
+  if (next?.item.hard && next.inMin <= 12) return { accept: false, reason: 'deadline' };
+  if (invitesOf(state).filter((i) => i.host === owner).length + 1 >= MEETING_CAP) return { accept: false, reason: 'full' };
+  const o = state.actors[owner];
+  if (o.goal?.note?.startsWith('host:') || actorsIn(state, o.pos.room).some((x) => x.id !== owner && x.id !== visitor)) return { accept: false, reason: 'busy' };
+  const r = rel(state, owner, visitor);
+  if (r.hostility >= 45 || r.wary >= 75) return { accept: false, reason: 'distrust' };
+  const def = NPC_BY_ID[owner];
+  let score = (r.trust - 38) * 0.55 + r.like * 0.35 - (r.wary - 30) * 0.35 - r.hostility * 0.5;
+  score += allied(state, owner, visitor) ? 14 : 0;
+  score += (def.personality.loyalty - 50) * 0.06;
+  if (lifeSlot(clockMinutes(state)) === 'bath' && !state.flags[`bath:${state.day}:${owner}`]) score -= 8;
+  score += rng.gauss(0, 5);
+  if (score >= 0) return { accept: true, reason: 'ok' };
+  return { accept: false, reason: score > -8 ? 'busy' : 'distrust' };
+}
+
 export interface InviteVerdict {
   accept: boolean;
   reason: 'ok' | 'busy' | 'distrust' | 'deadline' | 'full';
@@ -129,7 +153,7 @@ export function witnessEntry(state: GameState, host: CharId, guest: CharId, from
   for (const o of actorsIn(state, fromRoom)) {
     if (o.id === host || o.id === guest || !o.alive) continue;
     // 距離：扉の近く（入った人の直前の位置は分からないので、部屋の主の扉から 9 マス以内）
-    const door = ROOMS[fromRoom]?.doors.find((d) => d.to === bedroomOf(host));
+    const door = ROOMS[fromRoom]?.doors.find((d) => d.to === homeOf(state, host));
     const tile = door?.tiles[0];
     const dx = tile ? Math.abs(o.pos.x - tile.x) : 0;
     const dy = tile ? Math.abs(o.pos.y - tile.y) : 0;

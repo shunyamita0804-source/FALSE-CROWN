@@ -52,6 +52,17 @@ Kenney（https://kenney.nl/）— Casino Audio / Interface Sounds / RPG Audio
 - ライセンス：CC0 1.0（https://creativecommons.org/publicdomain/zero/1.0/）
 - ライセンス文：`public/assets/audio/licenses/`
 
+### OtoLogic（https://otologic.jp/）
+
+- 「時計 アラーム05」（Clock-Alarm05-4 Low-Loop）— ライセンス：CC BY 4.0（https://creativecommons.org/licenses/by/4.0/）
+- ファイル：`public/assets/audio/se/alarm_clock_ring.mp3`。使用箇所：07:00 の起床の合図
+- 流用元：制作者の別作品「ミストラルモンスターズ バトルカード」（`mistral-bc-online/assets/audio/se/alarm_clock_ring.mp3`、2026-11-27 に複写。流用元のリポジトリは読み取りのみ）
+- 加工：流用元の作品で、3.4 秒への切り出し、高域の減衰、前後のフェード、音量調整が行われている（流用元の `docs/audio-credits.md` の記載）。FALSE CROWN では手を加えていない
+
+### プログラムで合成している音
+
+- 扉を叩く音（ノック）：素材を使わず、再生時に合成している（`src/audio/audio.ts` の `knock()`）
+
 ## ボイス
 
 キャラクターの汎用ボイス（短い音声。全文の読み上げではありません）。
@@ -69,6 +80,9 @@ Kenney（https://kenney.nl/）— Casino Audio / Interface Sounds / RPG Audio
 | 白石 紗夜（npc_05_shiraishi） | FALSE_CROWN_voice_04_shiraishi.zip | 10 | 収録済み（`public/assets/audio/voice/`） |
 | 桐生 颯（npc_06_kiryu） | FALSE_CROWN_voice_05_kiryu.zip | 10 | 収録済み（同上。先の 4 人と同じ制作元、同じ注意書きのため同じ扱い） |
 | 橘 香織（npc_07_tachibana） | FALSE_CROWN_voice_06_tachibana.zip | 10 | 収録済み（同上。先の 5 人と同じ制作元、同じ注意書きのため同じ扱い） |
+| 堂島（npc_08_dojima） | MP3 10 点（管理表なし。元ファイル名 ElevenLabs_2026-11-27T13_42_37〜13_44_28_堂島_eleven_v4.mp3） | 10 | 収録済み（同じ制作元のため同じ扱い）。**分類への割り当ては生成順による暫定**：管理表のある 8 人は、すべて生成順と分類の順が一致しているため同じ順に当てた。台詞の文面は未確認 |
+| 朝比奈 ひまり（npc_09_asahina） | FALSE_CROWN_voice_08_asahina.zip | 10 | 収録済み（同じ制作元、同じ趣旨の注意書きのため同じ扱い） |
+| 九条 蓮司（npc_10_kujo） | FALSE_CROWN_voice_09_kujo.zip | 10 | 収録済み（同上） |
 
 ## キャラクター・アイコン
 

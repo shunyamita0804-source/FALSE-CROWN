@@ -93,20 +93,40 @@ export const BEDROOM_OWNERS = [
 /** 生活棟廊下の個室扉（上の壁に 6、下の壁に 6）の x 座標 */
 const BEDROOM_DOOR_X = [3, 7, 12, 17, 21, 26];
 
-type RoomSrc = Omit<RoomDef, 'props' | 'ambient'>;
+type RoomSrc = Omit<RoomDef, 'props' | 'ambient'> & { props?: PlacedProp[] };
 
 function bedroom(owner: string, i: number): RoomSrc {
-  const mine = owner === 'hero';
   return {
-    id: `bedroom_${owner}`, name: mine ? '自分の個室' : '個室', floor: '3F', area: 'living', theme: 'living', w: 20, h: 14, image: 'maps/3f/living_bedroom',
+    id: `bedroom_${owner}`, name: '個室', floor: '3F', area: 'living', theme: 'living', w: 20, h: 14, image: 'maps/3f/living_bedroom',
     walk: [[1, 4, 18, 11], [9, 12, 10, 12]],
     block: [[1, 4, 4, 9], [5, 5, 5, 7], [14, 7, 17, 10], [18, 4, 18, 11], [1, 10, 1, 11]],
     doors: [D('out', 'down', 9, 12, 2, 'living_hallway', `room${i}`, 'door', '廊下')],
     inspects: [
-      { id: `bed_${owner}`, x: 5, y: 8, text: '上質な寝台。シーツはきれいに整えられている。', event: mine ? 'rest_bed' : undefined },
-      { id: `desk_${owner}`, x: 13, y: 8, text: '机の引き出しには、施設の簡易な見取り図が入っていた。', event: mine ? 'desk_map' : undefined },
+      { id: `bed_${owner}`, x: 5, y: 8, text: '上質な寝台。シーツはきれいに整えられている。', event: 'rest_bed' },
+      { id: `desk_${owner}`, x: 13, y: 8, text: '机の引き出しには、施設の簡易な見取り図が入っていた。', event: 'desk_map' },
     ],
     spots: S([[10, 7], [8, 10], [12, 10]]),
+  };
+}
+
+/** 監獄棟の個室の扉（共同牢の背景に描かれた 11 区画の格子の前）。[x, 上の列か下の列か] */
+const CELL_DOORS: [number, 'up' | 'down'][] = [[2, 'up'], [6, 'up'], [9, 'up'], [17, 'up'], [21, 'up'], [2, 'down'], [6, 'down'], [9, 'down'], [17, 'down'], [21, 'down'], [24, 'down']];
+const cellId = (i: number) => `cell_p${String(i + 1).padStart(2, '0')}`;
+
+/**
+ * 監獄棟の個室。内部の正式な背景画像がまだ無いため、既存の部品（寝台、小机、照明）をプログラムで並べた仮の部屋。
+ * 正式画像が届いたら image を指定するだけで差し替わる（必要な画像は docs/assets/needed_art.md）。
+ */
+function cell(i: number): RoomSrc {
+  const id = cellId(i);
+  return {
+    id, name: '監獄棟の個室', floor: 'B1', area: 'prison', theme: 'prison', w: 12, h: 10, image: '', floorStyle: 'concrete',
+    walk: [[1, 3, 10, 8], [5, 9, 6, 9]],
+    block: [[1, 3, 2, 5], [8, 3, 9, 4], [7, 8, 9, 8]],
+    doors: [D('out', 'down', 5, 9, 2, 'prison_cells', `cell${i}`, 'iron', '共同牢')],
+    props: [{ type: 'bed_prison', x: 1, y: 3 }, { type: 'small_table', x: 8, y: 3 }, { type: 'cold_lamp', x: 5, y: 1 }, { type: 'bench', x: 7, y: 8 }],
+    inspects: [{ id: `bed_${id}`, x: 3, y: 4, text: '硬い寝台。薄い毛布が 1 枚たたんである。', event: 'rest_bed' }],
+    spots: S([[5, 6], [4, 7], [7, 6]]),
   };
 }
 
@@ -115,7 +135,7 @@ const ROOMS_SRC: RoomSrc[] = [
     id: 'living_hallway', name: '生活棟 廊下', floor: '3F', area: 'living', theme: 'living', w: 30, h: 12, image: 'maps/3f/living_hallway',
     walk: [[0,4,29,7]],
     block: [],
-    doors: [...BEDROOM_OWNERS.map((o, i) => D(`room${i}`, i < 6 ? 'up' : 'down', BEDROOM_DOOR_X[i % 6], i < 6 ? 4 : 7, 2, `bedroom_${o}`, 'out', 'door', o === 'hero' ? '自分の個室' : '個室')),D('to_library','left',0,4,4,'library','to_hall','open','図書室'),D('to_lounge','right',29,4,4,'living_lounge','to_hall','open','生活棟ラウンジ')],
+    doors: [...BEDROOM_OWNERS.map((o, i) => D(`room${i}`, i < 6 ? 'up' : 'down', BEDROOM_DOOR_X[i % 6], i < 6 ? 4 : 7, 2, `bedroom_${o}`, 'out', 'door', '個室')),D('to_library','left',0,4,4,'library','to_hall','open','図書室'),D('to_lounge','right',29,4,4,'living_lounge','to_hall','open','生活棟ラウンジ')],
     inspects: [{id:'hall_plate',x:5,y:4,text:'各扉に参加者の名札が掛かっている。裏には部屋番号が刻まれている。',event:'nameplates'}],
     spots: S([[10,5],[20,6],[15,6],[6,6],[24,5]]),
   },
@@ -247,7 +267,7 @@ const ROOMS_SRC: RoomSrc[] = [
     overlay: { image: 'maps/b1/prison_cells_unlocked_overlay', flag: 'h04_open' },
     walk: [[1,5,26,12],[13,13,14,17]],
     block: [[1,5,1,5],[1,6,1,8],[1,9,1,11],[2,10,3,11],[26,5,26,6],[25,7,26,8],[26,9,26,12]],
-    doors: [D('to_hall','down',13,17,2,'prison_hallway','to_cells','iron','通路'),D('secret','up',13,5,2,'cell_zero','from_cells','hidden','第零牢','h04_open')],
+    doors: [D('to_hall','down',13,17,2,'prison_hallway','to_cells','iron','通路'),D('secret','up',13,5,2,'cell_zero','from_cells','hidden','第零牢','h04_open'),...CELL_DOORS.map(([x, dir], i) => D(`cell${i}`, dir, x, dir === 'up' ? 5 : 12, 2, cellId(i), 'out', 'iron', '個室'))],
     inspects: [{id:'cells_wall',x:12,y:5,text:'通路脇の石壁に、数字の列が浅く刻まれている。過去の参加者の落書きらしい。',event:'h04_wall'}],
     spots: S([[8,8],[19,8],[14,9],[6,11],[21,6],[10,6],[17,11]]),
   },
@@ -365,9 +385,10 @@ const ROOMS_SRC: RoomSrc[] = [
     spots: S([[14,10],[10,12],[17,12]]),
   },
   ...BEDROOM_OWNERS.map((o, i) => bedroom(o, i)),
+  ...CELL_DOORS.map((_, i) => cell(i)),
 ];
 
-const ROOMS_LIST: RoomDef[] = ROOMS_SRC.map((r) => ({ ...r, props: [], ambient: 1 }));
+const ROOMS_LIST: RoomDef[] = ROOMS_SRC.map((r) => ({ ...r, props: r.props ?? [], ambient: r.image ? 1 : 0.62 }));
 
 export const ROOMS: Record<string, RoomDef> = Object.fromEntries(ROOMS_LIST.map((r) => [r.id, r]));
 export const ROOM_IDS = ROOMS_LIST.map((r) => r.id);

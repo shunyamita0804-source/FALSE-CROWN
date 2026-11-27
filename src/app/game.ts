@@ -3,6 +3,7 @@
  * 競技の勝敗、棟分け、脱落はすべて core/ のルールで決まり、ここは結果に従って画面と物語を進めるだけ。
  * 主人公専用の分岐は「プレイヤーが操作するか」「プレイヤーが脱落したら終局」だけで、勝敗への補正は一切ない。
  */
+import { homeOf, isCell, isPrivateRoom, knockable, ownerOfRoom, roomTitle } from '../world/rooms';
 import { Sound, type BgmId } from '../audio/audio';
 import { engineOf, newSlot, resolveTies, runToEnd } from '../core/runner';
 import { addInfo, adjustRel, aliveIds, learn, log, nameOf, rngOf, shortName, transfer } from '../core/state';
@@ -16,7 +17,7 @@ import endingsJson from '../data/endings.json';
 import { t } from '../i18n/i18n';
 import { clampPhaseLeft, CLOCK, clockMinutes, crossed, fmtClock, phaseDuration } from '../core/clock';
 import { isImplemented } from '../matches/registry';
-import { addInvite, clearSocial, INVITE_TIME, isBedroom, observeAttitude, ownerOf, witnessEntry } from '../npc/social';
+import { addInvite, clearSocial, INVITE_TIME, isBedroom, observeAttitude, ownerOf, visitVerdict, witnessEntry } from '../npc/social';
 
 /** その日のメインマッチと監獄マッチが両方とも実装済みか */
 const dayPlayable = (day: number) => isImplemented(mainMatchId(day)) && (!prisonMatchId(day) || isImplemented(prisonMatchId(day)!));
@@ -28,7 +29,7 @@ import { CLUE_BY_EVENT } from '../story/clues';
 import { alertDialog, anyModal, choose, clockPaused, confirmDialog, fade, toast, topLayer } from '../ui/dom';
 import { fxPop } from '../ui/art';
 import { canEnter, denyReason } from '../world/access';
-import { ROOMS } from '../world/maps';
+import { ROOMS, type DoorDef } from '../world/maps';
 import { enterDoor, moveActor, placeIn, setRouteTo, speedOf } from '../world/sim';
 import { CHANNEL, dayUnlocked } from './entitlement';
 
@@ -155,10 +156,11 @@ export const G = {
         Sound.se(d.kind === 'iron' ? 'latch' : 'doorOpen');
         void (async () => {
           try {
-            await fade(true, 170, dest ? `${dest.name.startsWith(dest.floor) ? '' : dest.floor + '　'}${dest.name}` : '');
+            const destName = dest ? roomTitle(s, d.to) : '';
+            await fade(true, 170, dest ? `${destName.startsWith(dest.floor) ? '' : dest.floor + '　'}${destName}` : '');
             if (G.state === s && enterDoor(s, s.actors.hero, d)) {
               // 他人の個室へ入るところは、廊下にいた人に見られることがある
-              if (isBedroom(d.to) && d.to !== 'bedroom_hero') witnessEntry(s, ownerOf(d.to), 'hero', from, rngOf(s));
+              if (isBedroom(d.to) && ownerOfRoom(s, d.to) && ownerOfRoom(s, d.to) !== 'hero') witnessEntry(s, ownerOf(s, d.to), 'hero', from, rngOf(s));
               lastStepKey = '';
               setFieldBgm();
             }
@@ -168,6 +170,8 @@ export const G = {
             G.heroBusy = false;
           }
         })();
+      } else if (!quiet && knockable(s, d.to)) {
+        void knockAt(d);
       } else {
         // 歩いて扉に触れただけの時は何も出さない（行動ボタンを押した時だけ理由を伝える）
         const why = quiet ? '' : denyReason(s, d.to, d.lock);
@@ -211,6 +215,42 @@ export function phaseName(p: Phase): string {
   return t(`phase.${p}`);
 }
 
+/**
+ * 他の参加者の個室の扉を叩く。部屋の主が中にいれば、入れてくれるかを相手が決める（信頼、先客、時刻による）。
+ * 入れてもらえたら、その場で部屋へ入る。
+ */
+async function knockAt(d: DoorDef): Promise<void> {
+  const s = G.state!;
+  const owner = ownerOfRoom(s, d.to);
+  if (!owner || owner === 'hero' || G.heroBusy) return;
+  const name = shortName(s, owner);
+  G.heroBusy = true;
+  try {
+    Sound.knock();
+    await new Promise((r) => setTimeout(r, 900));
+    if (G.state !== s) return;
+    const o = s.actors[owner];
+    if (o.pos.room !== d.to) {
+      toast(t('knock.away', { name }), 'info', 2600);
+      return;
+    }
+    const v = visitVerdict(s, 'hero', owner as NpcId, rngOf(s));
+    if (!v.accept || !addInvite(s, owner, 'hero')) {
+      toast(t(`knock.no.${v.reason === 'ok' ? 'full' : v.reason}`, { name }), 'info', 3200);
+      o.talkCd.hero = Math.max(o.talkCd.hero ?? 0, s.simTime + 4000);
+      return;
+    }
+    toast(t('knock.yes', { name }), 'good', 2400);
+    // 部屋の主は、客が帰るまで部屋にいる
+    o.goal = { kind: 'goto', room: d.to, note: 'host:hero', until: s.simTime + INVITE_TIME };
+    o.path = [];
+    o.route = [];
+  } finally {
+    G.heroBusy = false;
+  }
+  if (G.state === s && canEnter(s, 'hero', d.to, d.lock)) G.interact({ kind: 'door', door: d }, true);
+}
+
 function onBrainEvent(e: BrainEvent): void {
   const s = G.state!;
   if (e.type === 'approach' && e.other === 'hero') {
@@ -228,12 +268,35 @@ function onBrainEvent(e: BrainEvent): void {
       const a = s.actors[npc];
       if (!ok || !a.alive || !addInvite(s, npc, 'hero')) return;
       observeAttitude(s, npc, 4);
-      a.goal = { kind: 'goto', room: `bedroom_${npc}`, note: 'host:hero', until: s.simTime + INVITE_TIME };
+      a.goal = { kind: 'goto', room: homeOf(s, npc), note: 'host:hero', until: s.simTime + INVITE_TIME };
       a.path = [];
       a.route = [];
-      setRouteTo(s, a, `bedroom_${npc}`);
+      setRouteTo(s, a, homeOf(s, npc));
       toast(t('inviteIn.go', { name }), 'info', 3600);
     });
+  } else if (e.type === 'knock' && e.other === 'hero') {
+    // 自分の個室にいる時に、誰かが訪ねてきた。入れるかどうかは自分で決める
+    if (anyModal() || G.heroBusy) return;
+    const npc = e.npc;
+    const name = shortName(s, npc);
+    Sound.knock();
+    G.heroBusy = true;
+    void choose(t('knockIn.title', { name }), t('knockIn.text', { name }), [{ label: t('knockIn.yes'), value: true, kind: 'primary' }, { label: t('knockIn.no'), value: false }], { cancel: false, pauses: false }).then((ok) => {
+      G.heroBusy = false;
+      const a = s.actors[npc];
+      a.busyUntil = 0;
+      if (!ok) {
+        adjustRel(s, npc, 'hero', { like: -1 });
+        return;
+      }
+      if (!a.alive || !addInvite(s, 'hero', npc)) return;
+      observeAttitude(s, npc, 2);
+      a.talkCd.hero = 0;
+      a.goal = { kind: 'talk', target: 'hero', until: s.simTime + 60_000 };
+    });
+  } else if (e.type === 'knock') {
+    // 廊下で、誰かが他の人の部屋を訪ねているのが聞こえる
+    Sound.knock(0.45);
   } else if (e.type === 'sight' && e.other) {
     G.ui.hudLog(t('log.sawEnter', { a: shortName(s, e.npc), b: shortName(s, e.other) }));
   } else if (e.type === 'followEnd') {
@@ -256,7 +319,7 @@ export function setFieldBgm(): void {
   if (room.area === 'secret') id = 'hidden';
   else if (room.area === 'prison') id = 'prison';
   else if (s.phase === 'strategy' || s.phase === 'rules') id = 'match_main';
-  else if (room.id.startsWith('bedroom_')) id = 'room';
+  else if (isPrivateRoom(room.id) && !isCell(room.id)) id = 'room';
   else if (room.id === 'living_hallway') id = 'corridor';
   else if (room.id.endsWith('lounge')) id = 'lounge';
   else if (room.area === 'common' || room.area === 'ground') id = 'common';
@@ -294,6 +357,8 @@ async function inspect(id: string, text: string, event?: string): Promise<void> 
     await G.ui.boardScreen();
     return;
   }
+  // 寝台と机の出来事は、自分に割り当てられた個室でだけ起きる（他人の部屋では眺めるだけ）
+  if ((event === 'rest_bed' || event === 'desk_map') && ownerOfRoom(s, hero.pos.room) !== 'hero') event = undefined;
   await G.ui.showInspect(text);
   if (!hero.searched.includes(id)) hero.searched.push(id);
   const clue = event ? CLUE_BY_EVENT[event] : undefined;
@@ -690,7 +755,7 @@ async function step(s: GameState): Promise<boolean> {
           a.path = [];
           a.route = [];
           a.step = undefined;
-          placeIn(s, id, `bedroom_${id}`);
+          placeIn(s, id, homeOf(s, id));
         }
       }
       showField(true);
@@ -698,6 +763,8 @@ async function step(s: GameState): Promise<boolean> {
       if (!s.seen.includes(`curfew@${s.day}`)) {
         s.seen.push(`curfew@${s.day}`);
         Sound.se('phase');
+        // 施錠の音：監獄棟は鉄格子、生活棟は扉
+        Sound.se(isCell(homeOf(s, 'hero')) ? 'locked' : 'doorClose');
         await alertDialog(t('curfew.title'), t('curfew.text'), t('common.next'));
       }
       await freePhase();
@@ -705,7 +772,9 @@ async function step(s: GameState): Promise<boolean> {
       const notes = endDay(s);
       enter('morning');
       for (const n of notes) toast(n, 'info', 5000);
-      Sound.se('phase');
+      // 07:00 起床の合図。監獄棟では鉄格子が開く
+      Sound.se('alarm', { volume: 0.7 });
+      if (isCell(homeOf(s, 'hero'))) Sound.se('latch', { volume: 0.8 });
       return true;
     }
     default:

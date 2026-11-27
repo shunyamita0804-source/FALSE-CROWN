@@ -47,6 +47,8 @@ export const SE = {
   chip: ['chip-lay-1', 'chip-lay-2', 'chip-lay-3'],
   chips: ['chips-stack-1'],
   chipsHit: ['chips-collide-1'],
+  // 持ち主の他作品（ミストラルモンスターズ バトルカード）から複写した音。拡張子つきの名前は、その形式のまま読み込む
+  alarm: ['alarm_clock_ring.mp3'],
 } as const;
 export type SeName = keyof typeof SE;
 
@@ -251,7 +253,7 @@ class AudioManager {
     const hit = this.buffers.get(file);
     if (hit !== undefined) return hit;
     const ctx = this.ctx!;
-    const p = fetch(`${BASE}assets/audio/se/${file}.${this.ext}`)
+    const p = fetch(`${BASE}assets/audio/se/${file.includes('.') ? file : `${file}.${this.ext}`}`)
       .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
       .then((buf) => new Promise<AudioBuffer>((res, rej) => ctx.decodeAudioData(buf, res, rej)))
       .then((b) => {
@@ -264,6 +266,40 @@ class AudioManager {
       });
     this.buffers.set(file, p);
     return p;
+  }
+
+  /** 扉を叩く音。素材は使わず、短く低い打音を 3 回、その場で合成する */
+  knock(volume = 1): void {
+    if (!this.unlocked || !this.ctx || this.suspended || this.seVol <= 0) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime + 0.02;
+    [0, 0.17, 0.34].forEach((at, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(190 - i * 8, now + at);
+      o.frequency.exponentialRampToValueAtTime(70, now + at + 0.09);
+      g.gain.setValueAtTime(0.0001, now + at);
+      g.gain.exponentialRampToValueAtTime(0.9 * volume, now + at + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + at + 0.13);
+      o.connect(g).connect(this.seGain!);
+      o.start(now + at);
+      o.stop(now + at + 0.16);
+      // 木の表面を叩いた時の、短い高い成分
+      const len = Math.floor(ctx.sampleRate * 0.03);
+      const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let k = 0; k < len; k++) d[k] = (Math.random() * 2 - 1) * (1 - k / len) ** 2;
+      const n = ctx.createBufferSource();
+      n.buffer = buf;
+      const f = ctx.createBiquadFilter();
+      f.type = 'bandpass';
+      f.frequency.value = 1400;
+      const ng = ctx.createGain();
+      ng.gain.value = 0.35 * volume;
+      n.connect(f).connect(ng).connect(this.seGain!);
+      n.start(now + at);
+    });
   }
 
   /** 効果音。同じ音の連打は間引く（重複再生防止） */

@@ -1,5 +1,6 @@
 import { Input } from './input/InputState';
-import { placeIn, setPathTo } from './world/sim';
+import { placeIn, setPathTo, setRouteTo } from './world/sim';
+import { ROOMS } from './world/maps';
 import Phaser from 'phaser';
 import { registerSW } from 'virtual:pwa-register';
 import './style.css';
@@ -128,7 +129,7 @@ document.addEventListener('visibilitychange', () => {
     toast(t('update.available'), 'info', 6000);
   });
 });
-if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input, Sound, sim: { placeIn, setPathTo } };
+if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input, Sound, sim: { placeIn, setPathTo, setRouteTo }, rooms: ROOMS };
 void boot();
 
 if (!isNative && 'serviceWorker' in navigator) registerSW({ immediate: true });

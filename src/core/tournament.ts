@@ -3,6 +3,7 @@
  * 棟分けは当日メインマッチの順位だけで決まり、監獄マッチの最下位 1 人だけが脱落する。
  * ピース 0 でも脱落しない。ピースで得点・免除は買えない。
  */
+import { homeOf } from '../world/rooms';
 import { type CharId } from '../data/characters';
 import { CONFIG, scheduleFor } from '../data/config';
 import { expireDeals } from '../npc/negotiation';
@@ -40,6 +41,8 @@ export function applyMainResult(state: GameState, ranking: CharId[], scores: Par
   }
   for (const id of living) state.actors[id].house = 'living';
   for (const id of prison) state.actors[id].house = 'prison';
+  // 棟分けに合わせて個室を割り当て直す（監獄棟は順位の良い順に空き部屋へ。生活棟へ戻った人は元の部屋）
+  for (const id of [...living, ...prison]) homeOf(state, id);
   state.today.mainRanking = ranking;
   state.today.mainScores = scores;
   publish(state, {
@@ -120,7 +123,7 @@ export function endDay(state: GameState): string[] {
     a.house = null;
     a.goal = undefined;
     a.talkCd = {};
-    placeIn(state, id, id === 'hero' ? 'bedroom_hero' : 'dining');
+    placeIn(state, id, id === 'hero' ? homeOf(state, 'hero') : 'dining');
   }
   log(state, `DAY${state.day} の朝を迎えた。`, 'day');
   return notes;
@@ -136,7 +139,7 @@ export function startMorning(state: GameState): void {
     a.path = [];
     a.route = [];
     a.step = undefined;
-    placeIn(state, id, `bedroom_${id}`);
+    placeIn(state, id, homeOf(state, id));
   }
 }
 

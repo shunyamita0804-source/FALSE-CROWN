@@ -3,6 +3,7 @@
  * ここは表示と入力だけを担当し、勝敗や関係の計算はしない。
  * 手帳には「プレイヤーが知っていること」だけを表示する（NPC の内部値や未発見の情報は出さない）。
  */
+import { isPrivateRoom, knockable, roomTitle } from '../world/rooms';
 import { CHANNEL, fullUnlocked, Purchase } from '../app/entitlement';
 import { ENDINGS, G, phaseName, type RankingView, type StoryLine } from '../app/game';
 import { BGM, BGM_CREDITS, Sound } from '../audio/audio';
@@ -251,18 +252,17 @@ export function hudUpdate(): void {
   const sec = next?.inMin ?? -1;
   if (low && sec !== lastTick && sec <= 5 && sec > 0) Sound.se('tick');
   lastTick = sec;
-  e.room.textContent = `${ROOMS[s.actors.hero.pos.room].floor}　${ROOMS[s.actors.hero.pos.room].name}`;
+  e.room.textContent = `${ROOMS[s.actors.hero.pos.room].floor}　${roomTitle(s, s.actors.hero.pos.room)}`;
   e.pieces.textContent = String(s.actors.hero.pieces);
   e.skip.style.display = free && !curfew ? '' : 'none';
   const tg = G.fieldActive ? G.field?.target : null;
   // 行動ボタンの文字は、いまできることを 1 語だけ出す（何もなければ空）
-  const actLabel = !tg ? '' : tg.kind === 'npc' ? t('act.talk') : tg.kind === 'door' ? t('act.enter') : t('act.inspect');
+  const actLabel = !tg ? '' : tg.kind === 'npc' ? t('act.talk') : tg.kind === 'door' ? t(knockable(s, tg.door.to) ? 'act.knock' : 'act.enter') : t('act.inspect');
   const al = e.act.firstElementChild as HTMLElement;
   if (al.textContent !== actLabel) al.textContent = actLabel;
   e.act.classList.toggle('idle', !tg);
   if (tg) {
-    const owner = tg.kind === 'door' && tg.door.to.startsWith('bedroom_') ? tg.door.to.slice(8) : '';
-    const label = tg.kind === 'npc' ? t('prompt.talk', { name: shortName(s, tg.id) }) : tg.kind === 'door' ? t('prompt.door', { name: owner && owner !== 'hero' ? t('door.roomOf', { name: shortName(s, owner) }) : tg.door.label }) : t('prompt.inspect');
+    const label = tg.kind === 'npc' ? t('prompt.talk', { name: shortName(s, tg.id) }) : tg.kind === 'door' ? t('prompt.door', { name: isPrivateRoom(tg.door.to) ? roomTitle(s, tg.door.to) : tg.door.label }) : t('prompt.inspect');
     if (e.prompt.dataset.label !== label) {
       e.prompt.dataset.label = label;
       clear(e.prompt);
@@ -398,7 +398,7 @@ function renderTab(s: GameState, tab: Tab, close: () => void, rerender: () => vo
       // 立ち入ったことのある部屋と、通常の案内図にある部屋だけを表示する（隠し区画は発見するまで載せない）
       const floors = ['3F', '2F', '1F', 'B1', 'B2'] as const;
       return floors.map((f) => {
-        const rooms = Object.values(ROOMS).filter((r) => r.floor === f && !r.id.startsWith('bedroom_') && (r.area !== 'secret' || !!s.flags[`visited_${r.id}`]));
+        const rooms = Object.values(ROOMS).filter((r) => r.floor === f && !isPrivateRoom(r.id) && (r.area !== 'secret' || !!s.flags[`visited_${r.id}`]));
         if (!rooms.length) return null;
         return h('div', { class: 'map-floor' }, h('b', null, f), h('div', { class: 'map-rooms' }, rooms.map((r) => {
           const here = hero.pos.room === r.id;

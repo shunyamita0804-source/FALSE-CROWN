@@ -44,14 +44,16 @@ const { chromium, devices } = require('playwright');
   if (out) await page.screenshot({ path: out + '/clock_curfew.png' });
   await page.getByRole('button', { name: '次へ' }).tap(); await page.waitForTimeout(800);
   const s3 = await st();
-  check('消灯後は全員が自分の個室', s3.phase === 'curfew' && s3.room === 'bedroom_hero' && await page.evaluate(() => Object.values(window.__fc.G.state.actors).filter((a) => a.alive).every((a) => a.pos.room === 'bedroom_' + a.id)), JSON.stringify(s3));
+  // 監獄棟へ送られた日は、監獄棟の個室が割り当てられている
+  const home = await page.evaluate(() => (window.__fc.G.state.rooms || {}).hero || 'bedroom_hero');
+  check('消灯後は全員が、割り当てられた個室にいる', s3.phase === 'curfew' && await page.evaluate(() => { const s = window.__fc.G.state; return Object.values(s.actors).filter((a) => a.alive).every((a) => a.pos.room === ((s.rooms || {})[a.id] || 'bedroom_' + a.id)); }), JSON.stringify(s3));
   const h3 = await hud();
   check('消灯中の HUD は 22:00 で止まる', h3.includes('22:00'), h3);
   // 扉から出られない
-  await page.evaluate(() => { const { G, sim } = window.__fc; const s = G.state; const h = s.actors.hero; h.pos.x = 9; h.pos.y = 12; h.pos.dir = 'down'; });
+  await page.evaluate(() => { const { G, sim } = window.__fc; const s = G.state; const h = s.actors.hero; const d = window.__fc.rooms[h.pos.room].doors[0]; h.pos.x = d.tiles[0].x; h.pos.y = d.tiles[0].y; h.pos.dir = 'down'; });
   for (let i = 0; i < 6; i++) { await page.keyboard.down('ArrowDown'); await page.waitForTimeout(250); await page.keyboard.up('ArrowDown'); await page.keyboard.press('Enter'); await page.waitForTimeout(150); }
   const s4 = await st();
-  check('消灯後は個室から出られない', s4.room === 'bedroom_hero', s4.room + ' ' + (await page.locator('.toast').allInnerTexts()).join('|'));
+  check('消灯後は個室から出られない', s4.room === home, s4.room + ' ' + (await page.locator('.toast').allInnerTexts()).join('|'));
   // 寝台で眠る
   await page.evaluate(() => { const { G } = window.__fc; const s = G.state; const h = s.actors.hero; h.step = undefined; h.path = []; });
   // 寝台の調査地点の前へ

@@ -4,6 +4,7 @@
  * 順位報酬は変わらない。自分には使えない。譲渡も持ち越しもできない。指名された本人は辞退でき、入れ替えられる側は拒否できない。
  * 主人公も NPC も同じ関数で判定する（主人公だけが救われやすい、救われにくい、という分岐は置かない）。
  */
+import { homeOf } from '../world/rooms';
 import { PROFILES, type CharId, type NpcId } from '../data/characters';
 import { scheduleFor } from '../data/config';
 import { recordBetrayal } from '../npc/negotiation';
@@ -163,6 +164,9 @@ export function applyRescue(state: GameState, holder: CharId, target: CharId): C
   const swapped = provisional(state).lowestLiving!;
   state.actors[target].house = 'living';
   state.actors[swapped].house = 'prison';
+  // 個室も入れ替える（先に救われた人が監獄棟の部屋を空ける）
+  homeOf(state, target);
+  homeOf(state, swapped);
   r.status = 'used';
   r.target = target;
   r.swapped = swapped;

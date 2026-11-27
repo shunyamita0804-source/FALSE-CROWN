@@ -5,6 +5,7 @@
  * - 監獄マッチ・脱落の検証（開発用の配置変更であることを明示）
  * ここでの操作は検証専用で、通常のプレイには影響しない。
  */
+import { isPrivateRoom } from '../world/rooms';
 import { G } from '../app/game';
 import { autoAdvance } from '../core/autoplay';
 import { engineOf, newSlot, resolveTies, runToEnd } from '../core/runner';
@@ -144,7 +145,7 @@ export function devMenu(): Promise<GameState | null> {
         ),
         h('h4', { class: 'gold' }, '任意の施設から開始（DAY1 朝、検証用に全ての鍵を解錠）'),
         ...(['3F', '2F', '1F', 'B1', 'B2'] as const).map((f) => h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap;align-items:center' }, h('b', { class: 'gold', style: 'width:36px' }, f),
-          ROOM_IDS.filter((id) => ROOMS[id].floor === f && (!id.startsWith('bedroom_') || id === 'bedroom_hero')).map((id) => button(ROOMS[id].name, () => startIn(id), { small: true })))),
+          ROOM_IDS.filter((id) => ROOMS[id].floor === f && (!isPrivateRoom(id) || id === 'bedroom_hero' || id === 'cell_p01')).map((id) => button(ROOMS[id].name, () => startIn(id), { small: true })))),
         h('div', { class: 'dim small' }, '棟を指定した開始では、自動対戦の結果と異なる場合に限り、検証用に主人公の配置を入れ替えます。'),
         h('h4', { class: 'gold' }, '自由時間の進み方（開発版のみ）'),
         h('div', { class: 'row', style: 'gap:6px' }, [1, 4, 20].map((v) => button(`${v}倍`, () => {
