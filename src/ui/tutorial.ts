@@ -7,7 +7,9 @@ import { Sound } from '../audio/audio';
 import { t } from '../i18n/i18n';
 import { L4, M01_DEMO, M01_PRACTICE, SQ } from '../matches/m01';
 import { M03_DEMO, M03_PRACTICE } from '../matches/m03';
+import { P03_PRACTICE } from '../matches/p03';
 import { LinkBoard } from './linkboard';
+import { SpeedTable } from './speedtable';
 import { M02_PRACTICE } from '../matches/m02';
 import { P01_PRACTICE } from '../matches/p01';
 import { COLORS, P02_PRACTICE, SHAPES } from '../matches/p02';
@@ -212,7 +214,37 @@ function m03Guide(): Guide {
   };
 }
 
-const GUIDES: Record<string, () => Guide> = { m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide };
+// ---- P03 スピードカード ----
+
+function p03Guide(): Guide {
+  return {
+    name: 'スピードカード',
+    pages: [
+      { title: t('tut.p03.t1'), text: t('tut.p03.p1'), figure: () => new SpeedTable(P03_PRACTICE, { readonly: true }).el },
+      { title: t('tut.p03.t2'), text: t('tut.p03.p2'), figure: () => new SpeedTable({ deck: [1, 12, 6, 1], piles: [4, 9], reserve: [7, 3, 5, 9, 2, 10, 4, 8] }, { readonly: true }).el },
+      {
+        title: t('tut.p03.t3'), text: t('tut.p03.p3'),
+        figure: () => h('div', { class: 'col', style: 'gap:14px;align-items:center' },
+          chips([{ label: t('tut.p03.c1'), value: '2' }, { label: t('tut.p03.c2'), value: '0〜24' }, { label: t('tut.p03.c3'), value: '8' }], ['×', '+']),
+          facts([['3', t('tut.p03.f1')], ['24', t('tut.p03.f2')], ['180', t('tut.p03.f3')]])),
+      },
+    ],
+    practice: {
+      text: t('tut.p03.practice'),
+      build: (onDone) => {
+        // 出し切れずに止まった時は、同じ並びでやり直せる
+        const box = h('div', { class: 'col', style: 'align-items:center' });
+        const start = (): void => {
+          box.replaceChildren(new SpeedTable(P03_PRACTICE, { onEnd: (_a, cleared) => { if (cleared) onDone(); else setTimeout(start, 1600); } }).el);
+        };
+        start();
+        return box;
+      },
+    },
+  };
+}
+
+const GUIDES: Record<string, () => Guide> = { m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide };
 
 export const hasGuide = (id: string) => id in GUIDES;
 

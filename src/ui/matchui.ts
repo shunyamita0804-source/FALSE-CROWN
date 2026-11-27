@@ -20,6 +20,7 @@ import { renderM02 } from './games/m02';
 import { renderM03 } from './games/m03';
 import { renderP01 } from './games/p01';
 import { renderP02 } from './games/p02';
+import { renderP03 } from './games/p03';
 import { renderTiebreak } from './games/tiebreak';
 import { talkTo } from './talk';
 
@@ -50,6 +51,7 @@ const RENDERERS: Record<string, Renderer> = {
   m03: renderM03 as Renderer,
   p01: renderP01 as Renderer,
   p02: renderP02 as Renderer,
+  p03: renderP03 as Renderer,
   tiebreak: renderTiebreak as Renderer,
 };
 

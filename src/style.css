@@ -862,3 +862,40 @@ html[data-ui-assets~="panel/hud"] .hud-band .hud-menu .btn { padding-left: 10px;
 .m03-partner .face { width: 54px; height: 54px; }
 .m03-partner b { font-size: 1.2em; }
 .m03-hold { display: flex; align-items: center; gap: 18px; max-width: 560px; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--gold-dim); background: rgba(10,14,28,0.7); }
+
+/* ===== P03 スピードカード ===== */
+.sc { display: flex; flex-direction: column; align-items: center; gap: 10px; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+.sc-top { display: flex; align-items: flex-start; gap: 46px; }
+.sc-piles { display: flex; gap: 26px; }
+.sc-pile { display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 196px; cursor: pointer; }
+.sc-stack { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.sc-stack small { color: var(--ivory-dim); font-size: 0.85em; }
+.sc-stack .sc-card { width: 84px; height: 118px; }
+.sc-stack .sc-card b { font-size: 2em; }
+.sc-card { position: relative; width: 112px; height: 156px; border-radius: 12px; box-sizing: border-box; border: 2px solid #b9a26a; background: linear-gradient(160deg, #f6efdc, #d9cba6); color: #1b2140; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 14px rgba(0,0,0,0.5), inset 0 0 0 4px rgba(255,255,255,0.35); }
+.sc-card b { font-family: var(--serif); font-size: 3.2em; line-height: 1; font-variant-numeric: tabular-nums; }
+.sc-card i { position: absolute; top: 6px; left: 9px; font-style: normal; font-weight: 700; font-size: 0.95em; opacity: 0.75; }
+.sc-card.pile { border-color: var(--gold2); box-shadow: 0 0 0 3px rgba(216,178,90,0.45), 0 8px 18px rgba(0,0,0,0.6); }
+.sc-card.reserve { opacity: 0.92; }
+.sc-card.back { background: repeating-linear-gradient(45deg, #1b2548 0 8px, #232f5c 8px 16px); border-color: var(--gold-dim); color: var(--gold2); }
+.sc-card.back.empty { opacity: 0.35; border-style: dashed; }
+.sc-hand { display: flex; gap: 16px; min-height: 172px; align-items: flex-end; }
+.sc-hand .sc-card { cursor: pointer; transition: transform 90ms ease; opacity: 0.78; }
+.sc-hand .sc-card.ok { opacity: 1; transform: translateY(-10px); border-color: var(--gold2); box-shadow: 0 0 0 3px rgba(216,178,90,0.6), 0 12px 20px rgba(0,0,0,0.55); }
+.sc-hand .sc-card.sel { transform: translateY(-22px); box-shadow: 0 0 0 4px #fff, 0 14px 22px rgba(0,0,0,0.6); }
+.sc-hand .sc-card.shake { animation: sc-shake 260ms ease; }
+@keyframes sc-shake { 0%, 100% { margin-left: 0; } 25% { margin-left: -8px; } 75% { margin-left: 8px; } }
+.sc-pile.target .sc-card, .sc-pile.refresh .sc-card { box-shadow: 0 0 0 4px #fff, 0 0 24px rgba(255,255,255,0.45); }
+.sc-swap { font-size: 0.9em; color: var(--gold2); border: 1.5px solid var(--gold-dim); border-radius: 999px; padding: 2px 12px; background: rgba(10,14,28,0.8); }
+.sc-note { min-height: 1.5em; color: var(--gold2); font-size: 0.95em; text-align: center; }
+.sc-count { color: var(--ivory-dim); font-size: 0.9em; font-variant-numeric: tabular-nums; }
+.sc.locked, .sc.readonly { pointer-events: none; }
+.sc.readonly .sc-card { width: 84px; height: 118px; }
+.sc.readonly .sc-card b { font-size: 2.3em; }
+.sc.readonly .sc-pile { min-height: 150px; }
+.sc.readonly .sc-hand { min-height: 130px; }
+.tut-fig .sc:not(.readonly) .sc-card { width: 92px; height: 128px; }
+.tut-fig .sc:not(.readonly) .sc-card b { font-size: 2.6em; }
+.tut-fig .sc:not(.readonly) .sc-stack .sc-card { width: 70px; height: 98px; }
+.tut-fig .sc:not(.readonly) .sc-pile { min-height: 164px; }
+.tut-fig .sc:not(.readonly) .sc-hand { min-height: 140px; }
