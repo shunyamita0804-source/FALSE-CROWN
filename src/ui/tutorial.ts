@@ -22,6 +22,11 @@ import { matchesIn } from '../matches/m06';
 import { cardBack, cardEl } from './cards';
 import { P06_PRACTICE, P06_PRACTICE_SOL } from '../matches/p06';
 import { PathBoard } from './pathboard';
+import { G as HEX7, startCell as hexStart } from '../matches/m07';
+import { cellAt as hexAt } from '../matches/hex';
+import { TilePlacer, type PlacerSel } from './tileplacer';
+import { G as HEX3, HOLE, HOLE_V, flipsFor as p07Flips, legalFor as p07Legal, startBoard as p07Start } from '../matches/p07';
+import { FlipBoard, type FlipSel } from './flipboard';
 import { DiffQuiz, diffFigure, diffReview, figEl, FIG_NAME } from './diffquiz';
 import { rotated, type Cell } from '../matches/poly';
 import { ChainBoard } from './chainboard';
@@ -522,7 +527,145 @@ function p06Guide(): Guide {
   };
 }
 
-const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide };
+// ---- M07 六角領域 ----
+
+function m07Guide(): Guide {
+  const seats = [0, 1, 2, 3, 4, 5];
+  const base = () => { const o = new Array<number>(HEX7.cells.length).fill(-1); seats.forEach((s) => { o[hexStart(s)] = s; }); return o; };
+  const at = (q: number, r: number) => hexAt(HEX7, q, r);
+  const withCells = (list: [number, number, number][]) => { const o = base(); for (const [q, r, s] of list) o[at(q, r)] = s; return o; };
+  const fig = (owner: number[], size = 22, fresh: number[] = []) => new TilePlacer({ owner, seat: 0, seats, tiles: [], cap: 4, size, active: false, fresh, sel: { rot: 0 }, onChange: () => {} }).board;
+  const mine: [number, number, number][] = [[3, 0, 0], [3, 1, 0]];
+  return {
+    name: '六角領域',
+    pages: [
+      { title: t('tut.m07.t1'), text: t('tut.m07.p1'), figure: () => fig(withCells([...mine, [0, 3, 1], [-3, 3, 2], [-3, 0, 3]]), 30) },
+      {
+        title: t('tut.m07.t2'), text: t('tut.m07.p2'),
+        figure: () => h('div', { class: 'tg-row' },
+          h('div', { class: 'tg-fig ok' }, fig(withCells([...mine, [2, 1, 0], [2, 0, 0], [1, 1, 0]]), 22, [at(2, 1), at(2, 0), at(1, 1)]), h('div', { class: 'tg-mark ok' }, '○'), h('div', { class: 'tg-cap' }, t('tut.m07.ok'))),
+          h('div', { class: 'tg-fig ng' }, fig(withCells([...mine, [0, 1, 0], [0, 2, 0], [-1, 2, 0]]), 22, [at(0, 1), at(0, 2), at(-1, 2)]), h('div', { class: 'tg-mark ng' }, '✕'), h('div', { class: 'tg-cap' }, t('tut.m07.ng')))),
+      },
+      { title: t('tut.m07.t3'), text: t('tut.m07.p3'), figure: () => h('div', { class: 'tg-row' }, fig(withCells([[3, 1, 0], [2, 1, 0], [1, 1, 0]]), 24, [at(3, 1), at(2, 1), at(1, 1)]), facts([['+1', t('tut.m07.f1')], ['+2', t('tut.m07.f2')], ['+5', t('tut.m07.f3')]])) },
+      { title: t('tut.m07.t4'), text: t('tut.m07.p4'), figure: () => chips([{ label: t('tut.m07.g1'), value: t('tut.m07.c1') }, { label: t('tut.m07.g2'), value: t('tut.m07.c2') }, { label: t('tut.m07.g3'), value: t('tut.m07.c3') }, { label: t('tut.m07.g4'), value: t('tut.m07.c4') }], ['▶', '▶', '▶']) },
+    ],
+    practice: {
+      text: t('tut.m07.practice'),
+      build: (onDone) => {
+        const box = h('div', { class: 'hx7 prac' });
+        let owner = withCells(mine);
+        let tiles = ['bend3', 'line3'];
+        const sel: PlacerSel = { rot: 0 };
+        let done = false;
+        const draw = () => {
+          clear(box);
+          const foot = h('div', { class: 'hx7-foot' });
+          const note = h('div', { class: 'small hx7-note' });
+          const upd = () => {
+            const g = placer.ghost();
+            note.textContent = done ? t('tut.m07.pracDone') : !sel.shape ? t('m07.howPick', { n: 3 }) : !g ? t('m07.howPut') : g.ok ? t('m07.howOk', { n: g.cells.length }) : t('m07.howBad');
+            note.classList.toggle('gold', done || !!g?.ok);
+            clear(foot);
+            if (done) return;
+            foot.append(
+              button('⟲', () => placer.rotate(-1), { small: true, disabled: !sel.shape }),
+              button('⟳', () => placer.rotate(1), { small: true, disabled: !sel.shape }),
+              button(t('m07.put'), () => {
+                const gg = placer.ghost();
+                if (!gg?.ok || !sel.shape) return;
+                owner = [...owner];
+                for (const c of gg.cells) owner[c] = 0;
+                tiles = tiles.filter((x) => x !== sel.shape);
+                sel.shape = undefined; sel.at = undefined;
+                done = true;
+                Sound.se('chip');
+                draw();
+                onDone();
+              }, { kind: 'primary', disabled: !g?.ok }));
+          };
+          const placer = new TilePlacer({ owner, seat: 0, seats, tiles, cap: 3, size: 26, active: !done, sel, onChange: upd });
+          upd();
+          box.append(h('div', { class: 'hx7-left' }, placer.board), h('div', { class: 'hx7-panel' }, placer.tray, note, foot));
+        };
+        draw();
+        return box;
+      },
+    },
+  };
+}
+
+// ---- P07 ブラック＆ホワイト ----
+
+function p07Guide(): Guide {
+  const at = (q: number, r: number) => hexAt(HEX3, q, r);
+  const mk = (list: [number, number, number][]) => { const b = new Array<number>(HEX3.cells.length).fill(-1); b[HOLE] = HOLE_V; for (const [q, r, s] of list) b[at(q, r)] = s; return b; };
+  const fig = (board: number[], size: number, o: { legal?: number[]; last?: { cell: number | null; flipped: number[] } } = {}) =>
+    new FlipBoard({ board, seat: 0, legal: o.legal ?? [], active: !!o.legal, size, last: o.last, sel: {}, onChange: () => {} }).el;
+  const row: [number, number, number][] = [[-2, 1, 0], [-1, 1, 1], [0, 1, 2]];
+  const cap = (el: HTMLElement, text: string, mark?: 'ok' | 'ng') => h('div', { class: `tg-fig${mark ? ` ${mark}` : ''}` }, el, mark ? h('div', { class: `tg-mark ${mark}` }, mark === 'ok' ? '○' : '✕') : null, h('div', { class: 'tg-cap' }, text));
+  return {
+    name: 'ブラック＆ホワイト',
+    pages: [
+      { title: t('tut.p07.t1'), text: t('tut.p07.p1'), figure: () => fig(p07Start(3), 34) },
+      {
+        title: t('tut.p07.t2'), text: t('tut.p07.p2'),
+        figure: () => h('div', { class: 'tg-row' }, cap(fig(mk(row), 27, { legal: [at(1, 1)] }), t('tut.p07.before')), h('span', { class: 'dq-arrow' }, '▶'),
+          cap(fig(mk([[-2, 1, 0], [-1, 1, 0], [0, 1, 0], [1, 1, 0]]), 27, { last: { cell: at(1, 1), flipped: [at(-1, 1), at(0, 1)] } }), t('tut.p07.after'))),
+      },
+      {
+        title: t('tut.p07.t3'), text: t('tut.p07.p3'),
+        figure: () => h('div', { class: 'tg-row' }, cap(fig(mk(row), 27, { legal: [at(1, 1)] }), t('tut.p07.ok'), 'ok'), cap(fig(mk([[-2, 1, 0], [0, 1, 2]]), 27), t('tut.p07.ng'), 'ng')),
+      },
+      { title: t('tut.p07.t4'), text: t('tut.p07.p4'), figure: () => facts([['12', t('tut.p07.f1')], ['3', t('tut.p07.f2')], ['1', t('tut.p07.f3')]]) },
+    ],
+    practice: {
+      text: t('tut.p07.practice'),
+      build: (onDone) => {
+        const box = h('div', { class: 'hx7 fb7 prac' });
+        let board = mk([...row, [1, -2, 0], [1, -1, 1]]);
+        const sel: FlipSel = {};
+        let done = false;
+        let msg = t('p07.howFlip');
+        let lastMove: { cell: number | null; flipped: number[] } | undefined;
+        const draw = () => {
+          clear(box);
+          const note = h('div', { class: 'small fb-note' });
+          const foot = h('div', { class: 'hx7-foot' });
+          const confirm = () => {
+            if (sel.cell === undefined || done) return;
+            const fl = p07Flips(board, 0, sel.cell);
+            if (fl.length < 2) { msg = t('tut.p07.pracOne'); sel.cell = undefined; Sound.se('error'); draw(); return; }
+            const cell = sel.cell;
+            board = [...board];
+            board[cell] = 0;
+            for (const c of fl) board[c] = 0;
+            sel.cell = undefined;
+            done = true;
+            msg = t('tut.p07.pracDone');
+            Sound.se('chip');
+            lastMove = { cell, flipped: fl };
+            draw();
+            onDone();
+          };
+          const upd = () => {
+            const n = fb.flips().length;
+            note.textContent = sel.cell !== undefined ? t('p07.willFlip', { n }) : msg;
+            note.classList.toggle('gold', done || sel.cell !== undefined);
+            clear(foot);
+            if (!done) foot.append(button(t('m07.put'), confirm, { kind: 'primary', disabled: sel.cell === undefined }));
+          };
+          const fb = new FlipBoard({ board, seat: 0, legal: done ? [] : p07Legal(board, 0).cells, active: !done, size: 34, last: lastMove, sel, onChange: upd, onConfirm: confirm });
+          upd();
+          box.append(h('div', { class: 'hx7-left' }, fb.el), h('div', { class: 'hx7-panel' }, note, foot));
+        };
+        draw();
+        return box;
+      },
+    },
+  };
+}
+
+const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide, m07: m07Guide, p07: p07Guide };
 
 export const hasGuide = (id: string) => id in GUIDES;
 

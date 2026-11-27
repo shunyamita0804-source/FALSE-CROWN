@@ -11,6 +11,9 @@ import { M05 } from './m05';
 import { P05 } from './p05';
 import { M06 } from './m06';
 import { P06 } from './p06';
+import { P07 } from './p07';
+import { M08 } from './m08';
+import { M07 } from './m07';
 
 /** 実装済みの競技。未実装の競技は IMPLEMENTED に含めない（完成扱いしない）。 */
 export const MATCHES: Record<string, MatchEngine> = {
@@ -26,6 +29,9 @@ export const MATCHES: Record<string, MatchEngine> = {
   p05: P05,
   m06: M06,
   p06: P06,
+  m07: M07,
+  p07: P07,
+  m08: M08,
 };
 
 export interface CatalogEntry {
@@ -77,7 +83,7 @@ export const CATALOG: CatalogEntry[] = [
 /**
  * 画面の確認が済んでいない競技。確認が済むまで本編の日程には使わない（完成扱いにしない）。
  */
-export const LEGACY = new Set<string>([]);
+export const LEGACY = new Set<string>(['m08']);
 export const isLegacy = (id: string) => LEGACY.has(id) && id in MATCHES;
 
 /** v11 のルールで遊べる競技か */
