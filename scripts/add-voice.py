@@ -9,6 +9,7 @@
 import csv, glob, json, os, re, shutil, subprocess, sys
 
 EXTRA = ['introduction', 'victory', 'defeat', 'elimination', 'betrayal']
+ALIAS = {'intro': 'introduction'}
 BASIC = ['greeting', 'hello', 'understand', 'accept', 'refuse', 'thinking', 'surprise', 'happy', 'disappointed', 'thanks']
 
 def main():
@@ -23,12 +24,13 @@ def main():
     tkey = next((k for k in rows[0] if k in ('text', 'dialogue', 'line')), None)
     if not fkey or not tkey:
         sys.exit(f'管理表の列名が分かりません: {list(rows[0])}')
-    addon = all(re.sub(r'^\d+_', '', r[fkey].strip()[:-4]) in EXTRA for r in rows)
+    addon = all(ALIAS.get(re.sub(r'^\d+_', '', r[fkey].strip()[:-4]), re.sub(r'^\d+_', '', r[fkey].strip()[:-4])) in EXTRA for r in rows)
     CATS = EXTRA if addon else BASIC
     clips, problems = {}, []
     for r in rows:
         f = r[fkey].strip()
         cat = re.sub(r'^\d+_', '', f[:-4])
+        cat = ALIAS.get(cat, cat)
         p = os.path.join(base, f)
         if cat not in CATS: problems.append(f'分類が不明: {f}'); continue
         if not os.path.exists(p): problems.append(f'音源が無い: {f}'); continue

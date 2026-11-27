@@ -716,6 +716,33 @@
           "text": "ありがとう。感謝しているわ。",
           "gain": 1.23
         }
+      },
+      "extra": {
+        "introduction": {
+          "file": "11_intro.mp3",
+          "text": "如月麗華よ。女優をしているわ。ふふ、退屈しない大会になるといいわね。",
+          "gain": 1.19
+        },
+        "victory": {
+          "file": "12_victory.mp3",
+          "text": "ふふっ、当然の結果ね。私、負けるのは好きじゃないの。",
+          "gain": 1.22
+        },
+        "defeat": {
+          "file": "13_defeat.mp3",
+          "text": "悔しいわね……。次はこんな無様な姿、見せないわ。",
+          "gain": 1.04
+        },
+        "elimination": {
+          "file": "14_elimination.mp3",
+          "text": "どうやら、私の出番はここまでのようね。最後まで楽しませてもらったわ。",
+          "gain": 1.02
+        },
+        "betrayal": {
+          "file": "15_betrayal.mp3",
+          "text": "あら……随分とお上手な演技だったのね。女優の私が騙されるなんて。",
+          "gain": 1.1
+        }
       }
     },
     "npc_12_kuze": {
