@@ -299,3 +299,154 @@ body.touch .tab { min-height: 54px; }
 
 /* ストーリー背景（正式素材。縦横比を保ったまま画面を覆う） */
 .overlay.story-bg { background-color: #05060c; background-size: cover; background-position: center; background-repeat: no-repeat; }
+
+/* ==================================================================
+   正式 UI 素材
+   画像は加工せず、枠は 9-slice（四隅を保ったまま中央だけを伸ばす）、それ以外は縦横比を保って表示する。
+   色味を変える filter は正式素材に掛けない。文字、数値、押下や無効の状態はプログラムで切り替える。
+   ================================================================== */
+.ic { width: 1.5em; height: 1.5em; vertical-align: -0.38em; flex: none; object-fit: contain; pointer-events: none; }
+.ic.lg { width: 2.4em; height: 2.4em; }
+.ic.xl { width: 64px; height: 64px; }
+.btn > span { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.gart { display: inline-block; flex: none; background-repeat: no-repeat; vertical-align: middle; pointer-events: none; }
+
+/* 窓枠 */
+html[data-ui-assets~="panel/window"] .panel { border-width: 30px; border-radius: 0; }
+html[data-ui-assets~="panel/window"] .panel-title { padding: 0 6px 8px; }
+html[data-ui-assets~="panel/window"] .panel-body { padding: 10px 6px; }
+html[data-ui-assets~="panel/window"] .panel-footer { padding: 10px 6px 0; }
+html[data-ui-assets~="panel/negotiation"] .panel.nego { border-width: 34px; border-image: var(--asset-panel-negotiation) var(--asset-panel-negotiation-slice) fill stretch; }
+
+/* ボタン：通常・押下・無効を素材で切り替える */
+html[data-ui-assets~="button/primary_normal"] .btn-primary,
+html[data-ui-assets~="button/secondary_normal"] .btn-secondary,
+html[data-ui-assets~="button/danger_normal"] .btn-danger { border-width: 14px; border-radius: 0; padding: 0 10px; filter: none; opacity: 1; }
+html[data-ui-assets~="button/primary_pressed"] .btn-primary:active:not([disabled]), html[data-ui-assets~="button/primary_pressed"] .btn-primary.pressed, html[data-ui-assets~="button/primary_pressed"] .btn-primary.selected { border-image-source: var(--asset-button-primary-pressed); }
+html[data-ui-assets~="button/secondary_pressed"] .btn-secondary:active:not([disabled]), html[data-ui-assets~="button/secondary_pressed"] .btn-secondary.pressed, html[data-ui-assets~="button/secondary_pressed"] .btn-secondary.selected { border-image-source: var(--asset-button-secondary-pressed); }
+html[data-ui-assets~="button/danger_pressed"] .btn-danger:active:not([disabled]), html[data-ui-assets~="button/danger_pressed"] .btn-danger.pressed { border-image-source: var(--asset-button-danger-pressed); }
+html[data-ui-assets~="button/primary_disabled"] .btn-primary[disabled] { border-image-source: var(--asset-button-primary-disabled); }
+html[data-ui-assets~="button/secondary_disabled"] .btn-secondary[disabled] { border-image-source: var(--asset-button-secondary-disabled); }
+html[data-ui-assets~="button/danger_disabled"] .btn-danger[disabled] { border-image-source: var(--asset-button-danger-disabled); }
+html[data-ui-assets~="button/primary_normal"] .btn[disabled] > span { opacity: 0.45; }
+html[data-ui-assets~="button/primary_normal"] .btn.selected { box-shadow: none; }
+html[data-ui-assets~="button/primary_normal"] .btn:focus-visible { box-shadow: none; outline: 2px solid var(--gold2); outline-offset: 2px; }
+/* 選択カーソル（キーボードやゲームパッドで選んでいる項目） */
+html[data-ui-assets~="control/cursor"] .btn:focus-visible::after, html[data-ui-assets~="control/cursor"] .tab:focus-visible::after { content: ""; position: absolute; right: -6px; bottom: -22px; width: 30px; height: 30px; background: var(--asset-control-cursor) center / contain no-repeat; pointer-events: none; z-index: 4; }
+
+/* タブ */
+html[data-ui-assets~="panel/tab"] .tab { position: relative; background: none; border: 12px solid transparent; border-radius: 0; padding: 0 10px; border-image: var(--asset-panel-tab) var(--asset-panel-tab-slice) fill stretch; }
+html[data-ui-assets~="panel/tab"] .tab.on { background: none; text-shadow: 0 0 12px rgba(240,216,144,0.6); }
+html[data-ui-assets~="panel/tab"] .tab.on::before { content: ""; position: absolute; left: 4px; right: 4px; bottom: -7px; height: 3px; background: var(--gold2); border-radius: 2px; }
+
+/* 台詞枠と名札 */
+html[data-ui-assets~="panel/dialogue"] .dlg-box { border-width: 26px; border-radius: 0; padding: 4px 16px 2px; }
+html[data-ui-assets~="panel/nameplate"] .dlg-name { background: none; border-style: solid; border-color: transparent; border-width: 15px 18px; border-radius: 0; padding: 0 12px; top: -44px; left: 0; line-height: 1.2;
+  border-image: var(--asset-panel-nameplate) var(--asset-panel-nameplate-slice) fill stretch; box-shadow: none; }
+
+/* 上部 HUD：1 本の帯を 4 区画で使う */
+.hud-band { display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 0; }
+.hud-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.hud-band .hud-cell { background: linear-gradient(180deg, rgba(22,29,58,0.92), rgba(9,12,26,0.92)); border: 1px solid var(--gold-dim); border-radius: 8px; padding: 5px 14px; }
+.hud-band .hud-cell.fill { flex: 1; background: none; border: 0; padding: 0; }
+html[data-ui-assets~="panel/hud"] .hud-band { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; height: 68px; box-sizing: border-box; align-items: center;
+  border-style: solid; border-color: transparent; border-width: 0 40px; border-image: var(--asset-panel-hud) var(--asset-panel-hud-slice) fill stretch; }
+html[data-ui-assets~="panel/hud"] .hud-band .hud-cell { background: none; border: 0; border-radius: 0; padding: 0 12px; height: 100%; justify-content: center; white-space: nowrap; overflow: hidden; }
+html[data-ui-assets~="panel/hud"] .hud-band .hud-cell:first-child { padding-left: 0; }
+html[data-ui-assets~="panel/hud"] .hud-band .hud-cell:last-child { padding-right: 0; gap: 6px; }
+html[data-ui-assets~="panel/hud"] .hud-band .btn { min-height: 46px; min-width: 0; font-size: 0.9em; white-space: nowrap; }
+html[data-ui-assets~="panel/hud"] .hud-log { top: calc(84px + var(--safe-top)); }
+html[data-ui-assets~="panel/hud"] .dlg-screen .talk-info { top: calc(84px + var(--safe-top)); }
+html[data-ui-assets~="panel/hud"] #toasts { top: calc(86px + var(--safe-top)); }
+
+/* ピース */
+html[data-ui-assets~="icons/piece_gold"] .piece::before { width: 1.5em; height: 1.5em; clip-path: none; background: var(--asset-icons-piece-gold) center / contain no-repeat; }
+
+/* 操作パッドと調べるボタン */
+html[data-ui-assets~="control/dpad"] .touch-pad { background: var(--asset-control-dpad) center / contain no-repeat; }
+html[data-ui-assets~="control/dpad"] .touch-pad button { background: none; border: 0; font-size: 0; color: transparent; border-radius: 22px; }
+html[data-ui-assets~="control/dpad"] .touch-pad button.pressed { background: radial-gradient(circle, rgba(255,236,170,0.5) 0%, rgba(255,236,170,0.18) 55%, rgba(255,236,170,0) 72%); }
+html[data-ui-assets~="control/action"] .touch-act button { background: var(--asset-control-action) center / contain no-repeat; border: 0; border-radius: 50%; padding: 0 26px; text-shadow: 0 2px 6px #000; }
+html[data-ui-assets~="control/action"] .touch-act button.pressed { background: radial-gradient(circle, rgba(255,236,170,0.42) 0%, rgba(255,236,170,0.12) 58%, rgba(255,236,170,0) 70%), var(--asset-control-action) center / contain no-repeat; }
+
+/* 背景（縦横比を保ったまま画面を覆う） */
+html[data-ui-assets~="background/title"] .title-screen { background: #05060c var(--asset-background-title) center / cover no-repeat; }
+html[data-ui-assets~="background/menu"] .overlay.solid { background: #05060c var(--asset-background-menu) center / cover no-repeat; }
+html[data-ui-assets~="background/result"] .overlay.solid.result-bg { background: #05060c var(--asset-background-result) center / cover no-repeat; }
+html[data-ui-assets~="background/prison_result"] .overlay.solid.prison-bg { background: #05060c var(--asset-background-prison-result) center / cover no-repeat; }
+html[data-ui-assets~="background/menu"] .match { background: #05060c var(--asset-background-menu) center / cover no-repeat; }
+html[data-ui-assets~="background/prison_result"] .match.prison { background: #05060c var(--asset-background-prison-result) center / cover no-repeat; }
+.overlay.solid.story-bg { background-color: #05060c; }
+.title-logo-img { width: 560px; max-width: 70%; height: auto; display: block; filter: none; }
+.title-screen.has-logo { gap: 6px; }
+
+/* 演出の帯 */
+.fx { display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; }
+.fx-art { position: relative; width: 460px; max-width: 100%; }
+.fx-art img { display: block; width: 100%; height: auto; }
+.fx-text { display: flex; align-items: center; justify-content: center; font-family: var(--serif); letter-spacing: 0.24em; color: var(--gold2); text-shadow: 0 3px 12px rgba(0,0,0,0.9); white-space: nowrap; }
+.fx-inband .fx-text { position: absolute; left: 16%; right: 16%; font-size: 30px; }
+.fx-text.below { font-size: 34px; }
+.fx-defeat .fx-text, .fx-elimination .fx-text { color: #ffc4c8; }
+.fx.sm .fx-art { width: 300px; } .fx.sm .fx-inband .fx-text, .fx.sm .fx-text { font-size: 20px; }
+.fx-pop { position: absolute; left: 50%; top: 16%; transform: translateX(-50%); z-index: 30; opacity: 0; transition: opacity 260ms ease; }
+.fx-pop.show { opacity: 1; }
+.fx-pop .fx-text.below { font-size: 22px; letter-spacing: 0.12em; background: rgba(6,8,18,0.82); padding: 2px 18px; border-radius: 16px; }
+
+/* ゲージ */
+.gauge { position: relative; height: 20px; min-width: 120px; box-sizing: border-box; background: rgba(6,8,18,0.8); border: 1px solid var(--gold-dim); border-radius: 4px; }
+.gauge-clip { height: 100%; overflow: hidden; }
+.gauge-fill { height: 100%; background: linear-gradient(180deg, #f0d890, #b08a3a); }
+.gauge.low .gauge-fill { background: linear-gradient(180deg, #e8707c, #8a2a36); }
+html[data-ui-assets~="panel/progress_track"] .gauge { background: none; border-style: solid; border-color: transparent; border-width: 0 8px; border-radius: 0; border-image: var(--asset-panel-progress-track) var(--asset-panel-progress-track-slice) fill stretch; }
+html[data-ui-assets~="panel/progress_track"] .gauge-clip { margin: 5px 0; height: 10px; }
+html[data-ui-assets~="panel/progress_fill"] .gauge-fill { position: relative; }
+html[data-ui-assets~="panel/progress_fill"] .gauge-fill::after { content: ""; position: absolute; inset: 0; background: var(--asset-panel-progress-fill) left center / auto 100% repeat-x; }
+.match-gauge { width: 150px; }
+
+/* カード */
+html[data-ui-assets~="panel/card"] .card { width: 64px; height: 90px; border: 0; border-radius: 6px; background: var(--asset-panel-card) center / 100% 100% no-repeat; color: var(--ivory); text-shadow: 0 2px 6px #000; }
+html[data-ui-assets~="panel/card"] .card.sm { width: 34px; height: 48px; }
+html[data-ui-assets~="panel/card_back"] .card.back { background: var(--asset-panel-card-back) center / 100% 100% no-repeat; color: transparent; text-shadow: none; }
+html[data-ui-assets~="panel/card"] .card.used { opacity: 0.3; }
+
+/* 会話：選択肢は台詞枠の上に積む（重ならない） */
+.dlg-screen .talk-menu { position: relative; right: auto; bottom: auto; align-self: flex-end; margin: 0 calc(40px + var(--safe-right)) 10px 0; }
+.dlg-screen .talk-menu .btn { min-height: 46px; }
+body.touch .dlg-screen .talk-menu { grid-template-columns: repeat(2, 220px); }
+body.touch .dlg-screen .talk-menu .btn { min-height: 52px; }
+body.touch .dlg-box { min-height: 128px; }
+
+/* M01 専用 */
+.nation { display: flex; align-items: center; gap: 10px; }
+.nation > div { min-width: 0; }
+.terr { display: flex; align-items: center; gap: 8px; text-align: left; }
+.terr > .gart { margin-left: -2px; }
+.terr > span.tx { min-width: 0; }
+.m01-act { display: inline-flex; align-items: center; gap: 10px; text-align: left; }
+.m01-res { display: inline-flex; align-items: center; gap: 4px; }
+
+/* 状態の印 */
+.st { display: inline-flex; align-items: center; gap: 4px; }
+.elim-screen .fx-art { width: 420px; }
+.rank .no .ic { width: 1.7em; height: 1.7em; }
+.act-grid .btn > span.m01-act { justify-content: flex-start; width: 100%; }
+.act-grid .btn > span.m01-act > span { display: block; }
+html[data-ui-assets~="panel/negotiation"] body.talking .overlay > .panel { border-width: 34px; border-image: var(--asset-panel-negotiation) var(--asset-panel-negotiation-slice) fill stretch; }
+html[data-ui-assets~="panel/card"] .card.sm { height: 47.8px; }
+.tab .ic { margin-right: 6px; }
+.prompt .ic { margin-right: 8px; }
+.panel-title .ic { width: 1.6em; height: 1.6em; }
+html[data-ui-assets~="panel/hud"] .hud-band .hud-cell { gap: 7px; padding: 0 6px; }
+html[data-ui-assets~="panel/hud"] .hud-band .hud-day { font-size: 1.02em; letter-spacing: 0.06em; }
+html[data-ui-assets~="panel/hud"] .hud-band .hud-phase { font-size: 0.86em; }
+html[data-ui-assets~="panel/hud"] .hud-band .hud-timer { min-width: 0; font-size: 1.1em; }
+html[data-ui-assets~="panel/hud"] .hud-band .hud-room { overflow: hidden; text-overflow: ellipsis; }
+html[data-ui-assets~="panel/hud"] .hud-band .hud-cell:last-child { padding-right: 4px; }
+body.touch .dlg-screen .talk-menu { grid-template-columns: repeat(2, 250px); }
+.talk-menu .btn { letter-spacing: 0.02em; }
+.act-grid.m01-acts { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.m01-acts .btn { min-width: 0; }
+html[data-ui-assets~="button/secondary_normal"] .m01-acts .btn { padding: 0 2px; }
+.m01-acts .m01-act { gap: 6px; }
+.nation .m01-res { display: flex; }

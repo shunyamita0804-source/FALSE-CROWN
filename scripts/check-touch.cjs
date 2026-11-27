@@ -1,4 +1,4 @@
-// 画面上の方向キーの回帰確認。他の参加者が入れない自分の個室で行う。npm run build と npx vite preview --port 4173 の後に実行する。
+// 画面上の方向キーの回帰確認。他の参加者が入れない自分の個室で行い、確認中は NPC から話しかけられないようにする。npm run build と npx vite preview --port 4173 の後に実行する。
 // node scripts/check-touch.cjs [URL]
 const { chromium, devices } = require('playwright');
 const url = process.argv[2] || 'http://localhost:4173/FALSE-CROWN/';
@@ -19,8 +19,9 @@ const url = process.argv[2] || 'http://localhost:4173/FALSE-CROWN/';
   const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map((p, i) => ({ x: p.x, y: p.y, id: p.id ?? i })) });
   const dismiss = async () => { for (let k = 0; k < 4; k++) { const b = page.getByRole('button', { name: '断る' }); if (await b.count()) { await b.first().tap(); await page.waitForTimeout(300); } const box = page.locator('.dlg-box'); if (await box.count()) { await box.first().tap(); await page.waitForTimeout(300); } } };
   const place = async () => { await dismiss(); await place0(); };
-  const place0 = () => page.evaluate(() => { const h = window.__fc.G.state.actors.hero; h.step = undefined; h.path = []; h.route = []; h.pos = { room: 'bedroom_hero', x: 9, y: 11, dir: 'down' }; });
+  const place0 = () => page.evaluate(() => { const st = window.__fc.G.state; for (const [id, a] of Object.entries(st.actors)) if (id !== 'hero') a.talkCd = { ...(a.talkCd || {}), hero: 1e15 }; const h = st.actors.hero; h.step = undefined; h.path = []; h.route = []; h.pos = { room: 'bedroom_hero', x: 9, y: 11, dir: 'down' }; });
   const results = [];
+  const diag = () => page.evaluate(() => 'layers=' + [...document.querySelectorAll('.layer')].map((e) => e.className + ':' + (e.firstElementChild ? e.firstElementChild.className : '')).join(' | ') + ' busy=' + window.__fc.G.heroBusy + ' active=' + window.__fc.G.fieldActive);
   const check = (name, ok, detail) => { results.push(ok); console.log(`${ok ? 'OK  ' : 'FAIL'} ${name}${detail ? ' (' + detail + ')' : ''}`); };
   // 離したあと歩行が止まるか。歩き終わりの1歩ぶんを待ってから、位置が動かないことを見る
   const stopped = async () => { await page.waitForTimeout(500); const a = await pos(); await page.waitForTimeout(900); const b = await pos(); return { ok: a === b, detail: `${a} / ${b}` }; };
@@ -30,6 +31,7 @@ const url = process.argv[2] || 'http://localhost:4173/FALSE-CROWN/';
   let p0 = await pos();
   await touch('touchStart', [R]); await page.waitForTimeout(900);
   check('押している間は歩く', (await pos()) !== p0 && (await held()) === 'right', `${p0} から ${await pos()}`);
+  if (!results[0]) console.log('  ' + await diag());
   await touch('touchEnd', []);
   let s = await stopped(); check('指を離すと止まる', s.ok && (await held()) === '', s.detail);
 

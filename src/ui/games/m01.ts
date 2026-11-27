@@ -2,9 +2,12 @@ import { Sound } from '../../audio/audio';
 import type { CharId, NpcId } from '../../data/characters';
 import { t } from '../../i18n/i18n';
 import { HOARD_LIMIT, moveLabel, NATION_COLORS, NATIONS, PTS, TERRITORY_NAMES, type M01Move, type M01View } from '../../matches/m01';
-import { face } from '../art';
+import { GAME_ART } from '../../assets/registry';
+import { face, gameArt } from '../art';
 import { button, choose, h, type Child } from '../dom';
 import type { MatchUi } from '../matchui';
+
+const ART = GAME_ART.m01;
 
 type Sel = { t: 'invade' | 'defend'; terr: number | null } | { t: 'produce' | 'hoard' } | { t: 'spy'; target: CharId | null } | null;
 
@@ -23,8 +26,9 @@ export function renderM01(v: M01View, ui: MatchUi): { main: Child; side: Child }
   const acting = v.stage === 'act' && !v.submitted;
 
   const nations = h('div', { class: 'nation-row' }, NATIONS.map((n, i) => h('div', { class: `nation${i === myNation ? ' mine' : ''}`, style: `--nc:${NATION_COLORS[i]}` },
-    h('b', null, `${n}${t('m01.nation')}`), i === myNation ? h('span', { class: 'tag fact' }, t('m01.mine')) : null,
-    h('div', { class: 'small' }, t('m01.nationInfo', { res: v.resources[i], terr: terrCount(i) })))));
+    gameArt(ART[`nation${i as 0 | 1 | 2}`], 46),
+    h('div', null, h('b', null, `${n}${t('m01.nation')}`), i === myNation ? h('span', { class: 'tag fact', style: 'margin-left:8px' }, t('m01.mine')) : null,
+      h('div', { class: 'small m01-res' }, gameArt(ART.resource, 22), t('m01.nationInfo', { res: v.resources[i], terr: terrCount(i) }))))));
 
   const map = h('div', { class: 'm01-map' }, TERRITORY_NAMES.map((name, i) => {
     const o = v.owner[i];
@@ -34,11 +38,13 @@ export function renderM01(v: M01View, ui: MatchUi): { main: Child; side: Child }
       if (!acting) return;
       if (o === myNation) setSel({ t: 'defend', terr: i });
       else setSel({ t: 'invade', terr: i });
-    } }, h('b', null, name), h('small', null, o === null ? t('m01.neutral') : `${NATIONS[o]}${t('m01.nation')}`),
-    rep && (rep.attack.some((a) => a > 0) || rep.defense > 0) ? h('small', null, `${t('m01.atk')} ${rep.attack.map((a, n) => (a ? `${NATIONS[n]}${a}` : '')).filter(Boolean).join(' ') || '0'}／${t('m01.def')} ${rep.defense}`) : null);
+    } }, gameArt(o === null ? ART.neutral : ART[`nation${o as 0 | 1 | 2}`], 34),
+    h('span', { class: 'tx' }, h('b', null, name), h('small', null, o === null ? t('m01.neutral') : `${NATIONS[o]}${t('m01.nation')}`),
+      rep && (rep.attack.some((a) => a > 0) || rep.defense > 0) ? h('small', null, `${t('m01.atk')} ${rep.attack.map((a, n) => (a ? `${NATIONS[n]}${a}` : '')).filter(Boolean).join(' ') || '0'}／${t('m01.def')} ${rep.defense}`) : null));
   }));
 
   const status = h('div', { class: 'box row', style: 'gap:18px;flex-wrap:wrap' },
+    gameArt(ART.territory, 40),
     h('span', null, t('m01.round', { r: Math.min(v.round, 5) })),
     h('span', null, t('m01.myPoints', { p: v.myPoints ?? 0 })),
     h('span', null, t('m01.terrPoints', { p: myNation >= 0 ? terrCount(myNation) * 2 : 0 })),
@@ -54,10 +60,10 @@ export function renderM01(v: M01View, ui: MatchUi): { main: Child; side: Child }
     const res = v.resources[myNation];
     const move: M01Move | null = !sel ? null : sel.t === 'invade' || sel.t === 'defend' ? (sel.terr === null ? null : { t: sel.t, terr: sel.terr }) : sel.t === 'spy' ? (sel.target ? { t: 'spy', target: sel.target } : null) : { t: sel.t };
     const opt = (key: 'invade' | 'defend' | 'produce' | 'hoard' | 'spy', hint: string, disabled: boolean, onclick: () => void) =>
-      h('button', { type: 'button', class: `btn btn-secondary${sel?.t === key ? ' selected' : ''}`, disabled, onclick }, h('span', null, t(`m01.act.${key}`), h('small', null, hint)));
+      h('button', { type: 'button', class: `btn btn-secondary${sel?.t === key ? ' selected' : ''}`, disabled, onclick }, h('span', { class: 'm01-act' }, gameArt(ART[key], 36), h('span', null, t(`m01.act.${key}`), h('small', null, hint))));
     controls = h('div', { class: 'box col', style: 'gap:8px' },
       h('h4', null, t('m01.actTitle')),
-      h('div', { class: 'act-grid' },
+      h('div', { class: 'act-grid m01-acts' },
         opt('invade', t('m01.hint.invade', { p: PTS.invade }), false, () => setSel({ t: 'invade', terr: null })),
         opt('defend', t('m01.hint.defend', { p: PTS.defend }), false, () => setSel({ t: 'defend', terr: null })),
         opt('produce', t('m01.hint.produce', { p: PTS.produce }), false, () => setSel({ t: 'produce' })),
@@ -93,7 +99,7 @@ export function renderM01(v: M01View, ui: MatchUi): { main: Child; side: Child }
     !v.myHistory.length ? h('div', { class: 'dim small' }, t('m01.noLog')) : null);
 
   const side = h('div', { class: 'box scroll grow' }, h('h4', null, t('m01.members')), h('div', { class: 'plist' }, [0, 1, 2].flatMap((n) => v.players.filter((p) => v.nation[p] === n).map((p) =>
-    h('div', { class: `prow${p === me ? ' me' : ''}` }, h('span', { class: 'dot', style: `background:${NATION_COLORS[n]}` }), face(p), h('span', { class: 'nm' }, ui.name(p)),
+    h('div', { class: `prow${p === me ? ' me' : ''}` }, gameArt(ART[`nation${n as 0 | 1 | 2}`], 24) ?? h('span', { class: 'dot', style: `background:${NATION_COLORS[n]}` }), face(p), h('span', { class: 'nm' }, ui.name(p)),
       v.finalScores ? h('b', null, String(v.finalScores[p])) : p !== me && v.stage === 'negotiate' && !v.submitted ? button(t('match.talk'), () => ui.talk(p as NpcId), { small: true }) : null)))));
 
   return { main: [nations, status, map, controls, report, mine], side };

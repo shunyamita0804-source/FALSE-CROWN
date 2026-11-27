@@ -13,7 +13,7 @@ import { t } from '../i18n/i18n';
 import type { MatchEngine } from '../matches/types';
 import { chooseProposal, type BrainEvent } from '../npc/brain';
 import { commit, evaluate, type Proposal } from '../npc/negotiation';
-import { face } from './art';
+import { face, icon } from './art';
 import { alertDialog, append, button, clear, clockPaused, closeLayer, fmtTime, h, openLayer, toast, type Child, type Layer } from './dom';
 import { renderM01 } from './games/m01';
 import { renderP01 } from './games/p01';
@@ -88,6 +88,8 @@ export function playMatch(slot: MatchSlot): Promise<void> {
     const title = h('div', { class: 'match-title' }, `${slot.id === 'tiebreak' ? '' : slot.id.toUpperCase() + '　'}${engine.name}`);
     const stageEl = h('div', { class: 'match-stage' });
     const timerEl = h('div', { class: 'match-timer' });
+    const gaugeClip = h('div', { class: 'gauge-clip' }, h('div', { class: 'gauge-fill' }));
+    const gaugeEl = h('div', { class: 'gauge match-gauge' }, gaugeClip);
     const main = h('div', { class: 'match-main' });
     const side = h('div', { class: 'match-side' });
     const inboxEl = h('div', { class: 'row', style: 'gap:6px' });
@@ -149,6 +151,9 @@ export function playMatch(slot: MatchSlot): Promise<void> {
       const show = !engine.done(slot.state) && st.time && engine.pending(slot.state).includes('hero');
       timerEl.textContent = show ? fmtTime(slot.stageLeft) : '';
       timerEl.classList.toggle('low', !!show && slot.stageLeft < 10_000);
+      gaugeEl.style.visibility = show && stageTime > 0 ? '' : 'hidden';
+      gaugeEl.classList.toggle('low', !!show && slot.stageLeft < 10_000);
+      gaugeClip.style.width = `${stageTime > 0 ? Math.max(0, Math.min(1, slot.stageLeft / stageTime)) * 100 : 0}%`;
     };
 
     /** NPC の手を進め、プレイヤーの番か終局まで進行する */
@@ -193,7 +198,7 @@ export function playMatch(slot: MatchSlot): Promise<void> {
 
     const rulesBtn = button(t('match.rules'), () => void alertDialog(engine.name, h('div', { class: 'col', style: 'gap:6px' }, engine.rules.map((r, i) => h('div', { class: 'entry small' }, `${i + 1}. ${r}`))), t('common.close'), true), { small: true, kind: 'ghost' });
     const el = h('div', { class: `match${slot.kind === 'prison' ? ' prison' : ''}` },
-      h('div', { class: 'match-head' }, title, stageEl, inboxEl, h('div', { class: 'spacer' }), heroIn ? h('span', { class: 'row', style: 'gap:6px' }, face('hero'), h('span', { class: 'piece' }, String(s.actors.hero.pieces))) : null, rulesBtn, timerEl),
+      h('div', { class: 'match-head' }, title, stageEl, inboxEl, h('div', { class: 'spacer' }), heroIn ? h('span', { class: 'row', style: 'gap:6px' }, face('hero'), h('span', { class: 'piece' }, String(s.actors.hero.pieces))) : null, rulesBtn, icon('timer'), gaugeEl, timerEl),
       h('div', { class: 'match-body' }, main, side),
     );
     layer = openLayer(el, { pausesClock: false, name: 'match' });

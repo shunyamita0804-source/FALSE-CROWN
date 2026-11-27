@@ -16,7 +16,7 @@ import type { BrainEvent } from '../npc/brain';
 import { say, type LineKey } from '../npc/lines';
 import { accuse, commit, dealLabel, evaluate, noteDeal, type Proposal } from '../npc/negotiation';
 import { actorsIn, distance } from '../world/sim';
-import { portraitUrl } from './art';
+import { icon, portraitUrl } from './art';
 import { button, choose, clear, closeLayer, h, openLayer, panel, type Layer } from './dom';
 import { pieces } from './screens';
 
@@ -98,6 +98,7 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
       if (closed) return;
       closed = true;
       clearInterval(timer);
+      document.body.classList.remove('talking');
       closeLayer(layer);
       G.heroBusy = false;
       A.busyUntil = s.simTime + 600;
@@ -271,25 +272,25 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
 
     const buildMenu = () => {
       clear(menu);
-      const add = (label: string, fn: () => void | Promise<void>, kind?: 'primary' | 'ghost') => menu.append(button(label, async () => {
+      const add = (label: string, fn: () => void | Promise<void>, ic?: string) => menu.append(button([ic ? icon(ic) : null, label], async () => {
         await fn();
         if (!closed) buildMenu();
-      }, { kind, small: true }));
+      }, { small: true }));
       if (inMatch) {
         add(t('talk.planAsk'), () => planMenu('npc'));
         add(t('talk.planOffer'), () => planMenu('hero'));
-        add(t('talk.intent'), askIntent);
+        add(t('talk.intent'), askIntent, 'help');
       } else add(t('talk.smalltalk'), smalltalk);
-      add(t('talk.alliance'), () => proposeTreaty('alliance'));
-      add(t('talk.nonaggression'), () => proposeTreaty('nonaggression'));
+      add(t('talk.alliance'), () => proposeTreaty('alliance'), 'alliance');
+      add(t('talk.nonaggression'), () => proposeTreaty('nonaggression'), 'contract');
       if (!inMatch) {
-        add(t('talk.buy'), buyInfo);
-        add(t('talk.sell'), sellInfo);
+        add(t('talk.buy'), buyInfo, 'rumor');
+        add(t('talk.sell'), sellInfo, 'evidence');
         add(activeDeals(s, 'hero', npc).some((d) => d.kind === 'loan' && d.from === 'hero') ? t('talk.repayTitle') : t('talk.loan'), loan);
-        add(t('talk.accuse'), doAccuse);
+        add(t('talk.accuse'), doAccuse, 'warning');
       }
       add(t('talk.gift'), gift);
-      menu.append(button(t('talk.leave'), () => {
+      menu.append(button([icon('back'), t('talk.leave')], () => {
         Sound.se('back');
         close();
       }, { kind: 'ghost', small: true }));
@@ -334,6 +335,7 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
     refreshInfo();
     const box = h('div', { class: 'dlg-box' }, h('div', { class: 'dlg-name' }, `${def.name}　${def.job}`), text);
     const el = h('div', { class: `overlay ${inMatch ? '' : 'clear'} dlg-screen` }, portrait, info, menu, box);
+    document.body.classList.add('talking');
     layer = openLayer(el, { pausesClock: false, name: 'talk', onCancel: () => close() });
     if (opts.event?.proposal) void incoming(opts.event.proposal).then(() => !closed && buildMenu());
     else buildMenu();
