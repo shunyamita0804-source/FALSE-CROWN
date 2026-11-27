@@ -1077,3 +1077,75 @@ button.m05-mate { cursor: pointer; border-color: var(--gold-dim); }
 .p05-sumrow { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 2px 12px; border-radius: 10px; background: rgba(8,12,26,0.8); border: 1.5px solid #3a4468; }
 .p05-sumrow.me { border-color: var(--gold-dim); }
 .p05-sumrow .face { width: 34px; height: 34px; } .p05-sumrow .nm { flex: 1; } .p05-sumrow b { font-size: 1.4em; min-width: 2em; text-align: right; }
+.m05-prep .m05-team, .m05-pick + * .m05-team { position: relative; padding: 14px 22px; }
+.m05-prep .m05-team::before { content: ''; position: absolute; inset: 0; border: 20px solid transparent; border-image: var(--asset-v11-m05-relay-plate, none) 40 fill / 20px stretch; z-index: 0; pointer-events: none; }
+.m05-prep .m05-team > * { position: relative; z-index: 1; }
+.dq .mq-frame::after { inset: -6px; border-image: var(--asset-v11-prison-compact-frame, none) 96 / 30px stretch; }
+
+/* ---- M06 クロス・カード ---- */
+.xc { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+.xc-head { display: flex; align-items: center; gap: 10px; }
+.xc-target { padding: 3px 12px; border-radius: 16px; border: 1.5px solid #3a4468; background: rgba(8,12,26,0.8); white-space: nowrap; }
+.xc-target.big { font-size: 1.3em; border-color: var(--gold2); color: var(--gold2); background: rgba(216,178,90,0.14); padding: 4px 18px; }
+.xc-row { display: flex; align-items: center; gap: 10px; }
+.xc-row.hand { padding-top: 14px; }
+.xc-lbl { width: 46px; text-align: right; color: var(--ivory-dim); font-size: 0.9em; }
+.xc-card { position: relative; width: 98px; height: 134px; padding: 0; border-radius: 11px; border: 2px solid #b9a36a; background: linear-gradient(160deg, #fbf5e2, #e4d8b6); color: var(--xc, #1a1f33); font: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; box-shadow: 0 4px 10px rgba(0,0,0,0.45); transition: transform 0.12s; flex: none; }
+button.xc-card { cursor: pointer; }
+.xc-card b { font-family: var(--serif); font-size: 2.5em; line-height: 1; color: #1a1f33; }
+.xc-card i { position: absolute; top: 5px; left: 8px; font-style: normal; font-weight: 700; font-size: 0.9em; color: var(--xc); }
+.xc-suit { width: 38px; height: 38px; display: block; line-height: 0; }
+.xc-suit svg { width: 100%; height: 100%; display: block; }
+.xc-card.sel { transform: translateY(-14px); box-shadow: 0 0 0 3px var(--gold2), 0 8px 14px rgba(0,0,0,0.5); }
+.xc-card.hint::after { content: ''; position: absolute; top: 6px; right: 7px; width: 10px; height: 10px; border-radius: 50%; background: var(--gold2); box-shadow: 0 0 0 2px #1a1f33; }
+.xc-card:disabled { cursor: default; }
+.xc-card.small { width: 62px; height: 84px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.4); }
+.xc-card.small b { font-size: 1.6em; } .xc-card.small .xc-suit { width: 24px; height: 24px; } .xc-card.small i { display: none; }
+.xc-card.tiny { width: 34px; height: 44px; border-radius: 5px; border-width: 1.5px; box-shadow: none; gap: 0; }
+.xc-card.tiny b { font-size: 1.05em; } .xc-card.tiny .xc-suit { width: 15px; height: 15px; } .xc-card.tiny i { display: none; }
+.xc-card.back { background: var(--asset-v11-m06-card-back, repeating-linear-gradient(45deg, #1b2548 0 8px, #232f5c 8px 16px)) center / cover no-repeat; border-color: var(--gold-dim); }
+.xc-deck { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-left: 12px; color: var(--ivory-dim); }
+.xc-foot { display: flex; align-items: center; gap: 12px; min-height: 52px; }
+.xc-note { max-width: 520px; }
+.xc-turns { display: flex; flex-direction: column; gap: 1px; }
+.xc-turn { display: flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 4px; border-radius: 6px; font-size: 0.9em; }
+.xc-turn.now { background: rgba(216,178,90,0.18); }
+.xc-turn .face { width: 26px; height: 26px; } .xc-turn .nm { flex: 1; white-space: nowrap; }
+.xc-act { display: flex; align-items: center; gap: 3px; }
+.xc-seen { display: flex; flex-direction: column; gap: 2px; font-size: 0.72em; font-variant-numeric: tabular-nums; }
+.xc-seen .row { display: flex; align-items: center; gap: 1px; }
+.xc-seen .sw { width: 10px; height: 10px; border-radius: 2px; margin-right: 3px; flex: none; }
+.xc-seen span { width: 17px; height: 18px; display: flex; align-items: center; justify-content: center; border-radius: 3px; border: 1px solid transparent; box-sizing: border-box; }
+.xc-seen .gone { opacity: 0.25; text-decoration: line-through; }
+.xc-seen .fld { border-color: var(--ivory); }
+.xc-seen .mine { color: var(--gold2); font-weight: 700; }
+.xc-subs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; }
+.xc-sub { display: flex; align-items: center; gap: 8px; min-height: 48px; min-width: 330px; padding: 0 10px; border-radius: 10px; border: 1.5px solid #3a4468; background: rgba(8,12,26,0.82); }
+.xc-sub.ok { border-color: var(--gold-dim); } .xc-sub.me { background: rgba(216,178,90,0.12); }
+.xc-sub .face { width: 30px; height: 30px; } .xc-sub .nm { flex: 1; white-space: nowrap; }
+.xc-sub .tag { font-style: normal; font-size: 0.72em; padding: 1px 6px; border-radius: 8px; background: var(--gold2); color: #1a1f33; white-space: nowrap; }
+.xc-break, .xc-done { gap: 9px; }
+.xc-row.mini { gap: 5px; }
+
+/* ---- P06 一筆の迷宮 ---- */
+.pb2 .lb-cell.on { fill: rgba(95,184,230,0.2); }
+.pb2-line { fill: none; stroke: #5fb8e6; stroke-linecap: round; stroke-linejoin: round; opacity: 0.9; }
+.pb2-line.done { stroke: #7ed48a; opacity: 1; }
+.pb2-head { fill: #fff; stroke: #5fb8e6; stroke-width: 3; }
+.pb2-wall { stroke: #f1e9d2; stroke-width: 6; stroke-linecap: round; }
+.pb2-bad { fill: rgba(230,80,70,0.45); stroke: #ff7a70; stroke-width: 2; }
+.pb2-hint { fill: none; stroke: var(--gold2); stroke-width: 4; stroke-dasharray: 6 5; }
+.pb2-hintline { stroke: var(--gold2); stroke-linecap: round; opacity: 0.8; }
+.pb2-mark circle { fill: #0b0f20; stroke: var(--gold2); stroke-width: 2.5; }
+.pb2-mark text { text-anchor: middle; dominant-baseline: central; font-weight: 800; fill: var(--gold2); pointer-events: none; }
+.pb2-mark.start circle { fill: #5fb8e6; stroke: #fff; } .pb2-mark.start text { fill: #0b0f20; }
+.pb2-mark.goal circle { stroke: #9aa3c0; stroke-dasharray: 5 4; } .pb2-mark.goal text { fill: #9aa3c0; }
+.pb2-mark.goal.open circle { stroke: #7ed48a; stroke-dasharray: none; } .pb2-mark.goal.open text { fill: #7ed48a; }
+.pb2-mark.check.passed circle { fill: #5fb8e6; stroke: #5fb8e6; } .pb2-mark.check.passed text { fill: #0b0f20; }
+.pb2-mark.check.next circle { stroke-width: 4; filter: drop-shadow(0 0 5px rgba(216,178,90,0.8)); }
+.p06-play { flex: 1; display: flex; align-items: center; justify-content: center; gap: 26px; }
+.p06-tools { display: flex; flex-direction: column; gap: 10px; width: 200px; }
+.p06-tools .btn { min-height: 44px; }
+.p06-prog { display: flex; flex-direction: column; align-items: center; padding: 6px; border-radius: 10px; border: 1.5px solid var(--gold-dim); background: rgba(8,12,26,0.8); }
+.p06-prog b { font-size: 1.8em; font-variant-numeric: tabular-nums; color: var(--gold2); }
+.p06-break { gap: 12px; }
