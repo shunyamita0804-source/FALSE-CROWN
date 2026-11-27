@@ -1,4 +1,5 @@
 import { Input } from './input/InputState';
+import { placeIn, setPathTo } from './world/sim';
 import Phaser from 'phaser';
 import { registerSW } from 'virtual:pwa-register';
 import './style.css';
@@ -105,7 +106,7 @@ async function boot(): Promise<void> {
     await runGame();
   }
 }
-if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input };
+if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input, sim: { placeIn, setPathTo } };
 void boot();
 
 // オフライン用 Service Worker（Capacitor アプリ内では不要なので登録しない）

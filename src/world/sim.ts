@@ -126,6 +126,8 @@ export function moveActor(state: GameState, a: Actor, dt: number, speed: number)
         a.pos.x = a.step.x;
         a.pos.y = a.step.y;
         a.step = undefined;
+        // 方向キーを押し続けている間は、余った時間を捨てずにそのまま次の 1 マスへ進む（速度を一定に保つ）
+        if (a.intent && !a.path.length && !a.route.length && !tryStep(state, a, a.intent)) break;
       } else {
         a.step.p += budget;
         budget = 0;

@@ -55,6 +55,8 @@ export interface NpcGoal {
 }
 
 export interface Actor {
+  /** 方向キーを押し続けている方向（主人公のみ、毎フレーム設定。保存しても読み込み直後に上書きされる） */
+  intent?: Dir;
   id: CharId;
   alive: boolean;
   eliminatedDay?: number;

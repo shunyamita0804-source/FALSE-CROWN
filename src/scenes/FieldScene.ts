@@ -10,11 +10,13 @@ import { Input } from '../input/InputState';
 import { anyModal } from '../ui/dom';
 import { ROOMS, doorApproach, doorDir, propVisible, type DoorDef, type InspectDef, type RoomDef } from '../world/maps';
 import { PROPS } from '../world/props';
-import { DIRS, actorsIn, collisionOf, facingTile, setPathTo, tryStep } from '../world/sim';
+import { DIRS, actorsIn, facingTile, tryStep } from '../world/sim';
+import { WALK_LINGER_MS, walkFrame } from '../world/walk';
 
 /** 仮素材テクスチャの解像度倍率（論理 64px/タイル に対して） */
 const TEX = 1.5;
 const DIR_ROW: Record<Dir, number> = { down: 0, up: 1, left: 2, right: 3 };
+
 
 interface ActorView {
   id: CharId;
@@ -22,7 +24,12 @@ interface ActorView {
   sprite: Phaser.GameObjects.Sprite;
   label: Phaser.GameObjects.Text;
   bubble: Phaser.GameObjects.Text;
-  anim: number;
+  /** 歩き始めてから進んだ距離（px）。歩行のコマ送りに使う */
+  dist: number;
+  /** 止まってからの経過時間（ms） */
+  idle: number;
+  lastX: number;
+  lastY: number;
 }
 
 export type Target = { kind: 'npc'; id: CharId } | { kind: 'inspect'; ins: InspectDef } | { kind: 'door'; door: DoorDef } | null;
@@ -42,7 +49,6 @@ export class FieldScene extends Phaser.Scene {
   private actors = new Map<CharId, ActorView>();
   private marks: Phaser.GameObjects.Image[] = [];
   private flagsKey = '';
-  private pendingTarget: Target = null;
   private camTarget = new Phaser.Math.Vector2();
   target: Target = null;
 
@@ -58,7 +64,6 @@ export class FieldScene extends Phaser.Scene {
       this.applyBounds();
       for (const v of this.actors.values()) this.setTextRes(v);
     });
-    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => this.onTap(p));
     this.ensureCommonTextures();
   }
 
@@ -277,7 +282,7 @@ export class FieldScene extends Phaser.Scene {
     const style = { fontFamily: '"Hiragino Sans","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif', fontSize: '15px', color: '#f2ecdc', stroke: '#05060c', strokeThickness: 4 };
     const label = this.add.text(0, 0, name, style).setOrigin(0.5, 1);
     const bubble = this.add.text(0, 0, '', { ...style, fontSize: '22px' }).setOrigin(0.5, 1).setVisible(false);
-    const v: ActorView = { id: a.id, shadow, sprite, label, bubble, anim: 0 };
+    const v: ActorView = { id: a.id, shadow, sprite, label, bubble, dist: 0, idle: 1e9, lastX: NaN, lastY: NaN };
     void s;
     this.setTextRes(v);
     return v;
@@ -303,17 +308,27 @@ export class FieldScene extends Phaser.Scene {
       const py = (ty + 1) * TILE - 10;
       v.sprite.setPosition(px, py);
       v.shadow.setPosition(px, py - 2);
-      const walking = !!a.step;
-      v.anim = walking ? v.anim + dt / 130 : 0;
-      // 静止時は正式素材の静止シート（下・上・左・右の 4 コマ）を使う。無ければ歩行シートの 2 コマ目
+      // 歩行アニメーションは主人公と NPC で共通。進んだ距離でコマを送るので、移動速度と足の動きが常に一致する。
+      // 1 マスと次の 1 マスの継ぎ目で一瞬だけ止まって見えないよう、止まってから少し経つまでは歩行のままにする。
+      const moved = Number.isNaN(v.lastX) ? 0 : Math.abs(px - v.lastX) + Math.abs(py - v.lastY);
+      const jumped = moved > TILE * 1.5;
+      v.lastX = px;
+      v.lastY = py;
+      if (a.step && !jumped) {
+        v.dist += moved;
+        v.idle = 0;
+      } else v.idle += dt;
+      const walking = !!a.step || v.idle < WALK_LINGER_MS;
+      if (!walking || jumped) v.dist = 0;
       const standKey = `stand:${charFolder(a.id, s.hero.gender)}`;
       const walkKey = `char:${charFolder(a.id, s.hero.gender)}`;
+      const row = DIR_ROW[a.pos.dir];
       if (!walking && this.textures.exists(standKey)) {
         if (v.sprite.texture.key !== standKey) v.sprite.setTexture(standKey);
-        v.sprite.setFrame(DIR_ROW[a.pos.dir]);
+        v.sprite.setFrame(row);
       } else {
         if (v.sprite.texture.key !== walkKey) v.sprite.setTexture(walkKey);
-        v.sprite.setFrame(DIR_ROW[a.pos.dir] * 4 + (walking ? Math.floor(v.anim) % 4 : 1));
+        v.sprite.setFrame(row * 4 + (walking ? walkFrame(v.dist) : 1));
       }
       v.sprite.setDisplaySize(CHAR_W * CHAR_SCALE, CHAR_H * CHAR_SCALE);
       v.sprite.setDepth(py);
@@ -360,76 +375,6 @@ export class FieldScene extends Phaser.Scene {
     return null;
   }
 
-  private onTap(p: Phaser.Input.Pointer): void {
-    const s = G.state;
-    if (!s || !G.fieldActive || anyModal() || G.heroBusy) return;
-    if (p.event && p.event.target !== this.game.canvas) return;
-    const cam = this.cameras.main;
-    const wp = cam.getWorldPoint(p.x, p.y);
-    const tx = Math.floor(wp.x / TILE);
-    const ty = Math.floor(wp.y / TILE);
-    const hero = s.actors.hero;
-    const room = ROOMS[hero.pos.room];
-    this.pendingTarget = null;
-    // NPC
-    for (const a of actorsIn(s, room.id)) {
-      if (a.id === 'hero') continue;
-      if (Math.abs(a.pos.x - tx) <= 0 && (a.pos.y === ty || a.pos.y - 1 === ty)) {
-        this.pendingTarget = { kind: 'npc', id: a.id };
-        if (Math.abs(a.pos.x - hero.pos.x) + Math.abs(a.pos.y - hero.pos.y) === 1) { this.arrive(); return; }
-        setPathTo(s, hero, a.pos.x, a.pos.y);
-        if (hero.path.length) hero.path.pop();
-        return;
-      }
-    }
-    // 調査地点
-    for (const ins of room.inspects) {
-      if (Math.abs(ins.x - tx) <= 1 && Math.abs(ins.y - ty) <= 1) {
-        this.pendingTarget = { kind: 'inspect', ins };
-        if (Math.abs(ins.x - hero.pos.x) + Math.abs(ins.y - hero.pos.y) <= 1) { this.arrive(); return; }
-        const grid = collisionOf(s, room.id);
-        setPathTo(s, hero, ins.x, ins.y);
-        if (grid[ins.y]?.[ins.x] === false && hero.path.length) hero.path.pop();
-        return;
-      }
-    }
-    // 扉
-    for (const d of room.doors) {
-      const tiles = doorApproach(room, d);
-      const v = DIRS[d.dir];
-      const hit = tiles.some((t) => [0, 1, 2].some((k) => t.x + v.dx * k === tx && t.y + v.dy * k === ty));
-      if (hit) {
-        this.pendingTarget = { kind: 'door', door: d };
-        const t = tiles.reduce((a, b) => (Math.abs(a.x - hero.pos.x) + Math.abs(a.y - hero.pos.y) <= Math.abs(b.x - hero.pos.x) + Math.abs(b.y - hero.pos.y) ? a : b));
-        if (t.x === hero.pos.x && t.y === hero.pos.y) { this.arrive(); return; }
-        setPathTo(s, hero, t.x, t.y);
-        return;
-      }
-    }
-    setPathTo(s, hero, tx, ty);
-  }
-
-  /** タップで指定した対象に到着した */
-  private arrive(): void {
-    const s = G.state!;
-    const hero = s.actors.hero;
-    const t = this.pendingTarget;
-    this.pendingTarget = null;
-    if (!t) return;
-    if (t.kind === 'npc') {
-      const a = s.actors[t.id];
-      if (a.pos.room === hero.pos.room && Math.abs(a.pos.x - hero.pos.x) + Math.abs(a.pos.y - hero.pos.y) <= 2) {
-        hero.pos.dir = Math.abs(a.pos.x - hero.pos.x) > Math.abs(a.pos.y - hero.pos.y) ? (a.pos.x > hero.pos.x ? 'right' : 'left') : a.pos.y > hero.pos.y ? 'down' : 'up';
-        G.interact(t);
-      }
-    } else if (t.kind === 'inspect') {
-      G.interact(t);
-    } else if (t.kind === 'door') {
-      hero.pos.dir = doorDir(t.door);
-      G.interact(t);
-    }
-  }
-
   update(_time: number, delta: number): void {
     Input.update();
     const s = G.state;
@@ -445,9 +390,11 @@ export class FieldScene extends Phaser.Scene {
       // 4 方向移動：押している方向へ 1 タイルずつ進む
       const dirs: Dir[] = ['up', 'down', 'left', 'right'];
       const held = dirs.find((d) => Input.isDown(d));
+      // 押している方向は「意図」として渡し、1 マス歩き終えた瞬間に次の 1 マスへ途切れずに進ませる
+      hero.intent = held;
       if (held) {
         hero.path = [];
-        this.pendingTarget = null;
+        hero.route = [];
         if (!hero.step) {
           const before = hero.pos.dir;
           if (!tryStep(s, hero, held)) {
@@ -464,18 +411,15 @@ export class FieldScene extends Phaser.Scene {
       }
       if (Input.justPressed('start') || Input.justPressed('b')) G.openMenu();
     }
+    if (!control) hero.intent = undefined;
     G.tick(dt);
     if (hero.pos.room !== this.roomId) this.buildRoom();
-    // タップ移動の到着判定
-    if (this.pendingTarget && !hero.step && !hero.path.length && control) this.arrive();
     this.syncActors(dt);
     this.target = control ? this.findTarget() : null;
-    // カメラ追従（滑らかに）
+    // カメラは主人公に遅れなく付ける（遅れて追う方式は、主人公と背景の動きがずれてガタついて見えるため使わない）
     const hv = this.actors.get('hero');
     if (hv) {
-      const k = 1 - Math.pow(0.001, dt / 1000);
-      this.camTarget.x += (hv.sprite.x - this.camTarget.x) * k;
-      this.camTarget.y += (hv.sprite.y - 40 - this.camTarget.y) * k;
+      this.camTarget.set(hv.sprite.x, hv.sprite.y - 40);
       this.cameras.main.centerOn(this.camTarget.x, this.camTarget.y);
     }
     void DIRS; void ALL_IDS;
