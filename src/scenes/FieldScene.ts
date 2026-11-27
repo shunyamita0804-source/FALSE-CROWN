@@ -409,6 +409,9 @@ export class FieldScene extends Phaser.Scene {
     return null;
   }
 
+  private pushKey = '';
+  private pushMs = 0;
+
   update(_time: number, delta: number): void {
     Input.update();
     const s = G.state;
@@ -447,7 +450,24 @@ export class FieldScene extends Phaser.Scene {
             const room = ROOMS[hero.pos.room];
             const door = room.doors.find((d) => doorDir(d) === held && doorApproach(room, d).some((t) => t.x === hero.pos.x && t.y === hero.pos.y));
             if (door && !G.doorHold && (before === held || Input.justPressed(held))) G.interact({ kind: 'door', door }, true);
-          }
+            else if (!door) {
+              // 人に道を塞がれている：同じ方向へ押し続けると、相手と場所を入れ替わって通り抜ける（閉じ込められないようにする）
+              const dd = DIRS[held];
+              const tx = hero.pos.x + dd.dx;
+              const ty = hero.pos.y + dd.dy;
+              const blocker = actorsIn(s, room.id).find((a) => a.id !== 'hero' && !a.step && a.pos.x === tx && a.pos.y === ty);
+              const key = blocker ? `${blocker.id}:${held}` : '';
+              this.pushMs = key && key === this.pushKey ? this.pushMs + dt : 0;
+              this.pushKey = key;
+              if (blocker && this.pushMs >= 380) {
+                blocker.step = { x: hero.pos.x, y: hero.pos.y, p: 0 };
+                blocker.pos.dir = held === 'up' ? 'down' : held === 'down' ? 'up' : held === 'left' ? 'right' : 'left';
+                blocker.path = [];
+                hero.step = { x: tx, y: ty, p: 0 };
+                this.pushMs = 0;
+              }
+            }
+          } else this.pushKey = '';
         }
       }
       if (Input.justPressed('a')) {

@@ -146,7 +146,10 @@ export function moveActor(state: GameState, a: Actor, dt: number, speed: number,
       const room = ROOMS[a.pos.room];
       const tiles = doorApproach(room, door);
       const at = tiles.find((t) => t.x === a.pos.x && t.y === a.pos.y);
-      if (at) {
+      // 扉の前のマスがすべて人で埋まっている時は、その隣からでも通れる（入口で列になって詰まらないようにする）
+      const occNow = occupiedSet(state, a.pos.room, a.id);
+      const squeeze = !at && tiles.every((t) => occNow.has(`${t.x},${t.y}`)) && tiles.some((t) => Math.abs(t.x - a.pos.x) + Math.abs(t.y - a.pos.y) === 1);
+      if (at || squeeze) {
         a.pos.dir = doorDir(door);
         if (enterDoor(state, a, door)) a.route.shift();
         else a.route = [];
