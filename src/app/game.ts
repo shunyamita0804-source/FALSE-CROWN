@@ -9,6 +9,7 @@ import { engineOf, newSlot, resolveTies, runToEnd } from '../core/runner';
 import { addInfo, adjustRel, aliveIds, learn, log, nameOf, rngOf, shortName, transfer } from '../core/state';
 import { medalIssued, npcRescuePromises } from '../core/rescue';
 import { subGamesScreen } from '../ui/subhub';
+import { hiddenInspect, resumeHiddenRun } from '../ui/hiddenhub';
 import { applyMainResult, applyPrisonResult, championEnding, endDay, gatherAt, isFinalDay, mainMatchId, moveToHouses, prisonMatchId, startMorning } from '../core/tournament';
 import { scheduleFor } from '../data/config';
 import type { GameState, MatchSlot, Phase } from '../core/types';
@@ -160,6 +161,7 @@ export const G = {
             const destName = dest ? roomTitle(s, d.to) : '';
             await fade(true, 170, dest ? `${destName.startsWith(dest.floor) ? '' : dest.floor + '　'}${destName}` : '');
             if (G.state === s && enterDoor(s, s.actors.hero, d)) {
+              if (dest?.area === 'secret') s.flags[`visited_${d.to}`] = true;
               // 他人の個室へ入るところは、廊下にいた人に見られることがある
               if (isBedroom(d.to) && ownerOfRoom(s, d.to) && ownerOfRoom(s, d.to) !== 'hero') witnessEntry(s, ownerOf(s, d.to), 'hero', from, rngOf(s));
               lastStepKey = '';
@@ -206,6 +208,39 @@ export const G = {
 
   inFreePhase: () => !!freeEnd,
   save,
+
+  /** 物語イベントを 1 度だけ再生する（裏ルートの画面から使う） */
+  story: (id: string) => story(id),
+
+  /** 自分で選んだ結末を記録し、自由時間を終える（結末の処理は step() の側で行う） */
+  chooseEnding(id: string): void {
+    const s = G.state;
+    if (!s) return;
+    s.flags.endingChoice = id;
+    save();
+    freeEnd?.();
+  },
+
+  /** 主人公を別の部屋へ移す（保守用の昇降機）。扉と同じ暗転と部屋名を出す */
+  async warpHero(room: string): Promise<void> {
+    const s = G.state;
+    const dest = ROOMS[room];
+    if (!s || !dest) return;
+    G.heroBusy = true;
+    try {
+      const destName = roomTitle(s, room);
+      await fade(true, 170, `${destName.startsWith(dest.floor) ? '' : dest.floor + '　'}${destName}`);
+      placeIn(s, 'hero', room);
+      if (dest.area === 'secret') s.flags[`visited_${room}`] = true;
+      lastStepKey = '';
+      setFieldBgm();
+      save();
+      await new Promise((r) => setTimeout(r, 260));
+      await fade(false, 240);
+    } finally {
+      G.heroBusy = false;
+    }
+  },
 };
 
 export function save(): void {
@@ -361,6 +396,8 @@ async function inspect(id: string, text: string, event?: string): Promise<void> 
   Sound.se('page');
   if (event === 'board') {
     await G.ui.boardScreen();
+    // 掲示台の過去の記録（v05 の I04）。裏ルートの条件にはしない
+    if (s.day >= 4 && freeEnd) { await story('I04'); s.flags.v04_board_record = true; }
     return;
   }
   // 寝台と机の出来事は、自分に割り当てられた個室でだけ起きる（他人の部屋では眺めるだけ）
@@ -376,6 +413,8 @@ async function inspect(id: string, text: string, event?: string): Promise<void> 
       Sound.se('bookOpen');
     }
   }
+  // 裏ルート（入口の謎、裏ゲーム、昇降機、資料、結末の選択）
+  if (event && freeEnd && s.phase !== 'curfew' && await hiddenInspect(event)) return;
   if (event === 'rest_bed' && freeEnd) {
     const sleep = s.phase === 'curfew';
     const ok = await confirmDialog(t(sleep ? 'sleep.title' : 'rest.title'), sleep ? t('sleep.text') : t('rest.text', { time: fmtClock(clockMinutes(s) + s.phaseLeft / 1000) }), { ok: t(sleep ? 'sleep.ok' : 'rest.ok'), cancel: t('common.cancel') });
@@ -469,7 +508,18 @@ function freePhase(): Promise<void> {
       s.actors.hero.path = [];
       res();
     };
+    // 裏ゲームの途中で閉じていたら、続きから
+    void resumeHiddenRun();
   });
+}
+
+/** 自由時間。自分で選んだ結末（脱出者など）が決まっていたら、そこで物語を閉じて true */
+async function freeOrEnd(): Promise<boolean> {
+  await freePhase();
+  const s = G.state!;
+  if (!s.flags.endingChoice) return false;
+  await finish(String(s.flags.endingChoice));
+  return true;
 }
 
 function showField(v: boolean): void {
@@ -556,6 +606,11 @@ export async function runGame(): Promise<void> {
         await G.ui.endingScreen(s.ending ?? 'E_BAD');
         break;
       }
+      if (s.flags.endingChoice) {
+        // 結末を選んだ直後に閉じていた時
+        await finish(String(s.flags.endingChoice));
+        break;
+      }
       const cont = await step(s);
       if (!cont) break;
     }
@@ -608,7 +663,7 @@ async function step(s: GameState): Promise<boolean> {
       showField(true);
       await fade(false);
       await story(`S${dd(s.day)}A`);
-      await freePhase();
+      if (await freeOrEnd()) return false;
       await fade(true);
       enter('rules');
       return true;
@@ -685,7 +740,7 @@ async function step(s: GameState): Promise<boolean> {
         s.seen.push(`house@${s.day}`);
         await alertDialog(t(inPrison ? 'house.prisonTitle' : 'house.livingTitle'), t(inPrison ? 'house.prisonText' : 'house.livingText'), t('common.next'));
       }
-      await freePhase();
+      if (await freeOrEnd()) return false;
       await fade(true);
       enter('prison');
       return true;
@@ -761,7 +816,7 @@ async function step(s: GameState): Promise<boolean> {
       }
       showField(true);
       await fade(false);
-      await freePhase();
+      if (await freeOrEnd()) return false;
       await fade(true);
       enter('curfew');
       return true;
@@ -788,7 +843,7 @@ async function step(s: GameState): Promise<boolean> {
         Sound.se(isCell(homeOf(s, 'hero')) ? 'locked' : 'doorClose');
         await alertDialog(t('curfew.title'), t('curfew.text'), t('common.next'));
       }
-      await freePhase();
+      if (await freeOrEnd()) return false;
       await fade(true);
       const notes = endDay(s);
       enter('morning');

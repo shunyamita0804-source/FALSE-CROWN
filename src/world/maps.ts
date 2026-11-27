@@ -211,7 +211,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,20,14],[10,15,11,15]],
     block: [[8,6,13,9],[1,10,3,13],[4,11,4,13],[16,10,20,13],[1,4,1,4],[20,4,20,4],[8,14,9,14],[12,14,13,14]],
     doors: [D('to_garden','down',10,15,2,'garden','to_bath','door','庭園'),D('secret','up',18,4,2,'mirror_room','from_bath','hidden','鏡の間','h03_open')],
-    inspects: [{id:'bath_mirror',x:16,y:4,text:'曇った鏡に、左右が逆になった記号が浮かんでいる。誰かの悪戯だろうか。',event:'h03_mirror'}],
+    inspects: [{id:'bath_mirror',x:16,y:4,text:'曇った鏡に、左右が逆になった記号が浮かんでいる。誰かの悪戯だろうか。',event:'h03_mirror'},{id:'bath_sink',x:4,y:5,text:'洗面台。石けん置きの下に、小さなメモが挟まっている。',event:'h03_sink'}],
     spots: S([[7,10],[6,7],[15,7],[10,5],[7,12]]),
   },
   {
@@ -284,7 +284,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,20,14],[10,15,11,15]],
     block: [[2,5,6,6],[2,8,6,9],[15,5,19,6],[15,8,19,9],[9,8,12,10],[3,11,6,13],[15,11,18,13],[1,11,1,12],[20,11,20,13],[8,14,9,14],[12,14,13,14]],
     doors: [D('to_hall','down',10,15,2,'prison_hallway','to_archive','door','通路'),D('to_passage','up',10,4,2,'underground_passage','to_archive','iron','地下通路','passage_open')],
-    inspects: [{id:'archive_letters',x:11,y:11,text:'机に古い手紙が五通。宛名はすべて「次の参加者へ」。',event:'h04_letters'},{id:'archive_records',x:4,y:7,text:'棚には過去の大会の記録。歴代の対戦表や順位が綴じられている。',event:'archive_records'}],
+    inspects: [{id:'archive_letters',x:11,y:11,text:'机に古い手紙の束。宛名はすべて「次の参加者へ」。',event:'h04_letters'},{id:'archive_records',x:4,y:7,text:'棚には過去の大会の記録。歴代の対戦表や順位が綴じられている。',event:'archive_records'}],
     spots: S([[8,6],[13,6],[13,11],[8,12],[13,12]]),
   },
   {
@@ -292,7 +292,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,5,28,10],[14,11,15,14],[14,1,15,4]],
     block: [],
     doors: [D('to_archive','down',14,14,2,'old_archive','to_passage','iron','旧書庫'),D('to_maze','up',21,5,2,'maze_entry','from_passage','iron','地下迷宮','h05_cleared')],
-    inspects: [{id:'passage_rubble',x:14,y:1,text:'崩れた石で、通路の先がふさがっている。'},{id:'passage_mech',x:20,y:5,text:'古い仕掛け扉。数字盤とスライド式の板、記号の歯車が組み込まれている。',event:'h05_mech'}],
+    inspects: [{id:'passage_rubble',x:14,y:1,text:'崩れた石で、通路の先がふさがっている。'},{id:'passage_mech',x:20,y:5,text:'古い仕掛け扉。数字盤とスライド式の板、記号の歯車が組み込まれている。',event:'h05_mech'},{id:'passage_lamp',x:8,y:5,text:'壁の灯りの下に、保守係のメモが留めてある。',event:'h04_memo'}],
     spots: S([[10,7],[20,8],[15,6]]),
   },
   {
@@ -348,7 +348,7 @@ const ROOMS_SRC: RoomSrc[] = [
     id: 'research_lab', name: '研究室', floor: 'B2', area: 'secret', theme: 'secret', w: 30, h: 20, image: 'maps/b2/research_lab',
     walk: [[1,5,28,17],[14,2,15,4],[14,18,15,19]],
     block: [[2,5,9,6],[1,5,1,5],[20,5,27,6],[28,5,28,5],[1,8,5,10],[7,8,11,10],[13,9,16,10],[18,8,22,10],[25,8,28,10],[2,13,9,15],[21,13,27,15],[1,17,13,17],[16,17,28,17]],
-    doors: [D('from_black','down',14,19,2,'black_door','to_lab','black','黒い扉'),D('to_surv','left',1,6,2,'surveillance','from_lab','open','監視室'),D('to_vault','right',28,6,2,'records_vault','from_lab','open','記録保管庫'),D('to_iso','up',14,2,2,'isolation','from_lab','open','隔離区域')],
+    doors: [D('from_black','down',14,19,2,'black_door','to_lab','black','黒い扉','h06_open'),D('to_surv','left',1,6,2,'surveillance','from_lab','open','監視室'),D('to_vault','right',28,6,2,'records_vault','from_lab','open','記録保管庫'),D('to_iso','up',14,2,2,'isolation','from_lab','open','隔離区域')],
     inspects: [{id:'lab_desk',x:15,y:11,text:'研究机。「十二の証明」と題された分厚い資料。',event:'h07_proofs'}],
     spots: S([[15,7],[12,12],[17,12],[15,14]]),
   },
@@ -365,7 +365,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,20,14],[10,15,11,15]],
     block: [[4,4,6,10],[10,4,12,10],[16,4,18,10],[3,12,7,14],[15,12,19,14],[1,12,2,14],[20,12,20,14],[8,14,9,14],[12,14,13,14]],
     doors: [D('from_lab','down',10,15,2,'research_lab','to_vault','door','研究室')],
-    inspects: [{id:'vault_docs',x:11,y:11,text:'機密文書の棚。CROWN計画の全記録がここにある。',event:'vault_docs'}],
+    inspects: [{id:'vault_docs',x:11,y:11,text:'機密文書の棚。CROWN計画の全記録がここにある。',event:'vault_docs'},{id:'vault_lift',x:19,y:11,text:'保守用の小さな昇降機。上の階の共用廊下とつながっている。',event:'svc_lift'}],
     spots: S([[8,7],[13,7],[13,12]]),
   },
   {
@@ -373,7 +373,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,26,13],[13,14,14,17]],
     block: [[7,6,20,9],[10,10,17,10],[1,6,3,10],[24,6,26,10]],
     doors: [D('from_lab','down',13,17,2,'research_lab','to_iso','iron','研究室'),D('to_core','up',15,4,2,'core','from_lab','black','最深部','h07_cleared')],
-    inspects: [{id:'iso_beds',x:11,y:4,text:'扉の小窓の向こうに、脱落した参加者たちの姿。大会が終わるまで、ここで過ごしているらしい。',event:'iso_found'}],
+    inspects: [{id:'iso_beds',x:11,y:4,text:'扉の小窓の向こうに、脱落した参加者たちの姿。大会が終わるまで、ここで過ごしているらしい。',event:'iso_found'},{id:'iso_terminal',x:23,y:8,text:'区画の扉を管理する端末。権限の無い人には、画面は何も映さない。',event:'iso_terminal'}],
     spots: S([[13,12],[6,12],[21,12],[13,5]]),
   },
   {
