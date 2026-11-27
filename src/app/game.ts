@@ -350,6 +350,11 @@ function clockEvents(s: GameState, before: number, after: number, silent = false
 
 // ---------------- 調査 ----------------
 
+/** 食事で同じ卓を囲める距離（マス）と人数 */
+const MEAL_NEAR = 6;
+const MEAL_MAX = 4;
+const dist = (s: GameState, x: CharId) => { const a = s.actors[x].pos; const b = s.actors.hero.pos; return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); };
+
 async function inspect(id: string, text: string, event?: string): Promise<void> {
   const s = G.state!;
   const hero = s.actors.hero;
@@ -386,14 +391,17 @@ async function inspect(id: string, text: string, event?: string): Promise<void> 
       const ok = await confirmDialog(t('meal.title'), t('meal.text'), { ok: t('meal.ok'), cancel: t('common.cancel') });
       if (ok) {
         s.flags[key] = true;
-        const mates = aliveIds(s).filter((x) => x !== 'hero' && s.actors[x].pos.room === hero.pos.room);
+        // 同じ卓を囲むのは、近くにいる人だけ（同じ部屋でも入口や反対の端にいる人は数えない）。囲んだ人は主人公の近くの席へ寄せる
+        const near = (x: CharId) => { const p = s.actors[x].pos; return p.room === hero.pos.room && Math.abs(p.x - hero.pos.x) + Math.abs(p.y - hero.pos.y) <= MEAL_NEAR; };
+        const mates = aliveIds(s).filter((x) => x !== 'hero' && near(x)).sort((a, b) => dist(s, a) - dist(s, b)).slice(0, MEAL_MAX);
+        for (const x of mates) placeIn(s, x, hero.pos.room, { x: hero.pos.x, y: hero.pos.y + 1 });
         for (const x of mates) {
           adjustRel(s, x, 'hero', { like: 3, trust: 1 });
           adjustRel(s, 'hero', x, { like: 3, trust: 1 });
         }
         s.phaseLeft = Math.max(5000, s.phaseLeft - 15000);
         Sound.se('confirm');
-        await G.ui.showInspect(mates.length ? t('meal.with', { names: mates.slice(0, 4).map((x) => shortName(s, x)).join('、'), more: mates.length > 4 ? t('meal.more') : '' }) : t('meal.alone'));
+        await G.ui.showInspect(mates.length ? t('meal.with', { names: mates.map((x) => shortName(s, x)).join('、'), more: '' }) : t('meal.alone'));
         log(s, t('meal.log'));
       }
     }

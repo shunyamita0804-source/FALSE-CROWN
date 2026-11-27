@@ -18,10 +18,10 @@ interface Local { board?: PolyBoard; mates?: HTMLElement; timer?: ReturnType<typ
 const pts = (r: M01Result) => r.base + r.speed + r.team;
 
 /** 順位の小さな一覧（合計点の高い順） */
-function standings(v: M01View, ui: MatchUi, limit = 12): HTMLElement {
+function standings(v: M01View, ui: MatchUi, limit = 12, big = false): HTMLElement {
   const order = [...v.players].sort((a, b) => v.totals[b] - v.totals[a]);
   const me = v.self as CharId;
-  return h('div', { class: 'm01-rank' }, order.slice(0, limit).map((p, i) => h('div', { class: `m01-rankrow${p === me ? ' me' : ''}${v.myGroup.includes(p) ? ' mate' : ''}` },
+  return h('div', { class: `m01-rank${big ? ' big' : ''}` }, order.slice(0, limit).map((p, i) => h('div', { class: `m01-rankrow${p === me ? ' me' : ''}${v.myGroup.includes(p) ? ' mate' : ''}` },
     h('span', { class: 'no' }, String(i + 1)), face(p), h('span', { class: 'nm' }, ui.name(p)), h('b', null, String(v.totals[p])))));
 }
 
@@ -40,8 +40,9 @@ export function renderM01(v: M01View, ui: MatchUi): { main: Child; side: Child }
     const stageNo = v.phase === 'done' ? v.stages : v.stage + 1;
     const mine = v.results[me]?.[stageNo - 1];
     const allDone = v.myGroup.every((p) => v.results[p]?.[stageNo - 1]?.complete);
+    // 順位は、ステージの区切りごとに大きく出す（遊んでいる間は盤面だけを大きく見せる）
     const main = [
-      h('div', { class: 'm01-break' },
+      h('div', { class: 'm01-break wide' }, h('div', { class: 'col', style: 'gap:12px;align-items:center' },
         h('div', { class: 'm01-big' }, t('m01.stageResult', { n: stageNo })),
         mine ? h('div', { class: 'm01-score' },
           h('div', { class: `m01-chip${mine.complete ? ' on' : ''}` }, h('small', null, t(mine.complete ? 'm01.done' : 'm01.cover', { n: mine.covered, max: freeCount(v.puzzle) })), h('b', null, String(mine.base))),
@@ -57,12 +58,15 @@ export function renderM01(v: M01View, ui: MatchUi): { main: Child; side: Child }
         v.phase === 'break' && v.self !== 'spectator' && !v.ready[me]
           ? h('div', { class: 'row', style: 'justify-content:center;gap:12px' }, stageNo === Math.floor(v.stages / 2) ? h('span', { class: 'gold' }, t('m01.regroup')) : null, button(t('m01.next', { n: v.stage + 2 }), () => ui.submit({ t: 'ready' } satisfies M01Move), { kind: 'primary', autofocus: true }))
           : null),
+        h('div', { class: 'm01-rankbox' }, h('h4', null, t('m01.rank')), standings(v, ui, 12, true))),
     ];
-    return { main, side: [h('div', { class: 'box scroll grow' }, h('h4', null, t('m01.rank')), standings(v, ui))] };
+    return { main, side: null };
   }
 
   if (!L.board) {
     const board = new PolyBoard(v.puzzle, {
+      cell: Math.floor(Math.min(124, 600 / v.puzzle.h, 640 / v.puzzle.w)),
+      trayCell: 40,
       onChange: () => { if (L.fill) L.fill.textContent = ''; },
       onComplete: (placed) => {
         board.lock();
@@ -86,7 +90,7 @@ export function renderM01(v: M01View, ui: MatchUi): { main: Child; side: Child }
         const done = Number(row.dataset.ms) <= el && row.dataset.ok === '1';
         if (done && !row.classList.contains('done')) {
           row.classList.add('done');
-          row.querySelector('.st')!.textContent = t('m01.mateDone', { s: Math.round(Number(row.dataset.ms) / 1000) });
+          row.querySelector('.st')!.textContent = `✓ ${Math.round(Number(row.dataset.ms) / 1000)}秒`;
           Sound.se('chip');
         }
       }
@@ -97,7 +101,7 @@ export function renderM01(v: M01View, ui: MatchUi): { main: Child; side: Child }
   if (L.mates) {
     L.mates.replaceChildren(...v.myGroup.filter((p) => p !== me).map((p) => {
       const m = v.mates.find((x) => x.id === p);
-      return h('div', { class: 'm01-mate', 'data-ms': String(m?.ms ?? 1e9), 'data-ok': m?.complete ? '1' : '0' }, face(p), h('span', { class: 'nm' }, ui.name(p)), h('span', { class: 'st dim' }, t('m01.mateWorking')));
+      return h('div', { class: 'm01-mate', 'data-ms': String(m?.ms ?? 1e9), 'data-ok': m?.complete ? '1' : '0' }, face(p), h('span', { class: 'nm' }, ui.name(p)), h('span', { class: 'st dim' }, '…'));
     }));
   }
   const hero = ui.state.actors.hero;
@@ -108,10 +112,7 @@ export function renderM01(v: M01View, ui: MatchUi): { main: Child; side: Child }
     Sound.se('coins');
     ui.submit({ t: 'hint' } satisfies M01Move);
   }, { small: true, disabled: v.hintUsed || hero.pieces < HINT_COST, title: t('m01.hintOnce') });
-  const side = [
-    h('div', { class: 'box fin-hide' }, h('h4', null, t('m01.myGroup')), L.mates, h('div', { class: 'small dim', style: 'margin-top:4px' }, t('m01.teamNote'))),
-    h('div', { class: 'box fin-hide' }, h('h4', null, t('m01.aid')), hintBtn, h('div', { class: 'small dim', style: 'margin-top:4px' }, v.hintUsed ? t('m01.hintUsed') : t('m01.hintOnce'))),
-    h('div', { class: 'box scroll grow' }, h('h4', null, t('m01.rank')), standings(v, ui, 5)),
-  ];
-  return { main: [h('div', { class: 'm01-play' }, L.board.el)], side };
+  // 遊んでいる間は、盤面と、ピースを使う補助、同じ組の様子（顔と完成の印）だけ。順位はステージの区切りで大きく出す
+  const strip = h('div', { class: 'm01-strip fin-hide' }, hintBtn, L.mates);
+  return { main: [h('div', { class: 'm01-play' }, L.board.el, strip)], side: null };
 }
