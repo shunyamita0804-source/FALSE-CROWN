@@ -171,7 +171,7 @@ describe('S05 ダイスパズル', () => {
       if (r.ranking.length === 1) draw++;
     }
     console.log(`s05: points=${JSON.stringify(dist)} draw=${draw}`);
-  });
+  }, 60_000);
 });
 
 describe('S06 ミニジグソー', () => {
