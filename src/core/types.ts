@@ -173,6 +173,8 @@ export interface DayRecord {
   prisonScores: Partial<Record<CharId, number>>;
   eliminated: CharId[];
   rewards: Partial<Record<CharId, number>>;
+  /** 救いのメダルの結果（v11） */
+  rescue?: import('./rescue').RescueState;
 }
 
 export interface MatchSlot {
@@ -208,7 +210,7 @@ export interface GameState {
   history: DayRecord[];
   match: MatchSlot | null;
   /** 当日のメイン結果（棟分けまで） */
-  today: { mainRanking?: CharId[]; mainScores?: Partial<Record<CharId, number>>; prisonRanking?: CharId[]; prisonScores?: Partial<Record<CharId, number>>; teams?: Record<string, CharId[]> };
+  today: { mainRanking?: CharId[]; mainScores?: Partial<Record<CharId, number>>; prisonRanking?: CharId[]; prisonScores?: Partial<Record<CharId, number>>; teams?: Record<string, CharId[]>; rescue?: import('./rescue').RescueState; rescuePromises?: import('./rescue').RescuePromise[] };
   counter: number;
   /** 台詞の使用履歴（直近を避ける） */
   lineHist: Record<string, string[]>;

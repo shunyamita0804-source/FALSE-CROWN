@@ -15,15 +15,21 @@ import guideJson from '../data/match_guide.json';
 import { getLang, LANGS, setLang, t, type Lang } from '../i18n/i18n';
 import { CATALOG, isImplemented, MATCHES } from '../matches/registry';
 import { TIEBREAK } from '../matches/tiebreak';
+import { hasGuide, tutorialScreen } from './tutorial';
 import { describeDeal } from '../npc/negotiation';
 import { attitudeStep } from '../npc/social';
 import { deleteSave, exportSave, hasSave, importSave, saveMeta } from '../save/save';
 import { canEnter } from '../world/access';
 import { ROOMS } from '../world/maps';
+import { ceremonyScreen } from './ceremony';
+import { playVoice, resetVoiceHistory } from '../audio/voice';
 import { bgUrl, emblemUrl, face, fxBanner, icon, logoUrl, portraitUrl, setHeroGender } from './art';
 import { alertDialog, append, button, clear, closeLayer, confirmDialog, h, openLayer, panel, toast, type Child, type Layer } from './dom';
 
 const GUIDE = Object.fromEntries((guideJson as { id: string; goal: string; practice: string; attention: string }[]).map((g) => [g.id.toLowerCase(), g]));
+
+/** 音量を変えた時に試し聞きするキャラクター（音源が無ければ無音） */
+const VOICE_SAMPLE = 'npc_02_kanzaki';
 
 export const pieces = (n: number): HTMLElement => h('span', { class: 'piece' }, String(n));
 
@@ -385,7 +391,7 @@ function renderTab(s: GameState, tab: Tab, close: () => void, rerender: () => vo
     case 'rules': {
       const sch = scheduleFor(s.day);
       const ids = ([sch.main, sch.prisonGame] as (string | null)[]).filter((x): x is string => !!x && isImplemented(x));
-      return [h('div', { class: 'text' }, t('rules.core')), ...ids.map((id) => h('div', { class: 'entry' }, h('b', { class: 'gold' }, `${id.toUpperCase()}　${MATCHES[id].name}`), ...MATCHES[id].rules.map((r) => h('div', { class: 'small', style: 'margin-top:4px' }, `・${r}`)))),
+      return [button([icon('help'), t('rules.ceremony')], () => void ceremonyScreen({ review: true }), { small: true }), h('div', { class: 'text' }, t('rules.core')), ...ids.map((id) => h('div', { class: 'entry' }, h('b', { class: 'gold' }, `${id.toUpperCase()}　${MATCHES[id].name}`), ...MATCHES[id].rules.map((r) => h('div', { class: 'small', style: 'margin-top:4px' }, `・${r}`)))),
         h('div', { class: 'entry' }, h('b', { class: 'gold' }, TIEBREAK.name), ...TIEBREAK.rules.map((r) => h('div', { class: 'small', style: 'margin-top:4px' }, `・${r}`)))];
     }
     case 'map': {
@@ -432,12 +438,13 @@ function settingsBody(rerender: () => void): HTMLElement {
   const st = G.meta.settings;
   const commit = () => {
     saveMeta(G.meta);
-    Sound.setVolumes(st.bgm, st.se);
+    Sound.setVolumes(st.bgm, st.se, st.voice);
     document.documentElement.style.setProperty('--text-scale', String(st.textScale));
   };
   return h('div', { class: 'form-grid' }, [
     ...slider(t('set.bgm'), st.bgm, (v) => { st.bgm = v; commit(); }),
     ...slider(t('set.se'), st.se, (v) => { st.se = v; commit(); Sound.se('confirm'); }),
+    ...slider(t('set.voice'), st.voice, (v) => { st.voice = v; commit(); resetVoiceHistory(); playVoice(VOICE_SAMPLE, 'hello'); }),
     h('label', null, t('set.text')),
     h('div', { class: 'row', style: 'gap:6px' }, [0.9, 1, 1.15, 1.3].map((v) => button(t(`set.text.${v}`), () => { st.textScale = v; commit(); rerender(); }, { small: true, cls: st.textScale === v ? 'selected' : '' }))),
     h('label', null, t('title.language')),
@@ -490,6 +497,7 @@ export function creditsScreen(): Promise<void> {
   return alertDialog(t('title.credits'), h('div', { class: 'col small', style: 'gap:8px' }, [
     h('div', null, h('b', { class: 'gold' }, t('credits.bgm')), ...Object.entries(BGM_CREDITS).map(([key, c]) => { const titles = [...new Set(Object.values(BGM).filter((b) => b.file && b.by === key).map((b) => b.title))]; return titles.length ? h('div', { style: 'margin-top:4px' }, h('div', null, `${c.name}（${c.url}）`), h('div', { class: 'dim' }, titles.join(' / ')), h('div', { class: 'dim' }, c.license)) : null; })),
     h('div', null, h('b', { class: 'gold' }, t('credits.se')), h('div', null, 'Kenney（https://kenney.nl/）— Casino Audio / Interface Sounds / RPG Audio'), h('div', { class: 'dim' }, t('credits.seLicense'))),
+    h('div', null, h('b', { class: 'gold' }, t('credits.voice')), h('div', null, t('credits.voiceBy')), h('div', { class: 'dim' }, t('credits.voiceNote'))),
     h('div', null, h('b', { class: 'gold' }, t('credits.engine')), h('div', null, 'Phaser 4 (MIT) / Vite / TypeScript')),
     h('div', { class: 'dim' }, t('credits.note')),
   ]), t('common.close'));
@@ -527,6 +535,8 @@ export function purchaseScreen(afterDay: boolean): Promise<boolean> {
 // ---------------- 競技説明・結果 ----------------
 
 export function rulesScreen(matchId: string, opts: { prison: boolean }): Promise<void> {
+  // v11 の競技は、図と練習で段階的に説明する
+  if (hasGuide(matchId)) return tutorialScreen(matchId, { cutNote: t(opts.prison ? 'rules.prisonCut' : 'rules.mainCut', { n: scheduleFor(G.state?.day ?? 1).prison }) });
   const eng = MATCHES[matchId];
   const g = GUIDE[matchId];
   return new Promise((resolve) => {

@@ -37,6 +37,8 @@ export interface MatchUi {
   finished: boolean;
   /** 話しかけてきた NPC */
   inbox: BrainEvent[];
+  /** 時間切れの時に提出する手（盤面を操作する競技で、その時点の配置を出すために使う） */
+  timeoutMove?: () => unknown;
 }
 
 export type Renderer = (view: never, ui: MatchUi) => { main: Child; side?: Child };
@@ -171,6 +173,7 @@ export function playMatch(slot: MatchSlot): Promise<void> {
           stageTime = st.time ?? 0;
           if (!(first && slot.stageLeft > 0 && slot.stageLeft <= stageTime)) slot.stageLeft = stageTime;
           ui.local = {};
+          ui.timeoutMove = undefined;
           ui.inbox = [];
           if (st.negotiation && !(first && slot.stageLeft < stageTime)) npcNegotiate(s, slot, ui.inbox);
         }
@@ -195,7 +198,8 @@ export function playMatch(slot: MatchSlot): Promise<void> {
       if (slot.stageLeft <= 0) {
         // 時間切れ：事前に明示した既定の合法手になる
         if (!st.negotiation) toast(t('match.timeout'), 'bad');
-        engine.submit(slot.state, 'hero', engine.defaultMove(slot.state, 'hero'));
+        const own = ui.timeoutMove?.();
+        engine.submit(slot.state, 'hero', own && engine.validate(slot.state, 'hero', own) ? own : engine.defaultMove(slot.state, 'hero'));
         sync();
       } else updateTimer();
     }, 200);
@@ -206,6 +210,8 @@ export function playMatch(slot: MatchSlot): Promise<void> {
       h('div', { class: 'match-body' }, main, side),
     );
     layer = openLayer(el, { pausesClock: false, name: 'match' });
+    // 開発版のみ：画面の自動確認から、進行中の競技を参照できるようにする
+    if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fcSlot?: MatchSlot }).__fcSlot = slot;
     sync();
   });
 }

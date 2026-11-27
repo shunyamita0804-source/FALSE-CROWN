@@ -8,7 +8,7 @@ import { MATCHES } from '../matches/registry';
 import { TIEBREAK } from '../matches/tiebreak';
 import { skill, type AiCtx, type MatchEngine } from '../matches/types';
 import { Rng } from './rng';
-import { activeDeals, nameOf, rel, rngOf } from './state';
+import { activeDeals, nameOf, rel, rngOf, transfer } from './state';
 import type { GameState, MatchSlot } from './types';
 
 export function engineOf(id: string): MatchEngine {
@@ -52,6 +52,8 @@ export function buildCtx(state: GameState, id: CharId, matchId: string, rng: Rng
       return out;
     }),
     name: (o) => nameOf(state, o),
+    pieces: state.actors[id]?.pieces ?? 0,
+    spend: (n, reason) => transfer(state, id, 'host', n, reason),
   };
 }
 

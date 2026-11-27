@@ -58,6 +58,11 @@ class AudioManager {
   private seGain: GainNode | null = null;
   private bgmVol = 0.6;
   private seVol = 0.8;
+  private voiceVol = 0.8;
+  private voiceGain: GainNode | null = null;
+  private voiceSrc: AudioBufferSourceNode | null = null;
+  private voiceSeq = 0;
+  private voiceBuffers = new Map<string, Promise<AudioBuffer | null>>();
   private current: { id: BgmId; el: HTMLAudioElement; gain: GainNode } | null = null;
   private wanted: BgmId | null = null;
   /** 場面ごとの再生位置（秒）。resume 指定の場面は、戻った時に続きから鳴らす */
@@ -69,9 +74,10 @@ class AudioManager {
   private suspended = false;
   unlocked = false;
 
-  init(bgm: number, se: number): void {
+  init(bgm: number, se: number, voice = 0.8): void {
     this.bgmVol = bgm;
     this.seVol = se;
+    this.voiceVol = voice;
     const probe = document.createElement('audio');
     this.ext = probe.canPlayType('audio/ogg; codecs="vorbis"') ? 'ogg' : 'm4a';
     const unlock = () => this.unlock();
@@ -96,6 +102,9 @@ class AudioManager {
       this.seGain.gain.value = this.seVol;
       this.bgmGain.connect(this.ctx.destination);
       this.seGain.connect(this.ctx.destination);
+      this.voiceGain = this.ctx.createGain();
+      this.voiceGain.gain.value = this.voiceVol;
+      this.voiceGain.connect(this.ctx.destination);
     }
     if (this.ctx.state !== 'running' && !this.suspended) void this.ctx.resume().catch(() => undefined);
     if (!this.unlocked) {
@@ -111,6 +120,7 @@ class AudioManager {
   /** アプリ中断：BGM と効果音を止める */
   suspend(): void {
     this.suspended = true;
+    this.stopVoice();
     this.current?.el.pause();
     if (this.ctx && this.ctx.state === 'running') void this.ctx.suspend().catch(() => undefined);
   }
@@ -124,9 +134,11 @@ class AudioManager {
     if (c && !c.el.ended) void c.el.play().catch(() => undefined);
   }
 
-  setVolumes(bgm: number, se: number): void {
+  setVolumes(bgm: number, se: number, voice = this.voiceVol): void {
     this.bgmVol = bgm;
     this.seVol = se;
+    this.voiceVol = voice;
+    if (this.ctx && this.voiceGain) this.voiceGain.gain.setTargetAtTime(voice, this.ctx.currentTime, 0.05);
     if (this.ctx) {
       this.bgmGain!.gain.setTargetAtTime(bgm, this.ctx.currentTime, 0.05);
       this.seGain!.gain.setTargetAtTime(se, this.ctx.currentTime, 0.05);
@@ -274,6 +286,49 @@ class AudioManager {
     const b = this.load(file);
     if (b instanceof Promise) void b.then(play);
     else play(b);
+  }
+
+  /**
+   * ボイスを 1 つ鳴らす（url は音源ファイル、gain は音量の補正倍率）。前のボイスは止める（同時再生しない）。
+   * 音量が 0、未解錠、中断中は鳴らさない。読み込めなければ無音のまま。
+   */
+  voice(url: string, gain = 1): void {
+    this.stopVoice();
+    if (!this.unlocked || !this.ctx || this.suspended || this.voiceVol <= 0) return;
+    const ctx = this.ctx;
+    const seq = ++this.voiceSeq;
+    let p = this.voiceBuffers.get(url);
+    if (!p) {
+      p = fetch(url)
+        .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+        .then((buf) => new Promise<AudioBuffer>((res, rej) => ctx.decodeAudioData(buf, res, rej)))
+        .catch(() => null);
+      this.voiceBuffers.set(url, p);
+    }
+    void p.then((b) => {
+      // 読み込みの間に次の会話や画面へ進んでいたら鳴らさない
+      if (!b || seq !== this.voiceSeq || this.suspended || !this.voiceGain) return;
+      const src = ctx.createBufferSource();
+      src.buffer = b;
+      const g = ctx.createGain();
+      g.gain.value = gain;
+      src.connect(g).connect(this.voiceGain);
+      src.onended = () => { if (this.voiceSrc === src) this.voiceSrc = null; };
+      this.voiceSrc = src;
+      src.start();
+    });
+  }
+
+  /** 再生中のボイスを止める（次の会話、画面の切り替え） */
+  stopVoice(): void {
+    this.voiceSeq++;
+    const src = this.voiceSrc;
+    this.voiceSrc = null;
+    if (src) try { src.stop(); } catch { /* すでに止まっている */ }
+  }
+
+  get voicePlaying(): boolean {
+    return !!this.voiceSrc;
   }
 
   /** よく使う音を先読みする */

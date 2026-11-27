@@ -135,7 +135,9 @@ export interface Meta {
   clears: number;
   matchesPlayed: string[];
   achievements: string[];
-  settings: { bgm: number; se: number; textScale: number; timeScale: number; difficulty: 'easy' | 'normal' | 'hard' | 'expert'; lang?: 'ja' | 'en' };
+  /** 開会式を最後まで見たことがある（2 周目以降は飛ばせる） */
+  ceremonySeen?: boolean;
+  settings: { bgm: number; se: number; voice: number; textScale: number; timeScale: number; difficulty: 'easy' | 'normal' | 'hard' | 'expert'; lang?: 'ja' | 'en' };
 }
 
 const defaultMeta = (): Meta => ({
@@ -143,7 +145,7 @@ const defaultMeta = (): Meta => ({
   clears: 0,
   matchesPlayed: [],
   achievements: [],
-  settings: { bgm: 0.6, se: 0.8, textScale: 1, timeScale: 1, difficulty: 'normal' },
+  settings: { bgm: 0.6, se: 0.8, voice: 0.8, textScale: 1, timeScale: 1, difficulty: 'normal' },
 });
 
 export function loadMeta(): Meta {

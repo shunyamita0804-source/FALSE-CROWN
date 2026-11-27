@@ -1,88 +1,83 @@
 import { describe, expect, it } from 'vitest';
-import type { CharId } from '../src/data/characters';
-import { buildCtx } from '../src/core/runner';
-import { rngOf } from '../src/core/state';
-import { P01, type P01Move, type P01State } from '../src/matches/p01';
 import { Rng } from '../src/core/rng';
-import { freshState, simulate } from './helpers';
+import { ALL_IDS } from '../src/data/characters';
+import { allSolutions, legalPath, P01, P01_PRACTICE, pointsOf, Q_MS, QUESTIONS, ROUNDS, sumOf, type P01State } from '../src/matches/p01';
+import { simulate } from './helpers';
 
-const FOUR: CharId[] = ['hero', 'npc_02_kanzaki', 'npc_05_shiraishi', 'npc_10_kujo'];
+const FOUR = ALL_IDS.slice(0, 4);
 
-describe('P01 偽りの数字', () => {
-  it('24手で終局し、得点表どおりに加減点される', () => {
-    const s = P01.init(FOUR, Rng.from(1));
-    // hero: 5 を「5」と宣言 → 2人信用、1人疑い
-    P01.submit(s, 'hero', { t: 'play', card: 5, claim: 5 });
-    P01.submit(s, FOUR[1], { t: 'judge', trust: true });
-    P01.submit(s, FOUR[2], { t: 'judge', trust: true });
-    P01.submit(s, FOUR[3], { t: 'judge', trust: false });
-    expect(s.score.hero).toBe(12);
-    expect(s.score[FOUR[1]]).toBe(10);
-    expect(s.score[FOUR[3]]).toBe(8);
-    // 次: 嘘（3 を「7」）→ 1人信用、2人看破
-    P01.submit(s, FOUR[1], { t: 'play', card: 3, claim: 7 });
-    P01.submit(s, 'hero', { t: 'judge', trust: true });
-    P01.submit(s, FOUR[2], { t: 'judge', trust: false });
-    P01.submit(s, FOUR[3], { t: 'judge', trust: false });
-    expect(s.score[FOUR[1]]).toBe(10 + 2 - 2 - 2);
-    expect(s.score.hero).toBe(10);
-    expect(s.score[FOUR[2]]).toBe(12);
+describe('P01 数字の鎖', () => {
+  it('経路の規則：縦横の隣接、重複なし、長さ 3〜6', () => {
+    expect(legalPath([0, 1, 2])).toBe(true);
+    expect(legalPath([0, 1])).toBe(false);
+    expect(legalPath([0, 5, 10])).toBe(false); // 斜め
+    expect(legalPath([0, 1, 0])).toBe(false);
+    expect(legalPath([3, 4, 5])).toBe(false); // 行をまたぐ
+    expect(legalPath([0, 1, 2, 3, 7, 11, 15])).toBe(false); // 7 個
+    expect(legalPath([0, 1, 2, 3, 7, 11])).toBe(true);
   });
 
-  it('手番外・手札にないカード・範囲外の宣言を拒否する', () => {
-    const s = P01.init(FOUR, Rng.from(1));
-    expect(P01.validate(s, FOUR[1], { t: 'play', card: 1, claim: 1 })).toBe(false);
-    expect(P01.validate(s, 'hero', { t: 'play', card: 10, claim: 1 })).toBe(false);
-    expect(P01.validate(s, 'hero', { t: 'play', card: 1, claim: 0 })).toBe(false);
-    P01.submit(s, 'hero', { t: 'play', card: 1, claim: 1 });
-    expect(P01.validate(s, 'hero', { t: 'judge', trust: true })).toBe(false);
-    for (const p of FOUR.slice(1)) P01.submit(s, p, { t: 'judge', trust: true });
-    for (const p of FOUR.slice(1)) { P01.submit(s, p, P01.defaultMove(s, p)); for (const q of FOUR) if (q !== p) P01.submit(s, q, { t: 'judge', trust: true }); }
-    // 同じ数字の再宣言は不可
-    expect(P01.validate(s, 'hero', { t: 'play', card: 2, claim: 1 })).toBe(false);
-    expect(P01.validate(s, 'hero', { t: 'play', card: 2, claim: 2 })).toBe(true);
-  });
-
-  it('view は伏せたカードと他人の手札を含まない', () => {
-    const s = P01.init(FOUR, Rng.from(1));
-    P01.submit(s, 'hero', { t: 'play', card: 4, claim: 9 });
-    const v = P01.view(s, FOUR[1]) as unknown as Record<string, unknown>;
-    expect(JSON.stringify(v)).not.toContain('"card":4');
-    expect(v.hands).toBeUndefined();
-    expect(v.current).toBeUndefined();
-  });
-
-  it('CPU 同士で終局し、正直固定が必勝にならない', () => {
-    const N = 200;
-    let ties = 0;
-    let lieRate = 0;
-    for (let seed = 1; seed <= N; seed++) {
-      const r = simulate('p01', seed, FOUR);
-      const st = r.slot.state as P01State;
-      expect(st.history.length).toBe(24);
-      const last = r.ranking[r.ranking.length - 1];
-      if (last.length > 1) ties++;
-      lieRate += st.history.filter((h) => h.card !== h.claim).length / 24;
+  it('すべての問題に正解がある（100 シード）。同じラウンドの 2 問は目標値が違う', () => {
+    for (let seed = 1; seed <= 100; seed++) {
+      const s = P01.init(FOUR, Rng.from(seed)) as P01State;
+      expect(s.boards.length).toBe(ROUNDS);
+      s.boards.forEach((b, r) => {
+        expect(b.length).toBe(16);
+        expect(b.every((n) => n >= 1 && n <= 9)).toBe(true);
+        expect(new Set(s.targets[r]).size).toBe(QUESTIONS);
+        for (const t of s.targets[r]) expect(allSolutions(b, t, 1).length).toBe(1);
+      });
     }
-    // 正直固定の hero vs 通常 AI
-    let rankSum = 0;
-    let lastCount = 0;
-    for (let seed = 1; seed <= N; seed++) {
-      const state = freshState(seed);
-      const s = P01.init(FOUR, Rng.from(seed));
-      while (!P01.done(s)) {
-        for (const p of P01.pending(s)) {
-          let m: P01Move;
-          if (p === 'hero' && s.stage === 'play') m = P01.defaultMove(s, p);
-          else m = P01.ai(P01.view(s, p), buildCtx(state, p, 'p01', rngOf(state)));
-          P01.submit(s, p, m);
-        }
-      }
-      const order = P01.ranking(s).flat();
-      rankSum += order.indexOf('hero') + 1;
-      if (order[3] === 'hero') lastCount++;
+    expect(allSolutions(P01_PRACTICE, 14, 1).length).toBe(1);
+  });
+
+  it('得点：正解 10＋長さ＋残り時間の加点。合計が違えば 0 点。全員同じ問題', () => {
+    expect(pointsOf(3, Q_MS)).toBe(13);
+    expect(pointsOf(6, 0)).toBe(19);
+    expect(pointsOf(4, Q_MS / 2)).toBe(15);
+    const s = P01.init(FOUR, Rng.from(4)) as P01State;
+    const sols = allSolutions(s.boards[0], s.targets[0][0]);
+    const good = sols[0];
+    const bad = [0, 1, 2, 3].find(() => true) !== undefined ? [0, 1, 2, 3].slice(0, 3) : [0, 1, 2];
+    const badOk = sumOf(s.boards[0], bad) === s.targets[0][0];
+    expect(P01.view(s, FOUR[0]).board).toEqual(P01.view(s, FOUR[1]).board);
+    expect(P01.view(s, FOUR[0]).target).toBe(P01.view(s, FOUR[3]).target);
+    expect(P01.validate(s, FOUR[0], { t: 'chain', path: [0, 5, 10], ms: 100 })).toBe(false);
+    P01.submit(s, FOUR[0], { t: 'chain', path: good, ms: 5000 });
+    expect(P01.validate(s, FOUR[0], { t: 'pass' })).toBe(false);
+    P01.submit(s, FOUR[1], { t: 'chain', path: bad, ms: 5000 });
+    P01.submit(s, FOUR[2], { t: 'pass' });
+    P01.submit(s, FOUR[3], P01.defaultMove(s, FOUR[3]));
+    expect(s.q).toBe(1);
+    expect(s.answers[FOUR[0]][0].points).toBe(pointsOf(good.length, 5000));
+    if (!badOk) expect(s.answers[FOUR[1]][0].points).toBe(0);
+    expect(s.answers[FOUR[2]][0].points).toBe(0);
+  });
+
+  it('6 ラウンド 12 問で終わる。2 ラウンドごとに休憩。最下位が 1 人に決まるか、同点として返る', () => {
+    const r = simulate('p01', 21, FOUR);
+    const s = r.slot.state as P01State;
+    expect(s.phase).toBe('done');
+    for (const p of FOUR) expect(s.answers[p].length).toBe(ROUNDS * QUESTIONS);
+    expect(r.ranking.flat().length).toBe(4);
+    const d = P01.init(FOUR, Rng.from(1)) as P01State;
+    for (let i = 0; i < 4; i++) for (const p of FOUR) P01.submit(d, p, { t: 'pass' });
+    expect(d.phase).toBe('break');
+    for (const p of FOUR) P01.submit(d, p, { t: 'ready' });
+    expect([d.phase, d.round, d.q]).toEqual(['solve', 2, 0]);
+    for (const n of [2, 3]) expect(simulate('p01', 3, ALL_IDS.slice(0, n)).ranking.flat().length).toBe(n);
+  });
+
+  it('100 試合：最下位が特定の人に固定されない', () => {
+    const last: Record<string, number> = {};
+    let n = 0;
+    for (let seed = 1; seed <= 100; seed++) {
+      const ps = [ALL_IDS[seed % 12], ALL_IDS[(seed + 3) % 12], ALL_IDS[(seed + 5) % 12], ALL_IDS[(seed + 8) % 12]];
+      const f = simulate('p01', seed, ps).ranking.flat();
+      last[f[3]] = (last[f[3]] ?? 0) + 1;
+      n++;
     }
-    console.log('P01 嘘の割合', (lieRate / N).toFixed(3), '最下位同点率', (ties / N).toFixed(3), '正直固定の平均順位', (rankSum / N).toFixed(2), '最下位率', (lastCount / N).toFixed(2));
-    expect(rankSum / N).toBeGreaterThan(1.3);
+    expect(Object.keys(last).length).toBeGreaterThanOrEqual(7);
+    expect(Math.max(...Object.values(last))).toBeLessThanOrEqual(n * 0.4);
   });
 });

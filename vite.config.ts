@@ -21,7 +21,7 @@ function assetList() {
     for (const n of names) {
       const p = join(dir, n);
       if (statSync(p).isDirectory()) out = out.concat(walk(p));
-      else if (/\.(png|webp|jpg)$/i.test(n)) out.push(relative(root, p).split('\\').join('/'));
+      else if (/\.(png|webp|jpg)$/i.test(n) || /audio[\\/]voice[\\/].*\.mp3$/i.test(p)) out.push(relative(root, p).split('\\').join('/'));
     }
     return out;
   };

@@ -3,6 +3,9 @@
  * 受諾・拒否・対案は npc/negotiation.ts の evaluate が決める（NPC 同士の交渉と同じ関数、プレイヤー専用の補正なし）。
  * ここは提案を組み立て、結果に対応する台詞を表示するだけ。会話中も大会の時計は進む。
  */
+import { clockMinutes } from '../core/clock';
+import { categoryForLine, playVoice, stopVoice } from '../audio/voice';
+import { medalIssued, promiseRescue, promised } from '../core/rescue';
 import { G } from '../app/game';
 import { Sound } from '../audio/audio';
 import { buildCtx, engineOf } from '../core/runner';
@@ -96,8 +99,11 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
       if (seen) observeAttitude(s, npc, seen[0], seen[1] ? key : undefined);
       text.textContent = say(s, npc, key, { name: me, ...vars });
       portrait.src = portraitUrl(npc, expr ?? EXPR[key] ?? 'normal');
+      // 汎用ボイス：内容が一致する場面だけ鳴らす（一致しなければ、前の音声を止めるだけ）
+      if (!playVoice(npc, categoryForLine(key, { hour: Math.floor(clockMinutes(s) / 60), heroStarted: !opts.event }))) stopVoice();
     };
     const raw = (str: string, expr = 'normal') => {
+      stopVoice();
       text.textContent = str;
       portrait.src = portraitUrl(npc, expr);
     };
@@ -107,6 +113,7 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
       info.append(h('span', null, t('talk.myPieces')), pieces(hero.pieces), ...deals.map((d) => h('span', { class: 'tag fact' }, dealLabel(d.kind))));
     };
     const close = () => {
+      stopVoice();
       if (closed) return;
       closed = true;
       clearInterval(timer);
@@ -308,10 +315,22 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
     };
 
     const treatyMenu = async () => {
-      const pick = await choose<'alliance' | 'nonaggression' | null>(t('talk.treaty'), t(priv() ? 'talk.treatyPrivate' : 'talk.treatyPublic'), [
-        { label: t('talk.alliance'), value: 'alliance', kind: 'primary' }, { label: t('talk.nonaggression'), value: 'nonaggression' }, { label: t('common.cancel'), value: null },
+      const medal = medalIssued(s.day) && !s.today.mainRanking;
+      const pick = await choose<'alliance' | 'nonaggression' | 'askRescue' | 'offerRescue' | null>(t('talk.treaty'), t(priv() ? 'talk.treatyPrivate' : 'talk.treatyPublic'), [
+        { label: t('talk.alliance'), value: 'alliance', kind: 'primary' }, { label: t('talk.nonaggression'), value: 'nonaggression' },
+        ...(medal ? [{ label: t('talk.rescueAsk'), value: 'askRescue' as const }, { label: t('talk.rescueOffer'), value: 'offerRescue' as const }] : []),
+        { label: t('common.cancel'), value: null },
       ], { cancel: null, pauses: false });
-      if (pick) await proposeTreaty(pick);
+      if (pick === 'askRescue') {
+        // 救いのメダルの約束（v11）。履行は強制されない
+        const r = rel(s, npc, 'hero');
+        if (promised(s, npc, 'hero')) raw(t('talk.rescueAlready'), 'normal');
+        else if (r.trust >= 35 || r.like >= 20 || allied(s, 'hero', npc)) { promiseRescue(s, npc, 'hero'); Sound.se('confirm'); raw(t('talk.rescueYes'), 'normal'); }
+        else raw(t('talk.rescueNo'), 'normal');
+      } else if (pick === 'offerRescue') {
+        if (!promised(s, 'hero', npc)) { promiseRescue(s, 'hero', npc); adjustRel(s, npc, 'hero', { trust: 4, like: 3 }); Sound.se('confirm'); }
+        raw(t('talk.rescueThanks'), 'normal');
+      } else if (pick) await proposeTreaty(pick);
     };
 
     const infoMenu = async () => {

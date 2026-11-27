@@ -64,7 +64,9 @@ const { chromium, devices } = require('playwright');
   await page.waitForTimeout(4000);
   for (let i = 0; i < 6; i++) { const box = page.locator('.dlg-box'); if (await box.count()) { await box.first().tap(); await page.waitForTimeout(400); } }
   const s5 = await st(); const h5 = await hud().catch(() => '');
-  check('眠ると翌朝 07:00（DAY 2）になる', s5.day === 2 && s5.phase === 'morning' && /07:0\d/.test(h5), JSON.stringify(s5) + ' ' + h5);
+  // v11：DAY 2 の競技は作り直し中のため、翌朝に進んだところで「開発中」の案内が出る（旧ルールの競技には進まない）
+  const wip = (await page.locator('.overlay').last().innerText().catch(() => '')).replace(/\s+/g, ' ');
+  check('眠ると翌朝（DAY 2）になり、作り直し中の案内が出る', s5.day === 2 && s5.phase === 'morning' && wip.includes('開発中'), JSON.stringify(s5) + ' ' + wip.slice(0, 40));
   if (out) await page.screenshot({ path: out + '/clock_day2.png' });
   console.log(res.every(Boolean) ? `全 ${res.length} 件成功` : `${res.filter((x) => !x).length} 件失敗`, 'errors', errs.length, errs.slice(0, 3));
   await browser.close();

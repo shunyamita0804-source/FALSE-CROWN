@@ -61,7 +61,7 @@ export function newGame(opts: { gender: 'm' | 'f'; name: string; seed?: number; 
     deals: [],
     infos: {},
     facts: [],
-    flags: {},
+    flags: { rules: 'v11' },
     seen: [],
     claimed: [],
     history: [],

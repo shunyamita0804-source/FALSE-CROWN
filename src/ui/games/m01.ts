@@ -1,106 +1,117 @@
+/**
+ * M01 ピース・アセンブルの画面。盤面とピースを中央に大きく置き、文字は最小限にする。
+ * 完成した瞬間に自動で提出する（速さが得点になるため）。時間切れの時は、その時点の配置で採点する。
+ */
 import { Sound } from '../../audio/audio';
+import { transfer } from '../../core/state';
 import type { CharId, NpcId } from '../../data/characters';
 import { t } from '../../i18n/i18n';
-import { HOARD_LIMIT, moveLabel, NATION_COLORS, NATIONS, PTS, TERRITORY_NAMES, type M01Move, type M01View } from '../../matches/m01';
-import { GAME_ART } from '../../assets/registry';
-import { face, gameArt } from '../art';
-import { button, choose, h, type Child } from '../dom';
+import { HINT_COST, STAGE_MS, type M01Move, type M01Result, type M01View } from '../../matches/m01';
+import { freeCount } from '../../matches/poly';
+import { face } from '../art';
+import { button, confirmDialog, h, type Child } from '../dom';
 import type { MatchUi } from '../matchui';
+import { PolyBoard } from '../polyboard';
 
-const ART = GAME_ART.m01;
+interface Local { board?: PolyBoard; mates?: HTMLElement; timer?: ReturnType<typeof setInterval>; fill?: HTMLElement }
 
-type Sel = { t: 'invade' | 'defend'; terr: number | null } | { t: 'produce' | 'hoard' } | { t: 'spy'; target: CharId | null } | null;
+const pts = (r: M01Result) => r.base + r.speed + r.team;
+
+/** 順位の小さな一覧（合計点の高い順） */
+function standings(v: M01View, ui: MatchUi, limit = 12): HTMLElement {
+  const order = [...v.players].sort((a, b) => v.totals[b] - v.totals[a]);
+  const me = v.self as CharId;
+  return h('div', { class: 'm01-rank' }, order.slice(0, limit).map((p, i) => h('div', { class: `m01-rankrow${p === me ? ' me' : ''}${v.myGroup.includes(p) ? ' mate' : ''}` },
+    h('span', { class: 'no' }, String(i + 1)), face(p), h('span', { class: 'nm' }, ui.name(p)), h('b', null, String(v.totals[p])))));
+}
+
+function resultLine(r: M01Result | undefined): Child {
+  if (!r) return null;
+  return h('span', { class: 'm01-res' }, h('b', { class: r.complete ? 'good' : 'bad' }, r.complete ? t('m01.done') : t('m01.notDone')), ` ${r.base}`, r.speed ? h('span', { class: 'gold' }, ` +${r.speed}`) : null, r.team ? h('span', { class: 'good' }, ` +${r.team}`) : null);
+}
 
 export function renderM01(v: M01View, ui: MatchUi): { main: Child; side: Child } {
   const me = v.self as CharId;
-  const myNation = v.nation[me] ?? -1;
-  const sel = (ui.local.sel as Sel) ?? null;
-  const setSel = (x: Sel) => {
-    ui.local.sel = x;
-    Sound.se('select');
-    ui.rerender();
-  };
-  const terrCount = (n: number) => v.owner.filter((o) => o === n).length;
-  const last = v.reports[v.reports.length - 1];
-  const changed = new Set((last ?? []).filter((r) => r.before !== r.after).map((r) => r.terr));
-  const acting = v.stage === 'act' && !v.submitted;
+  const L = ui.local as Local;
+  const playing = v.phase === 'solve' && v.self !== 'spectator' && !v.submitted;
 
-  const nations = h('div', { class: 'nation-row' }, NATIONS.map((n, i) => h('div', { class: `nation${i === myNation ? ' mine' : ''}`, style: `--nc:${NATION_COLORS[i]}` },
-    gameArt(ART[`nation${i as 0 | 1 | 2}`], 46),
-    h('div', null, h('b', null, `${n}${t('m01.nation')}`), i === myNation ? h('span', { class: 'tag fact', style: 'margin-left:8px' }, t('m01.mine')) : null,
-      h('div', { class: 'small m01-res' }, gameArt(ART.resource, 22), t('m01.nationInfo', { res: v.resources[i], terr: terrCount(i) }))))));
-
-  const map = h('div', { class: 'm01-map' }, TERRITORY_NAMES.map((name, i) => {
-    const o = v.owner[i];
-    const selected = sel && (sel.t === 'invade' || sel.t === 'defend') && sel.terr === i;
-    const rep = last?.find((r) => r.terr === i);
-    return h('button', { type: 'button', class: `terr${selected ? ' sel' : ''}${changed.has(i) ? ' changed' : ''}`, style: `--nc:${o === null ? '#6a7088' : NATION_COLORS[o]}`, disabled: !acting, onclick: () => {
-      if (!acting) return;
-      if (o === myNation) setSel({ t: 'defend', terr: i });
-      else setSel({ t: 'invade', terr: i });
-    } }, gameArt(o === null ? ART.neutral : ART[`nation${o as 0 | 1 | 2}`], 34),
-    h('span', { class: 'tx' }, h('b', null, name), h('small', null, o === null ? t('m01.neutral') : `${NATIONS[o]}${t('m01.nation')}`),
-      rep && (rep.attack.some((a) => a > 0) || rep.defense > 0) ? h('small', null, `${t('m01.atk')} ${rep.attack.map((a, n) => (a ? `${NATIONS[n]}${a}` : '')).filter(Boolean).join(' ') || '0'}／${t('m01.def')} ${rep.defense}`) : null));
-  }));
-
-  const status = h('div', { class: 'box row', style: 'gap:18px;flex-wrap:wrap' },
-    gameArt(ART.territory, 40),
-    h('span', null, t('m01.round', { r: Math.min(v.round, 5) })),
-    h('span', null, t('m01.myPoints', { p: v.myPoints ?? 0 })),
-    h('span', null, t('m01.terrPoints', { p: myNation >= 0 ? terrCount(myNation) * 2 : 0 })),
-    h('span', null, t('m01.hoards', { n: v.myHoards, max: HOARD_LIMIT })),
-    v.shortfall.includes(v.round - 1) ? h('span', { class: 'bad' }, t('m01.shortfall')) : null,
-  );
-
-  let controls: Child = null;
-  if (v.stage === 'negotiate' && !v.submitted) {
-    controls = h('div', { class: 'box col', style: 'gap:8px' }, h('h4', null, t('m01.negoTitle')), h('div', { class: 'small' }, t('m01.negoText')),
-      h('div', { class: 'row' }, button(t('m01.negoEnd'), () => ui.submit({ t: 'ready' } satisfies M01Move), { kind: 'primary', autofocus: true })));
-  } else if (acting) {
-    const res = v.resources[myNation];
-    const move: M01Move | null = !sel ? null : sel.t === 'invade' || sel.t === 'defend' ? (sel.terr === null ? null : { t: sel.t, terr: sel.terr }) : sel.t === 'spy' ? (sel.target ? { t: 'spy', target: sel.target } : null) : { t: sel.t };
-    const opt = (key: 'invade' | 'defend' | 'produce' | 'hoard' | 'spy', hint: string, disabled: boolean, onclick: () => void) =>
-      h('button', { type: 'button', class: `btn btn-secondary${sel?.t === key ? ' selected' : ''}`, disabled, onclick }, h('span', { class: 'm01-act' }, gameArt(ART[key], 36), h('span', null, t(`m01.act.${key}`), h('small', null, hint))));
-    controls = h('div', { class: 'box col', style: 'gap:8px' },
-      h('h4', null, t('m01.actTitle')),
-      h('div', { class: 'act-grid m01-acts' },
-        opt('invade', t('m01.hint.invade', { p: PTS.invade }), false, () => setSel({ t: 'invade', terr: null })),
-        opt('defend', t('m01.hint.defend', { p: PTS.defend }), false, () => setSel({ t: 'defend', terr: null })),
-        opt('produce', t('m01.hint.produce', { p: PTS.produce }), false, () => setSel({ t: 'produce' })),
-        opt('hoard', t('m01.hint.hoard', { p: PTS.hoard }), v.myHoards >= HOARD_LIMIT, () => setSel({ t: 'hoard' })),
-        opt('spy', t('m01.hint.spy', { p: PTS.spy }), v.round <= 1, async () => {
-          const others = v.players.filter((p) => p !== me);
-          const target = await choose<CharId | null>(t('m01.act.spy'), t('m01.spyAsk'), [...others.map((p) => ({ label: `${ui.name(p)}（${NATIONS[v.nation[p]]}）`, value: p as CharId | null })), { label: t('common.cancel'), value: null }], { cancel: null, pauses: false });
-          if (target) setSel({ t: 'spy', target });
-        }),
-      ),
-      h('div', { class: 'row', style: 'gap:12px' },
-        h('span', { class: 'grow' }, move ? t('m01.chosen', { x: moveLabel(move, ui.name) }) : sel && (sel.t === 'invade' || sel.t === 'defend') ? t(sel.t === 'invade' ? 'm01.pickEnemy' : 'm01.pickOwn') : t('m01.pick')),
-        h('span', { class: 'dim small' }, t('m01.resNote', { res })),
-        button(t('common.confirm'), () => {
-          if (!move) return;
-          Sound.se('chip');
-          ui.submit(move);
-        }, { kind: 'primary', disabled: !move }),
-      ),
-      h('div', { class: 'dim small' }, t('m01.timeoutNote')),
-    );
-  } else if (v.stage === 'done') {
-    controls = h('div', { class: 'box' }, t('m01.finished'));
+  if (!playing) {
+    // 休憩と終了：このステージの結果を図と点数で見せる
+    const stageNo = v.phase === 'done' ? v.stages : v.stage + 1;
+    const mine = v.results[me]?.[stageNo - 1];
+    const allDone = v.myGroup.every((p) => v.results[p]?.[stageNo - 1]?.complete);
+    const main = [
+      h('div', { class: 'm01-break' },
+        h('div', { class: 'm01-big' }, t('m01.stageResult', { n: stageNo })),
+        mine ? h('div', { class: 'm01-score' },
+          h('div', { class: `m01-chip${mine.complete ? ' on' : ''}` }, h('small', null, t(mine.complete ? 'm01.done' : 'm01.cover', { n: mine.covered, max: freeCount(v.puzzle) })), h('b', null, String(mine.base))),
+          h('span', { class: 'plus' }, '+'),
+          h('div', { class: `m01-chip${mine.speed ? ' on' : ''}` }, h('small', null, mine.complete ? t('m01.speedAt', { s: Math.round(mine.ms / 1000) }) : t('m01.speed')), h('b', null, String(mine.speed))),
+          h('span', { class: 'plus' }, '+'),
+          h('div', { class: `m01-chip${mine.team ? ' on' : ''}` }, h('small', null, t('m01.team')), h('b', null, String(mine.team))),
+          h('span', { class: 'plus' }, '='),
+          h('div', { class: 'm01-chip total' }, h('small', null, t('m01.stagePts')), h('b', null, String(pts(mine))))) : null,
+        h('div', { class: 'm01-group' }, h('h4', null, t(allDone ? 'm01.groupAll' : 'm01.groupSome')),
+          h('div', { class: 'm01-mates' }, v.myGroup.map((p) => h('div', { class: `m01-mate${p === me ? ' me' : ''}` }, face(p), h('span', { class: 'nm' }, ui.name(p)), resultLine(v.results[p]?.[stageNo - 1]),
+            p !== me && v.phase === 'break' && v.self !== 'spectator' ? button(t('m01.talk'), () => ui.talk(p as NpcId), { small: true }) : null)))),
+        v.phase === 'break' && v.self !== 'spectator' && !v.ready[me]
+          ? h('div', { class: 'row', style: 'justify-content:center;gap:12px' }, stageNo === Math.floor(v.stages / 2) ? h('span', { class: 'gold' }, t('m01.regroup')) : null, button(t('m01.next', { n: v.stage + 2 }), () => ui.submit({ t: 'ready' } satisfies M01Move), { kind: 'primary', autofocus: true }))
+          : null),
+    ];
+    return { main, side: [h('div', { class: 'box scroll grow' }, h('h4', null, t('m01.rank')), standings(v, ui))] };
   }
 
-  const report = last ? h('div', { class: 'box' }, h('h4', null, t('m01.lastReport', { r: v.reports.length })),
-    ...last.filter((r) => r.attack.some((a) => a > 0)).map((r) => h('div', { class: 'logline' }, `${TERRITORY_NAMES[r.terr]}：${t('m01.atk')} ${r.attack.map((a, n) => (a ? `${NATIONS[n]}${a}` : '')).filter(Boolean).join('・')}／${t('m01.def')} ${r.defense}　→　${r.before !== r.after ? t('m01.taken', { n: r.after === null ? '' : NATIONS[r.after] }) : t('m01.held')}`)),
-    last.every((r) => !r.attack.some((a) => a > 0)) ? h('div', { class: 'logline dim' }, t('m01.noAttack')) : null) : null;
-
-  const mine = h('div', { class: 'box scroll', style: 'max-height:150px' }, h('h4', null, t('m01.myLog')),
-    ...v.myHistory.map((m, i) => h('div', { class: 'logline' }, `R${i + 1}　${moveLabel(m, ui.name)}　${v.gains.filter((g) => g.round === i + 1).map((g) => `${g.text}+${g.pts}`).join(' ')}`)),
-    ...v.intel.map((x) => h('div', { class: 'logline gold' }, t('m01.intel', { r: x.round, name: ui.name(x.target), x: moveLabel(x.action, ui.name) }))),
-    !v.myHistory.length ? h('div', { class: 'dim small' }, t('m01.noLog')) : null);
-
-  const side = h('div', { class: 'box scroll grow' }, h('h4', null, t('m01.members')), h('div', { class: 'plist' }, [0, 1, 2].flatMap((n) => v.players.filter((p) => v.nation[p] === n).map((p) =>
-    h('div', { class: `prow${p === me ? ' me' : ''}` }, gameArt(ART[`nation${n as 0 | 1 | 2}`], 24) ?? h('span', { class: 'dot', style: `background:${NATION_COLORS[n]}` }), face(p), h('span', { class: 'nm' }, ui.name(p)),
-      v.finalScores ? h('b', null, String(v.finalScores[p])) : p !== me && v.stage === 'negotiate' && !v.submitted ? button(t('match.talk'), () => ui.talk(p as NpcId), { small: true }) : null)))));
-
-  return { main: [nations, status, map, controls, report, mine], side };
+  if (!L.board) {
+    const board = new PolyBoard(v.puzzle, {
+      onChange: () => { if (L.fill) L.fill.textContent = ''; },
+      onComplete: (placed) => {
+        board.lock();
+        ui.timeoutMove = undefined;
+        // 完成の演出を一瞬見せてから提出する（時間は完成した瞬間のもの）
+        const ms = Math.min(STAGE_MS, ui.elapsed());
+        setTimeout(() => ui.submit({ t: 'solve', placed, ms } satisfies M01Move), 450);
+      },
+    });
+    L.board = board;
+    ui.timeoutMove = () => ({ t: 'solve', placed: board.placed, ms: STAGE_MS } satisfies M01Move);
+    // 同じ組の人が完成した時刻になったら表示する
+    L.mates = h('div', { class: 'm01-mates live' });
+    const tick = () => {
+      if (!L.mates || !L.mates.isConnected) {
+        if (L.timer && !L.board?.el.isConnected) clearInterval(L.timer);
+        return;
+      }
+      const el = ui.elapsed();
+      for (const row of L.mates.querySelectorAll<HTMLElement>('[data-ms]')) {
+        const done = Number(row.dataset.ms) <= el && row.dataset.ok === '1';
+        if (done && !row.classList.contains('done')) {
+          row.classList.add('done');
+          row.querySelector('.st')!.textContent = t('m01.mateDone', { s: Math.round(Number(row.dataset.ms) / 1000) });
+          Sound.se('chip');
+        }
+      }
+    };
+    L.timer = setInterval(tick, 400);
+  }
+  L.board.setHint(v.hint);
+  if (L.mates) {
+    L.mates.replaceChildren(...v.myGroup.filter((p) => p !== me).map((p) => {
+      const m = v.mates.find((x) => x.id === p);
+      return h('div', { class: 'm01-mate', 'data-ms': String(m?.ms ?? 1e9), 'data-ok': m?.complete ? '1' : '0' }, face(p), h('span', { class: 'nm' }, ui.name(p)), h('span', { class: 'st dim' }, t('m01.mateWorking')));
+    }));
+  }
+  const hero = ui.state.actors.hero;
+  const hintBtn = button(t('m01.hint', { n: HINT_COST }), async () => {
+    if (!(await confirmDialog(t('m01.hintTitle'), t('m01.hintText', { n: HINT_COST, have: hero.pieces }), { ok: t('m01.hintOk', { n: HINT_COST }), cancel: t('common.cancel'), pauses: false }))) return;
+    // 使う直前に残高を確かめる
+    if (v.hintUsed || hero.pieces < HINT_COST || !transfer(ui.state, 'hero', 'host', HINT_COST, 'M01 ヒント')) return;
+    Sound.se('coins');
+    ui.submit({ t: 'hint' } satisfies M01Move);
+  }, { small: true, disabled: v.hintUsed || hero.pieces < HINT_COST, title: t('m01.hintOnce') });
+  const side = [
+    h('div', { class: 'box' }, h('h4', null, t('m01.myGroup')), L.mates, h('div', { class: 'small dim', style: 'margin-top:4px' }, t('m01.teamNote'))),
+    h('div', { class: 'box' }, h('h4', null, t('m01.aid')), hintBtn, h('div', { class: 'small dim', style: 'margin-top:4px' }, v.hintUsed ? t('m01.hintUsed') : t('m01.hintOnce'))),
+    h('div', { class: 'box scroll grow' }, h('h4', null, t('m01.rank')), standings(v, ui, 5)),
+  ];
+  return { main: [h('div', { class: 'm01-play' }, L.board.el)], side };
 }
