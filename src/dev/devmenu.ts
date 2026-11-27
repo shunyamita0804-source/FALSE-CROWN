@@ -193,7 +193,7 @@ export function devMenu(): Promise<GameState | null> {
         h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' },
           button('DAY1 朝・図書室（入口から）', () => hiddenCase(1, 'library', () => {}), { small: true }),
           button('DAY3 夜・展望室（ピース 6）', () => hiddenCase(3, 'observatory', (s) => { s.actors.hero.pieces = 6; }, 'night'), { small: true }),
-          button('DAY4 朝・旧書庫（H04、H05）', () => hiddenCase(4, 'old_archive', (s) => { s.flags.h04_open = true; }), { small: true }),
+          button('DAY5 朝・旧書庫（H04、H05）', () => hiddenCase(5, 'old_archive', (s) => { s.flags.h04_open = true; }), { small: true }),
           button('DAY8 朝・共用廊下（閲覧の許可あり）', () => hiddenCase(8, 'common_hall', (s) => { s.flags.v04_maintenance_notice = true; s.flags.svc_permit = true; }), { small: true }),
           button('DAY9 朝・最深部（H08 の条件あり）', () => hiddenCase(9, 'core', (s) => { for (const k of ['KEY_SERVICE', 'DOC_CROWN', 'CORE01']) s.actors.hero.items[k] = 1; s.flags.ISOLATION_CONFIRMED = true; s.flags.h07_cleared = true; s.flags.svc_permit = true; }), { small: true }),
           button('DAY10 朝・隔離区域（H08 済み）', () => hiddenCase(10, 'isolation', (s) => { for (const k of ['KEY_SERVICE', 'DOC_CROWN', 'CORE01', 'RELEASE_AUTH']) s.actors.hero.items[k] = 1; s.flags.ISOLATION_CONFIRMED = true; s.flags.h07_cleared = true; s.flags.h08_cleared = true; s.flags.h08_stage = 5; s.flags.svc_permit = true; }), { small: true }),

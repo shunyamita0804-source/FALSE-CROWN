@@ -7,13 +7,13 @@
 import type { GameState } from '../core/types';
 import { transfer } from '../core/state';
 import type { CharId } from '../data/characters';
-import { EVIDENCE, LETTERS } from './hiddendata';
+import { EVIDENCE, H01_CLUES, LETTERS } from './hiddendata';
 
 export const HIDDEN_IDS = ['h01', 'h02', 'h03', 'h04', 'h05', 'h06', 'h07', 'h08'] as const;
 export type HiddenId = (typeof HIDDEN_IDS)[number];
 
 /** 挑める最初の日 */
-export const HIDDEN_MIN_DAY: Record<HiddenId, number> = { h01: 1, h02: 2, h03: 3, h04: 3, h05: 4, h06: 5, h07: 8, h08: 9 };
+export const HIDDEN_MIN_DAY: Record<HiddenId, number> = { h01: 1, h02: 2, h03: 3, h04: 5, h05: 4, h06: 5, h07: 8, h08: 9 };
 /** 1 回の挑戦で進む時間（分。暫定。対局中は時計を止め、終わったら決まった分だけ進める） */
 export const HIDDEN_MINUTES: Record<HiddenId, number> = { h01: 15, h02: 15, h03: 20, h04: 15, h05: 20, h06: 25, h07: 20, h08: 15 };
 export const H06_DOOR_FEE = 2;
@@ -27,6 +27,8 @@ export const LIFT_DAY = 8;
 export const NOTICE_DAY = 7;
 
 export const LETTER_IDS = LETTERS.map((l) => l.id);
+/** H01 の金庫の条件（書斎の 3 か所で 2 つずつ見つける）。添字は H01_CLUES の順 */
+export const H01_NOTE_IDS = H01_CLUES.map((_, i) => `K${i + 1}`);
 export const EVIDENCE_IDS = EVIDENCE.map((e) => e.id);
 export const ITEM_IDS = ['KEY_MIRROR', 'KEY_SERVICE', 'DOC_CROWN', 'CORE01', 'RELEASE_AUTH'] as const;
 
@@ -39,19 +41,22 @@ export const ENTRY_PUZZLES: EntryPuzzle[] = [
   { id: 'h01', event: 'h01_shelf', minDay: 1, keys: ['☀', '☾', '★'], answer: ['☾', '★', '☀'], flag: 'h01_open' },
   { id: 'h02', event: 'h02_clock', minDay: 2, nightOnly: true, keys: ['3:00', '6:00', '9:00', '0:00'], answer: ['0:00'], flag: 'h02_open' },
   { id: 'h03', event: 'h03_mirror', minDay: 3, keys: ['1', '2', '3', '4'], answer: ['2', '4', '1'], flag: 'h03_open' },
-  { id: 'h04', event: 'h04_wall', minDay: 3, keys: ['1', '2', '3', '4'], answer: ['3', '1', '4', '2'], flag: 'h04_open' },
+  { id: 'h04', event: 'h04_wall', minDay: 5, keys: ['1', '2', '3', '4'], answer: ['3', '1', '4', '2'], flag: 'h04_open' },
 ];
 export const ENTRY_BY_EVENT: Record<string, EntryPuzzle> = Object.fromEntries(ENTRY_PUZZLES.map((p) => [p.event, p]));
 
 /** 調べたあとに出す追記（地図の文は変えずに 2 枚目として出す）。gives は手に入る手紙 */
-export interface HiddenNote { minDay: number; key: string; gives?: string[]; nightOnly?: boolean }
+export interface HiddenNote { minDay: number; key: string; gives?: string[]; nightOnly?: boolean; /** 文に差し込む H01 の条件（添字） */ clues?: number[] }
 export const HIDDEN_NOTES: Record<string, HiddenNote> = {
   h01_diary: { minDay: 1, key: 'hid.note.h01_diary' },
+  h01_note1: { minDay: 1, key: 'hid.note.h01_note1', gives: ['K1', 'K2'], clues: [0, 1] },
+  h01_note2: { minDay: 1, key: 'hid.note.h01_note2', gives: ['K3', 'K4'], clues: [2, 3] },
+  h01_note3: { minDay: 1, key: 'hid.note.h01_note3', gives: ['K5', 'K6'], clues: [4, 5] },
   obs_scope: { minDay: 2, key: 'hid.note.obs_scope', nightOnly: true },
   h03_sink: { minDay: 3, key: 'hid.note.h03_sink' },
   archive_records: { minDay: PASSAGE_DAY, key: 'hid.note.archive_records' },
-  h04_letters: { minDay: 3, key: 'hid.note.h04_letters', gives: ['L02', 'L04'] },
-  h04_memo: { minDay: 3, key: 'hid.note.h04_memo', gives: ['L05'] },
+  h04_letters: { minDay: 5, key: 'hid.note.h04_letters', gives: ['L02', 'L04'] },
+  h04_memo: { minDay: 5, key: 'hid.note.h04_memo', gives: ['L05'] },
 };
 
 // ---------------- 小さな道具 ----------------
@@ -77,7 +82,7 @@ const isNight = (s: GameState) => s.phase === 'night';
 
 // ---------------- 挑めるかどうか ----------------
 
-export type Deny = 'day' | 'night' | 'tomorrow' | 'done' | 'once' | 'letters' | 'evidence' | 'prereq' | 'pieces' | 'time';
+export type Deny = 'clues' | 'day' | 'night' | 'tomorrow' | 'done' | 'once' | 'letters' | 'evidence' | 'prereq' | 'pieces' | 'time';
 export type Can = { ok: true } | { ok: false; why: Deny; n?: number };
 
 /** 成功の報酬を受け取ったあとは挑めない競技 */
@@ -97,6 +102,7 @@ export function canStartHidden(s: GameState, id: HiddenId): Can {
   if (id === 'h05' && s.flags.h05_tried) return { ok: false, why: 'once' };
   if (id === 'h02' && !isNight(s)) return { ok: false, why: 'night' };
   if (s.flags[`${id}_day`] === s.day) return { ok: false, why: 'tomorrow' };
+  if (id === 'h01') { const n = missingCount(s, H01_NOTE_IDS); if (n) return { ok: false, why: 'clues', n }; }
   if (id === 'h04') { const n = missingCount(s, LETTER_IDS); if (n) return { ok: false, why: 'letters', n }; }
   if (id === 'h07') { const n = missingCount(s, EVIDENCE_IDS); if (n) return { ok: false, why: 'evidence', n }; }
   if (id === 'h08' && !canStartH08(s)) return { ok: false, why: 'prereq' };

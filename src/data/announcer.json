@@ -1,0 +1,97 @@
+{
+  "note": "大会の進行の声（オブザーバー）。出来事の名前で引く。音源は無加工、gain は再生時の倍率（scripts/level-voices.py で全員と同じ大きさに揃える）。text は管理表の台詞（字幕と照合用）。出所は ElevenLabs で本人が作成（2026-11-27 受領、2026-11-28 本人が正式採用）。",
+  "speaker": "host_observer",
+  "dir": "audio/voice/host_observer",
+  "lines": {
+    "opening": {
+      "file": "01_opening.mp3",
+      "text": "皆様、ようこそお越しくださいました。",
+      "gain": 0.902,
+      "lufs": -18.1
+    },
+    "tournament_open": {
+      "file": "02_tournament_open.mp3",
+      "text": "これより、FALSE CROWNを開幕いたします。",
+      "gain": 0.881,
+      "lufs": -17.9
+    },
+    "rules": {
+      "file": "03_rules.mp3",
+      "text": "それでは、ルールをご説明いたします。",
+      "gain": 0.861,
+      "lufs": -17.7
+    },
+    "game_start": {
+      "file": "04_game_start.mp3",
+      "text": "ゲーム、スタート。",
+      "gain": 0.7,
+      "lufs": -15.9
+    },
+    "game_end": {
+      "file": "05_game_end.mp3",
+      "text": "ゲーム終了です。",
+      "gain": 0.708,
+      "lufs": -16.0
+    },
+    "time_up": {
+      "file": "06_time_up.mp3",
+      "text": "制限時間となりました。",
+      "gain": 0.75,
+      "lufs": -16.5
+    },
+    "results": {
+      "file": "07_results.mp3",
+      "text": "それでは、結果を発表いたします。",
+      "gain": 0.871,
+      "lufs": -17.8
+    },
+    "victory": {
+      "file": "08_victory.mp3",
+      "text": "おめでとうございます。見事な勝利です。",
+      "gain": 0.741,
+      "lufs": -16.4
+    },
+    "prison_transfer": {
+      "file": "09_prison_transfer.mp3",
+      "text": "対象の参加者は、監獄棟へ移動してください。",
+      "gain": 0.923,
+      "lufs": -18.3
+    },
+    "prison_start": {
+      "file": "10_prison_start.mp3",
+      "text": "これより、監獄マッチを開始いたします。",
+      "gain": 0.881,
+      "lufs": -17.9
+    },
+    "elimination": {
+      "file": "11_elimination.mp3",
+      "text": "残念ながら、あなたは本大会から脱落となります。",
+      "gain": 0.955,
+      "lufs": -18.6
+    },
+    "rescue_medal": {
+      "file": "12_rescue_medal.mp3",
+      "text": "救いのメダルを使用しますか？",
+      "gain": 0.767,
+      "lufs": -16.7
+    },
+    "curfew": {
+      "file": "13_curfew.mp3",
+      "text": "本日の活動時間は終了です。各自、自室へお戻りください。",
+      "gain": 1.072,
+      "lufs": -19.6
+    },
+    "final": {
+      "file": "14_final.mp3",
+      "text": "いよいよ、最後の戦いです。",
+      "gain": 0.794,
+      "lufs": -17.0
+    },
+    "champion": {
+      "file": "15_champion.mp3",
+      "text": "おめでとうございます。あなたが本大会の優勝者です。",
+      "gain": 0.813,
+      "lufs": -17.2
+    }
+  }
+}

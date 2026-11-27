@@ -62,6 +62,9 @@ export const CONFIG = {
 export type Difficulty = keyof typeof CONFIG.difficulty;
 export type MatchId = string;
 
+/** 決勝の日（日程の最後の日）。日程の長さが変わっても、ここから数える */
+export const FINAL_DAY: number = CONFIG.schedule[CONFIG.schedule.length - 1].day;
+
 export function scheduleFor(day: number) {
   return CONFIG.schedule.find((s) => s.day === day) ?? CONFIG.schedule[CONFIG.schedule.length - 1];
 }

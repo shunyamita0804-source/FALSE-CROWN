@@ -68,7 +68,7 @@ export interface M01View {
   mates: { id: CharId; ms: number; complete: boolean }[];
 }
 
-function makeGroups(players: CharId[]): CharId[][] {
+export function makeGroups(players: CharId[]): CharId[][] {
   const n = Math.max(1, Math.ceil(players.length / GROUP_SIZE));
   const groups: CharId[][] = Array.from({ length: n }, () => []);
   players.forEach((p, i) => groups[i % n].push(p));
@@ -76,7 +76,7 @@ function makeGroups(players: CharId[]): CharId[][] {
 }
 
 /** 組替え：同じ相手とできるだけ重ならないよう、元の組の k 番目の人を (元の組 + k) 番目の組へ送る */
-function regroup(groups: CharId[][]): CharId[][] {
+export function regroup(groups: CharId[][]): CharId[][] {
   const n = groups.length;
   const out: CharId[][] = Array.from({ length: n }, () => []);
   groups.forEach((g, i) => g.forEach((p, k) => out[(i + k) % n].push(p)));

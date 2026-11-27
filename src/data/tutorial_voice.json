@@ -1,6 +1,12 @@
 {
-  "note": "競技の説明の声（ゲームマスター）。競技 ID と説明の段階 ID で引く。音源は無加工、gain は再生時の倍率（scripts/level-voices.py で全員と同じ大きさに揃える）。text は収録の台本そのまま（字幕に使う）。",
+  "note": "競技の説明の声（ゲームマスター）。競技 ID と説明の段階 ID で引く。音源は無加工、gain は再生時の倍率（scripts/level-voices.py で全員と同じ大きさに揃える）。text は収録の台本そのまま（字幕に使う）。 fits はその収録が合う場面（order：第何競技か、groups：組の数など）。合わない時は slots の部品の声と字幕に切り替える。",
   "speaker": "host_observer",
+  "slots": {
+    "dir": "audio/voice/gm/common",
+    "note": "どの競技でも使う部品の声（未収録）。order は「第N競技」（キーは番号、決勝は final）、stages は「全Nステージ」など。競技名だけの声は各競技の slots.name",
+    "order": {},
+    "stages": {}
+  },
   "matches": {
     "m01": {
       "dir": "audio/voice/gm/m01",
@@ -9,7 +15,10 @@
           "file": "01_title.mp3",
           "text": "第1競技、ピース・アセンブル。",
           "gain": 0.813,
-          "lufs": -17.2
+          "lufs": -17.2,
+          "fits": {
+            "order": 1
+          }
         },
         "basic_rules": {
           "file": "02_basic_rules.mp3",
@@ -27,7 +36,13 @@
           "file": "04_format.mp3",
           "text": "参加者は4人ずつ、3つのグループに分かれます。全6ステージで、制限時間は各120秒です。",
           "gain": 0.977,
-          "lufs": -18.8
+          "lufs": -18.8,
+          "fits": {
+            "groups": 3,
+            "size": 4,
+            "stages": 6,
+            "sec": 120
+          }
         },
         "scoring": {
           "file": "05_scoring.mp3",
@@ -53,7 +68,8 @@
           "gain": 0.822,
           "lufs": -17.3
         }
-      }
+      },
+      "slots": {}
     }
   }
 }

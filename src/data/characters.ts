@@ -156,9 +156,9 @@ export const NPCS: CharacterDef[] = [
     rules: {},
   },
   {
-    id: 'npc_10_kujo', name: '九条 蓮司', short: '九条', kana: 'くじょう れんじ', gender: 'm', age: 35, job: 'プロ雀士',
+    id: 'npc_10_kujo', name: '九条 蓮司', short: '九条', kana: 'くじょう れんじ', gender: 'm', age: 35, job: 'ギャンブラー',
     stats: st(8, 9, 7, 8, 10, 9), personality: pe(60, 45, 70, 40, 95, 50),
-    profile: 'ブラフを好むプロ雀士。危険な賭けほど楽しむ。',
+    profile: 'ブラフを好むギャンブラー。元はプロ雀士。危険な賭けほど楽しむ。',
     secret: '過去の大会の参加者だった。',
     palette: { hair: '#101014', skin: '#e8ccb4', coat: '#2a2440', accent: '#9a6ad0', pants: '#18161e' },
     favoriteRooms: ['game_room', 'common_lounge', 'observatory'],

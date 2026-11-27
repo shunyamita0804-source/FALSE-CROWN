@@ -4,6 +4,8 @@
  * NPC の手は core/runner.ts が、本人の view だけを渡して決める。
  */
 import { G } from '../app/game';
+import { sceneFor } from './scene';
+import { announce } from '../audio/announce';
 import { Sound } from '../audio/audio';
 import { buildCtx, engineOf, stepNpcs } from '../core/runner';
 import { rel, rngOf, shortName } from '../core/state';
@@ -144,6 +146,9 @@ export function playMatch(slot: MatchSlot): Promise<void> {
     let stageTime = 0;
     let first = true;
     let closed = false;
+    /** 進行の声：終わりの声は 1 回だけ。時間切れの声が鳴っていれば、その後に続ける */
+    let endSaid = false;
+    let voiceChain: Promise<unknown> = Promise.resolve();
     const title = h('div', { class: 'match-title' }, `${slot.id === 'tiebreak' ? '' : slot.id.toUpperCase() + '　'}${engine.name}`);
     const stageEl = h('div', { class: 'match-stage' });
     const timerEl = h('div', { class: 'match-timer' });
@@ -237,6 +242,7 @@ export function playMatch(slot: MatchSlot): Promise<void> {
       }
       ui.finished = engine.done(slot.state);
       if (ui.finished) Sound.se('gong');
+      if (ui.finished && !endSaid) { endSaid = true; voiceChain = voiceChain.then(() => announce('game_end')); }
       G.save();
       render();
     };
@@ -251,13 +257,15 @@ export function playMatch(slot: MatchSlot): Promise<void> {
       if (slot.stageLeft <= 0) {
         // 時間切れ：事前に明示した既定の合法手になる
         if (!st.negotiation) toast(t('match.timeout'), 'bad');
+        // 進行の声：ステージの制限時間（1 分以上）が切れた時だけ。手番ごとの短い時間では鳴らさない
+        if ((st.time ?? 0) >= 60_000) voiceChain = announce('time_up');
         const own = ui.timeoutMove?.();
         engine.submit(slot.state, 'hero', own && engine.validate(slot.state, 'hero', own) ? own : engine.defaultMove(slot.state, 'hero'));
         sync();
       } else updateTimer();
     }, 200);
 
-    const rulesBtn = button(t('match.rules'), () => void (reviewVoiced(slot.id) ?? alertDialog(engine.name, h('div', { class: 'col', style: 'gap:6px' }, engine.rules.map((r, i) => h('div', { class: 'entry small' }, `${i + 1}. ${r}`))), t('common.close'), true)), { small: true, kind: 'ghost' });
+    const rulesBtn = button(t('match.rules'), () => void (reviewVoiced(slot.id, sceneFor(slot.id, slot.players)) ?? alertDialog(engine.name, h('div', { class: 'col', style: 'gap:6px' }, engine.rules.map((r, i) => h('div', { class: 'entry small' }, `${i + 1}. ${r}`))), t('common.close'), true)), { small: true, kind: 'ghost' });
     const el = h('div', { class: `match${slot.kind === 'prison' ? ' prison' : ''}` },
       h('div', { class: 'match-head' }, title, stageEl, inboxEl, h('div', { class: 'spacer' }), heroIn ? h('span', { class: 'row', style: 'gap:6px' }, face('hero'), h('span', { class: 'piece' }, String(s.actors.hero.pieces))) : null, rulesBtn, icon('timer'), gaugeEl, timerEl),
       h('div', { class: 'match-body' }, main, side),
@@ -279,6 +287,8 @@ export function playMatch(slot: MatchSlot): Promise<void> {
         return true;
       };
     }
+    // 進行の声：競技の始まり（もう終わっている競技を開き直した時は鳴らさない）
+    if (!engine.done(slot.state)) void announce('game_start');
     sync();
   });
 }

@@ -17,7 +17,10 @@ import guideJson from '../data/match_guide.json';
 import { getLang, LANGS, setLang, t, type Lang } from '../i18n/i18n';
 import { CATALOG, isImplemented, MATCHES } from '../matches/registry';
 import { TIEBREAK } from '../matches/tiebreak';
-import { hasGuide, tutorialScreen } from './tutorial';
+import { hasGuide, reviewVoiced, tutorialScreen } from './tutorial';
+import { sceneFor } from './scene';
+import { VOICED } from './voiceguides';
+import { announce } from '../audio/announce';
 import { describeDeal } from '../npc/negotiation';
 import { attitudeStep } from '../npc/social';
 import { deleteSave, exportSave, hasSave, importSave, saveMeta } from '../save/save';
@@ -392,9 +395,12 @@ function renderTab(s: GameState, tab: Tab, close: () => void, rerender: () => vo
       return out.length ? out : [h('div', { class: 'dim' }, t('history.none'))];
     }
     case 'rules': {
-      const sch = scheduleFor(s.day);
-      const ids = ([sch.main, sch.prisonGame] as (string | null)[]).filter((x): x is string => !!x && isImplemented(x));
-      return [button([icon('help'), t('rules.ceremony')], () => void ceremonyScreen({ review: true }), { small: true }), h('div', { class: 'text' }, t('rules.core')), ...ids.map((id) => h('div', { class: 'entry' }, h('b', { class: 'gold' }, `${id.toUpperCase()}　${MATCHES[id].name}`), ...MATCHES[id].rules.map((r) => h('div', { class: 'small', style: 'margin-top:4px' }, `・${r}`)))),
+      // 今日の競技を先に、そのあと前の日の競技（いつでも見直せるように）
+      const days = Array.from({ length: s.day }, (_, i) => scheduleFor(s.day - i));
+      const ids = [...new Set(days.flatMap((sch) => [sch.main, sch.prisonGame] as (string | null)[]))].filter((x): x is string => !!x && isImplemented(x));
+      return [button([icon('help'), t('rules.ceremony')], () => void ceremonyScreen({ review: true }), { small: true }), h('div', { class: 'text' }, t('rules.core')), ...ids.map((id) => h('div', { class: 'entry' }, h('div', { class: 'row', style: 'gap:10px;align-items:center' }, h('b', { class: 'gold grow' }, `${id.toUpperCase()}　${MATCHES[id].name}`),
+        // いつでも説明を見直せる（音声付きの説明は声つき、それ以外は図と練習）
+        hasGuide(id) ? button([icon('help'), t('rules.replayTut')], () => void (reviewVoiced(id, sceneFor(id)) ?? tutorialScreen(id, { scene: sceneFor(id) })), { small: true, cls: 'nb-tut' }) : null), ...MATCHES[id].rules.map((r) => h('div', { class: 'small', style: 'margin-top:4px' }, `・${r}`)))),
         h('div', { class: 'entry' }, h('b', { class: 'gold' }, TIEBREAK.name), ...TIEBREAK.rules.map((r) => h('div', { class: 'small', style: 'margin-top:4px' }, `・${r}`)))];
     }
     case 'files': {
@@ -550,7 +556,9 @@ export function purchaseScreen(afterDay: boolean): Promise<boolean> {
 
 export function rulesScreen(matchId: string, opts: { prison: boolean }): Promise<void> {
   // v11 の競技は、図と練習で段階的に説明する
-  if (hasGuide(matchId)) return tutorialScreen(matchId, { cutNote: t(opts.prison ? 'rules.prisonCut' : 'rules.mainCut', { n: scheduleFor(G.state?.day ?? 1).prison }) });
+  // 音声付きの説明がある競技は、説明の声が最初に名前を言うので重ねない
+  if (!(matchId in VOICED)) announce('rules');
+  if (hasGuide(matchId)) return tutorialScreen(matchId, { cutNote: t(opts.prison ? 'rules.prisonCut' : 'rules.mainCut', { n: scheduleFor(G.state?.day ?? 1).prison }), scene: sceneFor(matchId) });
   const eng = MATCHES[matchId];
   const g = GUIDE[matchId];
   return new Promise((resolve) => {
@@ -575,6 +583,7 @@ export function rankingScreen(v: RankingView): Promise<void> {
   return new Promise((resolve) => {
     let layer: Layer;
     const done = () => {
+      shown = false;
       closeLayer(layer);
       resolve();
     };
@@ -591,7 +600,10 @@ export function rankingScreen(v: RankingView): Promise<void> {
     const fx = mine < 0 ? null : mine >= n - v.cut ? fxBanner('defeat', v.cutLabel, 'sm') : mine === 0 ? fxBanner('victory', t('rank.first'), 'sm') : null;
     const body = h('div', { class: 'col', style: 'gap:8px' }, fx, list, ...v.notes.map((x) => h('div', { class: 'note-box' }, x)));
     // 追加ボイス：1 位の人の勝利の声。持っていなければ、最下位の人の敗北の声（監獄マッチの最下位は、脱落の画面で鳴らす）
-    if (!playVoice(v.ranking[0], 'victory') && !v.prison && n > 1) playVoice(v.ranking[n - 1], 'defeat');
+    // 進行の声：結果の発表（主人公が 1 位なら勝利の祝い。決勝の優勝は、このあとの戴冠で祝う）。そのあとに参加者の声
+    let shown = true;
+    const said = announce(mine === 0 && !v.final ? 'victory' : 'results');
+    void said.then(() => { if (shown && !playVoice(v.ranking[0], 'victory') && !v.prison && n > 1) playVoice(v.ranking[n - 1], 'defeat'); });
     layer = openLayer(h('div', { class: `overlay solid ${v.prison ? 'prison-bg' : 'result-bg'}` }, panel(v.title, body, { wide: true, footer: button(t('common.next'), done, { kind: 'primary', autofocus: true }) })), { pausesClock: true, name: 'ranking' });
   });
 }
@@ -612,8 +624,9 @@ export function eliminationScreen(id: CharId): Promise<void> {
       button(t('common.next'), done, { kind: 'primary', autofocus: true }),
     );
     Sound.se('drop');
-    // 追加ボイス：脱落が確定した時だけ
-    playVoice(id, 'elimination');
+    // 追加ボイス：脱落が確定した時だけ。主人公の脱落は進行役が告げる
+    if (id === 'hero') void announce('elimination');
+    else playVoice(id, 'elimination');
     layer = openLayer(el, { pausesClock: true, name: 'elim' });
   });
 }

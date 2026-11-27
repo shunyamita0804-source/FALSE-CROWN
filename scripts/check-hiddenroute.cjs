@@ -58,6 +58,14 @@ const { chromium } = require('playwright');
     check('違う順番では開かず、正しい順番で隠し書斎への道が開く', wrong && s.flags.h01_open === true && (await body()).includes('秘密の書斎'));
     await advance(async () => !(await page.locator('.layer .panel').count()), 4);
     await warp('secret_study');
+    const shut = async () => !(await page.locator('.layer .panel, .dlg-box').count());
+    await inspect('study_safe');
+    await advance(shut, 6);
+    check('条件を集める前は、金庫に挑めない', !(await page.getByRole('button', { name: '挑戦する' }).count()) && !(await S()).match);
+    for (const n of ['study_shelf', 'study_desk', 'study_cabinet']) { await inspect(n); await advance(shut, 8); await W(300); await advance(shut, 8); }
+    const ks = (await S()).items;
+    if (!['K1','K6'].every((k) => ks[k])) console.log('items', JSON.stringify(ks), (await body()).slice(0, 300));
+    check('書斎の 3 か所で、金庫の条件 6 つが手に入る', ['K1', 'K2', 'K3', 'K4', 'K5', 'K6'].every((k) => ks[k]));
     const before = (await S()).pieces;
     await inspect('study_safe');
     await advance(async () => (await page.getByRole('button', { name: '挑戦する' }).count()) > 0, 4);
@@ -116,7 +124,7 @@ const { chromium } = require('playwright');
   }
 
   if (want('archive')) {
-    await open('DAY4 朝・旧書庫（H04、H05）');
+    await open('DAY5 朝・旧書庫（H04、H05）');
     await inspect('archive_records');
     await advance(async () => (await S()).flags.passage_open === true, 4);
     check('旧書庫の記録を調べると、地下通路への鉄扉が開く', (await S()).flags.passage_open === true);

@@ -29,11 +29,18 @@ describe('裏ルート：挑める日と条件', () => {
     }
     expect(canStartHidden(at(3), 'h02')).toMatchObject({ ok: false, why: 'night' });
     expect(canStartHidden(at(3, 'night'), 'h02').ok).toBe(true);
-    expect(canStartHidden(at(1), 'h01').ok).toBe(true);
+    expect(canStartHidden(at(1), 'h01')).toMatchObject({ ok: false, why: 'clues', n: 6 });
+    const k = at(1);
+    expect(takeNote(k, 'h01_note1')).toEqual(['K1', 'K2']);
+    takeNote(k, 'h01_note2');
+    expect(canStartHidden(k, 'h01')).toMatchObject({ why: 'clues', n: 2 });
+    takeNote(k, 'h01_note3');
+    expect(canStartHidden(k, 'h01').ok).toBe(true);
   });
 
   it('時間が足りない時は始められない', () => {
     const s = at(2);
+    for (const e of ['h01_note1', 'h01_note2', 'h01_note3']) takeNote(s, e);
     s.phaseLeft = 5000;
     expect(canStartHidden(s, 'h01')).toMatchObject({ ok: false, why: 'time' });
   });
@@ -66,6 +73,7 @@ describe('裏ルート：結果の清算（1 回だけ）', () => {
     settleHidden(t, 'h01', { hero: 0 }, [['hero']]);
     expect(canStartHidden(t, 'h01')).toMatchObject({ why: 'tomorrow' });
     t.day = 3;
+    for (const e of ['h01_note1', 'h01_note2', 'h01_note3']) takeNote(t, e);
     expect(canStartHidden(t, 'h01').ok).toBe(true);
   });
 

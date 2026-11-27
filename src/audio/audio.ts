@@ -341,6 +341,7 @@ class AudioManager {
    */
   voice(url: string, gain = 1, opts: { duck?: boolean; onStart?: (sec: number) => void; onEnd?: () => void } = {}): void {
     this.stopVoice();
+    this.lastVoice = url;
     if (!this.unlocked || !this.ctx || this.suspended || this.voiceVol <= 0) { opts.onEnd?.(); return; }
     const ctx = this.ctx;
     const seq = ++this.voiceSeq;
@@ -389,6 +390,9 @@ class AudioManager {
   private unduck(): void {
     if (this.ctx && this.duckGain) this.duckGain.gain.setTargetAtTime(1, this.ctx.currentTime, 0.25);
   }
+
+  /** 最後に鳴らそうとした声（確認用） */
+  lastVoice = '';
 
   get voicePlaying(): boolean {
     return !!this.voiceSrc;
