@@ -16,8 +16,8 @@ describe('汎用ボイスの対応表', () => {
       for (const [cat, clip] of Object.entries(c.clips)) {
         expect(clip.file).toMatch(new RegExp(`^\\d\\d_${cat}\\.mp3$`));
         expect(clip.text.length).toBeGreaterThan(0);
-        expect(clip.gain).toBeGreaterThanOrEqual(0.7);
-        expect(clip.gain).toBeLessThanOrEqual(1.4);
+        expect(clip.gain).toBeGreaterThanOrEqual(0.25);
+        expect(clip.gain).toBeLessThanOrEqual(3);
       }
     }
   });
@@ -53,5 +53,15 @@ describe('汎用ボイスの対応表', () => {
     // 内容が毎回変わる雑談や情報の提示には、汎用ボイスを当てない
     expect(categoryForLine('smalltalk')).toBeNull();
     expect(categoryForLine('info_offer')).toBeNull();
+  });
+
+  it('全員の声の聞こえる大きさが揃っている（倍率を掛けた後の差が 1 LU 以内）', () => {
+    const target = (table as unknown as { loudness: { target: number } }).loudness.target;
+    for (const c of Object.values(T.characters)) {
+      for (const clip of [...Object.values(c.clips), ...Object.values(c.extra ?? {})] as { gain: number; lufs?: number }[]) {
+        expect(clip.lufs).toBeTypeOf('number');
+        expect(Math.abs(clip.lufs! + 20 * Math.log10(clip.gain) - target)).toBeLessThanOrEqual(1);
+      }
+    }
   });
 });

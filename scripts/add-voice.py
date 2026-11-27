@@ -65,5 +65,6 @@ def main():
         if keep: data['characters'][cid]['extra'] = keep
     json.dump(data, open(path, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
     print(f'{cid}: {len(CATS)} 点を取り込みました')
+    subprocess.run(['python3', '-I', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'level-voices.py')], check=True)
 
 main()

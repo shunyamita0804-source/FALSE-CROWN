@@ -106,7 +106,14 @@ class AudioManager {
       this.seGain.connect(this.ctx.destination);
       this.voiceGain = this.ctx.createGain();
       this.voiceGain.gain.value = this.voiceVol;
-      this.voiceGain.connect(this.ctx.destination);
+      // 声の大きさを揃える倍率で山が 0 dB を超える時の音割れ防止（ふだんの声には掛からない）
+      const lim = this.ctx.createDynamicsCompressor();
+      lim.threshold.value = -2;
+      lim.knee.value = 0;
+      lim.ratio.value = 20;
+      lim.attack.value = 0.002;
+      lim.release.value = 0.08;
+      this.voiceGain.connect(lim).connect(this.ctx.destination);
     }
     if (this.ctx.state !== 'running' && !this.suspended) void this.ctx.resume().catch(() => undefined);
     if (!this.unlocked) {
