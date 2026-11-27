@@ -48,7 +48,7 @@ export function renderM01(v: M01View, ui: MatchUi): { main: Child; side: Child }
           h('span', { class: 'plus' }, '+'),
           h('div', { class: `m01-chip${mine.speed ? ' on' : ''}` }, h('small', null, mine.complete ? t('m01.speedAt', { s: Math.round(mine.ms / 1000) }) : t('m01.speed')), h('b', null, String(mine.speed))),
           h('span', { class: 'plus' }, '+'),
-          h('div', { class: `m01-chip${mine.team ? ' on' : ''}` }, h('small', null, t('m01.team')), h('b', null, String(mine.team))),
+          h('div', { class: `m01-chip fin-hide${mine.team ? ' on' : ''}` }, h('small', null, t('m01.team')), h('b', null, String(mine.team))),
           h('span', { class: 'plus' }, '='),
           h('div', { class: 'm01-chip total' }, h('small', null, t('m01.stagePts')), h('b', null, String(pts(mine))))) : null,
         h('div', { class: 'm01-group' }, h('h4', null, t(allDone ? 'm01.groupAll' : 'm01.groupSome')),
@@ -109,8 +109,8 @@ export function renderM01(v: M01View, ui: MatchUi): { main: Child; side: Child }
     ui.submit({ t: 'hint' } satisfies M01Move);
   }, { small: true, disabled: v.hintUsed || hero.pieces < HINT_COST, title: t('m01.hintOnce') });
   const side = [
-    h('div', { class: 'box' }, h('h4', null, t('m01.myGroup')), L.mates, h('div', { class: 'small dim', style: 'margin-top:4px' }, t('m01.teamNote'))),
-    h('div', { class: 'box' }, h('h4', null, t('m01.aid')), hintBtn, h('div', { class: 'small dim', style: 'margin-top:4px' }, v.hintUsed ? t('m01.hintUsed') : t('m01.hintOnce'))),
+    h('div', { class: 'box fin-hide' }, h('h4', null, t('m01.myGroup')), L.mates, h('div', { class: 'small dim', style: 'margin-top:4px' }, t('m01.teamNote'))),
+    h('div', { class: 'box fin-hide' }, h('h4', null, t('m01.aid')), hintBtn, h('div', { class: 'small dim', style: 'margin-top:4px' }, v.hintUsed ? t('m01.hintUsed') : t('m01.hintOnce'))),
     h('div', { class: 'box scroll grow' }, h('h4', null, t('m01.rank')), standings(v, ui, 5)),
   ];
   return { main: [h('div', { class: 'm01-play' }, L.board.el)], side };

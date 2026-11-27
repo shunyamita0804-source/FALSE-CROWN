@@ -42,7 +42,7 @@ function resultBox(v: M05View, r: M05Result, roundNo: number): Child {
     h('div', { class: 'm01-score' },
       h('div', { class: `m01-chip${r.correct ? ' on' : ''}` }, h('small', null, t(r.correct ? 'm05.correctN' : 'm05.wrong', { n: r.used })), h('b', null, String(r.points))),
       h('span', { class: 'plus' }, '+'),
-      h('div', { class: `m01-chip${r.bonus ? ' on' : ''}` }, h('small', null, t('m05.teamAll')), h('b', null, String(r.bonus))),
+      h('div', { class: `m01-chip fin-hide${r.bonus ? ' on' : ''}` }, h('small', null, t('m05.teamAll')), h('b', null, String(r.bonus))),
       h('span', { class: 'plus' }, '='),
       h('div', { class: 'm01-chip total' }, h('small', null, t('m03.roundPts')), h('b', null, String(r.points + r.bonus)))),
     h('div', { class: 'm05-marks' }, mates.map((p) => { const x = v.results[p][roundNo - 1]; return h('span', { class: `m05-mark${x.correct ? ' ok' : ' ng'}` }, face(p), h('b', null, x.correct ? `○ ${x.used}` : '✕')); })),
@@ -81,7 +81,7 @@ export function renderM05(v: M05View, ui: MatchUi): { main: Child; side: Child }
       h('div', { class: 'small dim' }, t('m05.tellNote', { b: TEAM_BONUS })),
       button(t('m05.pickOk', { n: v.cands[pick] }), () => ui.submit({ t: 'set', pick, tell } satisfies M05Move), { kind: 'primary', autofocus: true }));
     ui.timeoutMove = () => ({ t: 'set', pick: L.pick ?? 0, tell: L.tell ?? true } satisfies M05Move);
-    return { main, side: [h('div', { class: 'box' }, h('h4', null, t('m05.team')), teamRow(v, ui, false)), rank] };
+    return { main, side: [h('div', { class: 'box fin-hide' }, h('h4', null, t('m05.team')), teamRow(v, ui, false)), rank] };
   }
 
   if (v.phase === 'prep') {
@@ -93,7 +93,7 @@ export function renderM05(v: M05View, ui: MatchUi): { main: Child; side: Child }
       if (!ui.engine.validate(ui.slot.state, 'hero', { t: 'extra' }) || hero.pieces < EXTRA_COST || !transfer(ui.state, 'hero', 'host', EXTRA_COST, 'M05 追加カード')) return;
       Sound.se('coins');
       ui.submit({ t: 'extra' } satisfies M05Move);
-    }, { small: true, disabled: waiting || v.extraUsed >= EXTRA_MAX || hero.pieces < EXTRA_COST });
+    }, { small: true, cls: 'fin-hide', disabled: waiting || v.extraUsed >= EXTRA_MAX || hero.pieces < EXTRA_COST });
     const info: Child = v.isSetter
       ? [h('div', { class: 'small gold' }, t('m05.youSet', { n: v.target ?? 0 })), numCards(v.cards ?? [], v.extraCard)]
       : v.told
@@ -135,7 +135,7 @@ export function renderM05(v: M05View, ui: MatchUi): { main: Child; side: Child }
     }, 500);
   }
   const side = [
-    h('div', { class: 'box' }, h('h4', null, t('m05.team')), teamRow(v, ui, false), h('div', { class: 'small dim', style: 'margin-top:4px' }, t('m05.teamNote', { b: TEAM_BONUS }))),
+    h('div', { class: 'box fin-hide' }, h('h4', null, t('m05.team')), teamRow(v, ui, false), h('div', { class: 'small dim', style: 'margin-top:4px' }, t('m05.teamNote', { b: TEAM_BONUS }))),
     h('div', { class: 'box scroll grow' }, h('h4', null, t('m01.rank')), standings(v, ui, 8)),
   ];
   return { main: [h('div', { class: 'm05-play' }, L.pad.el)], side };

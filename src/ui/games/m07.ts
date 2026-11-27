@@ -116,7 +116,7 @@ export function renderM07(v: M07View, ui: MatchUi): { main: Child; side: Child }
         St.n = v.log.length + 1;
         ui.submit({ t: 'pass' } satisfies M07Move);
       }, { small: true }),
-      button(t('m07.aid', { n: AID_COST }), () => { St.alt = true; ui.rerender(); }, { small: true, disabled: v.aidUsed || !shape || !alternatives(shape).length || hero.pieces < AID_COST, title: t('m07.aidOnce') }));
+      button(t('m07.aid', { n: AID_COST }), () => { St.alt = true; ui.rerender(); }, { small: true, cls: 'fin-hide', disabled: v.aidUsed || !shape || !alternatives(shape).length || hero.pieces < AID_COST, title: t('m07.aidOnce') }));
   };
   const placer = new TilePlacer({ owner, seat: v.seat, seats: v.seats, tiles, cap, size: SIZE, active: myTurn && !St.alt, fresh: last?.cells ?? undefined, sel: St.sel, onChange: drawFoot });
   drawFoot();

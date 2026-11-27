@@ -1398,3 +1398,35 @@ button.xc-card { cursor: pointer; }
 .tb-peace { color: #9be7a6; font-weight: 700; }
 .tb7 .hx7-panel { max-width: 470px; }
 .tb7.prac .hx7-panel { max-width: 380px; }
+
+/* ---- M11 最後の王座、カード対決 ---- */
+.m11-sub { display: contents; }
+.m11-sub .fin-hide, .m11-sub .mq-talk { display: none !important; }
+.m11-box { flex: none; }
+.m11-board { display: flex; flex-direction: column; gap: 6px; }
+.m11-vs { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.m11-vs .pl { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.m11-vs .face { width: 34px; height: 34px; flex: none; }
+.m11-vs .sc { font-size: 1.5em; font-family: var(--serif); color: var(--gold2); white-space: nowrap; }
+.m11-events { display: flex; flex-direction: column; gap: 3px; }
+.m11-ev { display: flex; align-items: center; gap: 8px; min-height: 30px; padding: 0 8px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1.5px solid transparent; }
+.m11-ev .no { width: 1.4em; height: 1.4em; border-radius: 50%; background: rgba(255,255,255,0.14); display: flex; align-items: center; justify-content: center; font-size: 0.8em; flex: none; }
+.m11-ev .nm { flex: 1; white-space: nowrap; }
+.m11-ev .wn { display: flex; align-items: center; gap: 6px; }
+.m11-ev .wn .face { width: 26px; height: 26px; }
+.m11-ev.now { border-color: var(--gold2); background: rgba(216,178,90,0.14); }
+.m11-ev.done .no { background: var(--gold2); color: #1a1f33; }
+.m11-board.big { min-width: 520px; padding: 14px 20px; border-radius: 14px; background: rgba(8,12,26,0.82); border: 1.5px solid var(--gold-dim); }
+.m11-board.big .m11-ev { min-height: 40px; } .m11-board.big .m11-ev .wn .face { width: 32px; height: 32px; }
+.m11-board.big .m11-vs .sc { font-size: 2.2em; } .m11-board.big .m11-vs .face { width: 48px; height: 48px; }
+.m11-events.tg { min-width: 430px; }
+.m11-prac { display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; }
+.m11-prac-tabs { gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.m11-prac-area { display: flex; align-items: center; justify-content: center; min-height: 300px; width: 100%; }
+.dl-score { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.dl-score b { font-size: 1.6em; font-family: var(--serif); color: var(--gold2); white-space: nowrap; }
+.dl-log { display: flex; flex-direction: column; gap: 3px; }
+.dl-row { display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 0.86em; min-height: 28px; padding: 0 8px; border-radius: 7px; background: rgba(255,255,255,0.05); font-variant-numeric: tabular-nums; }
+.dl-row .no { width: 1.2em; color: var(--ivory-dim); } .dl-row .tg { flex: 1; } .dl-row .rs { text-align: right; }
+.dl-row.win .rs { color: #a8ecb2; } .dl-row.lose .rs { color: #ff9c94; }
+.dl .p05-total b { min-width: 1.6em; }

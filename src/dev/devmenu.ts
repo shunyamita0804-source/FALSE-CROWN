@@ -18,7 +18,7 @@ import { phaseDuration } from '../core/clock';
 import { CATALOG, isImplemented, MATCHES } from '../matches/registry';
 import { saveMeta } from '../save/save';
 import { setHeroGender } from '../ui/art';
-import { startMorning } from '../core/tournament';
+import { ENDING_RULE, startMorning } from '../core/tournament';
 import { ROOMS, ROOM_IDS } from '../world/maps';
 import { placeIn } from '../world/sim';
 import { alertDialog, button, choose, clear, closeLayer, h, openLayer, panel, toast, type Layer } from '../ui/dom';
@@ -58,9 +58,15 @@ export function devMenu(): Promise<GameState | null> {
       resolve(s);
     };
     const startAt = async (day: number, phase: Phase, heroHouse?: 'prison' | 'living') => {
-      const s = fresh();
+      let s = fresh();
       s.phase = 'morning';
-      const ok = await autoAdvance(s, day, phase, { free: true });
+      let ok = await autoAdvance(s, day, phase, { free: day < 8 });
+      // 終盤の日は、主人公が自動対戦で残っている大会が出るまで作り直す（補正なし。残れた大会を選ぶだけ）
+      for (let i = 0; !ok && day >= 8 && i < 80; i++) {
+        s = fresh();
+        s.phase = 'morning';
+        ok = await autoAdvance(s, day, phase, { free: false });
+      }
       if (!ok) {
         await alertDialog('開始できません', s.actors.hero.alive ? `DAY${day} は未実装の競技を含むため、そこまで進められません。` : '自動対戦の途中で主人公が脱落しました（補正なしのため起こり得ます）。もう一度試してください。');
         return;
@@ -76,6 +82,24 @@ export function devMenu(): Promise<GameState | null> {
           s.flags.devSwap = true;
         }
       }
+      done(s);
+    };
+    /** 決勝の結末の検証。DAY11 の順位発表から始め、順位と約束の記録を検証用に置き換える */
+    const finalCase = async (kind: 'win' | 'lone' | 'bond' | 'lose') => {
+      let s = fresh();
+      for (let i = 0; i < 80; i++) {
+        s = fresh();
+        s.phase = 'morning';
+        if (await autoAdvance(s, 11, 'reward', { free: false })) break;
+      }
+      if (s.day !== 11 || s.phase !== 'reward') { await alertDialog('開始できません', '主人公が決勝まで残る大会を作れませんでした。もう一度試してください。'); return; }
+      const other = (s.today.mainRanking ?? []).find((p) => p !== 'hero')!;
+      s.today.mainRanking = kind === 'lose' ? [other, 'hero'] : ['hero', other];
+      s.deals = s.deals.filter((d) => d.from !== 'hero' && d.to !== 'hero');
+      s.flags.betrayals_hero = kind === 'lone' ? ENDING_RULE.loneBetrayals : 0;
+      for (const id of NPC_IDS) rel(s, id, 'hero').trust = kind === 'bond' ? 80 : 40;
+      if (kind === 'bond') for (let i = 0; i < ENDING_RULE.bondDeals; i++) s.deals.push({ id: `dev_${i}`, day: 1, from: 'hero', to: NPC_IDS[i], kind: 'plan', payNow: 0, payOnSuccess: 0, untilDay: 10, status: 'fulfilled', witnesses: [], createdAt: 0 });
+      s.flags.devSwap = true;
       done(s);
     };
     /** 救いのメダルの検証。DAY1 の順位発表から始め、順位と関係を検証用に並べ替える（報酬は自動対戦の順位のまま） */
@@ -126,16 +150,25 @@ export function devMenu(): Promise<GameState | null> {
           G.state = null;
         }, { small: true })),
         h('h4', { class: 'gold' }, '任意の時点から開始（そこまでは自動対戦）'),
-        ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter((d) => isImplemented(scheduleFor(d).main) && (!scheduleFor(d).prisonGame || isImplemented(scheduleFor(d).prisonGame!))).map((d) =>
+        ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter((d) => isImplemented(scheduleFor(d).main) && (!scheduleFor(d).prisonGame || isImplemented(scheduleFor(d).prisonGame!))).map((d) =>
           h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' },
             button(`DAY${d} 朝`, () => void startAt(d, 'morning'), { small: true }),
             button(`DAY${d} メインマッチ`, () => void startAt(d, 'main'), { small: true }),
+            ...(d === 11 ? [] : [
             button(`DAY${d} 生活棟の自由時間`, () => void startAt(d, 'house', 'living'), { small: true }),
             button(`DAY${d} 監獄棟の自由時間`, () => void startAt(d, 'house', 'prison'), { small: true }),
             button(`DAY${d} 監獄マッチ（主人公参加）`, () => void startAt(d, 'prison', 'prison'), { small: true }),
             button(`DAY${d} 夜`, () => void startAt(d, 'night'), { small: true }),
             button(`DAY${d} 消灯`, () => void startAt(d, 'curfew'), { small: true }),
+            ]),
           )),
+        h('h4', { class: 'gold' }, '決勝の結末の検証（DAY11 の順位発表から。順位と約束の記録は検証用に置き換え）'),
+        h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' },
+          button('主人公が優勝（王者）', () => void finalCase('win'), { small: true }),
+          button('主人公が優勝（孤独な王）', () => void finalCase('lone'), { small: true }),
+          button('主人公が優勝（信頼の証）', () => void finalCase('bond'), { small: true }),
+          button('主人公が決勝で敗北（敗者）', () => void finalCase('lose'), { small: true }),
+        ),
         h('h4', { class: 'gold' }, '救いのメダルの検証（DAY1 の順位発表から。順位と関係は検証用に並べ替え）'),
         h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' },
           button('主人公が 1 位（選んで使う）', () => void medalCase('heroFirst'), { small: true }),

@@ -42,6 +42,7 @@ import { DELIVER_PTS as M10_DELIVER, M10_PRACTICE, actsOf as m10Acts, applyAct a
 import { triBoard } from './triboard';
 import { CENTERS as P10_CENTERS, applyStep as p10Apply, startPieces as p10Start, stepsOf as p10Steps, type Piece as P10Piece } from '../matches/p10';
 import { P10_COLORS } from './games/p10';
+import { EVENTS as M11_EVENTS } from '../matches/m11';
 import type { CharId } from '../data/characters';
 import { DiffQuiz, diffFigure, diffReview, figEl, FIG_NAME } from './diffquiz';
 import { rotated, type Cell } from '../matches/poly';
@@ -1010,7 +1011,62 @@ function p10Guide(): Guide {
   };
 }
 
-const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide, m07: m07Guide, p07: p07Guide, m08: m08Guide, p08: p08Guide, m09: m09Guide, p09: p09Guide, m10: m10Guide, p10: p10Guide };
+// ---- M11 最後の王座 ----
+
+function m11Guide(): Guide {
+  const list = (from: number, to: number) => h('div', { class: 'm11-events tg' }, M11_EVENTS.slice(from, to).map((e, i) => h('div', { class: 'm11-ev' }, h('span', { class: 'no' }, String(from + i + 1)), h('span', { class: 'nm' }, e.name), h('span', { class: 'wn small dim' }, t(`tut.m11.ev${from + i + 1}`)))));
+  return {
+    name: '最後の王座',
+    pages: [
+      { title: t('tut.m11.t1'), text: t('tut.m11.p1'), figure: () => facts([['5', t('tut.m11.f1')], ['3', t('tut.m11.f2')]]) },
+      { title: t('tut.m11.t2'), text: t('tut.m11.p2'), figure: () => list(0, 3) },
+      { title: t('tut.m11.t3'), text: t('tut.m11.p3'), figure: () => h('div', { class: 'tg-row' }, list(3, 5), h('div', { class: 'p05-hand tg' }, [3, 5, 6].map((c) => h('div', { class: `p05-card${c === 5 ? ' hit sel' : ''}` }, h('b', null, String(c)), h('small', null, c === 5 ? t('duel.exact') : t('duel.diff', { n: Math.abs(c - 5) })))))) },
+      { title: t('tut.m11.t4'), text: t('tut.m11.p4'), figure: () => facts([['0', t('tut.m11.g1')], ['0', t('tut.m11.g2')], ['0', t('tut.m11.g3')]]) },
+    ],
+    practice: {
+      text: t('tut.m11.practice'),
+      build: (onDone) => {
+        const box = h('div', { class: 'm11-prac' });
+        const area = h('div', { class: 'm11-prac-area' });
+        const tabs = h('div', { class: 'row m11-prac-tabs' });
+        let cur = -1;
+        const show = (i: number) => {
+          cur = i;
+          draw();
+          clear(area);
+          const e = M11_EVENTS[i];
+          if (e.id === 'duel') {
+            // カード対決の練習：目標に一番近いカードを出す
+            const target = 6;
+            const hand = [2, 4, 7, 9];
+            let done = false;
+            const note = h('div', { class: 'small fb-note' }, t('tut.m11.duelHow'));
+            const row = h('div', { class: 'p05-hand' }, hand.map((c) => {
+              const el = h('button', { class: 'p05-card', type: 'button', 'data-card': String(c) }, h('b', null, String(c)), h('small', null, t('duel.diff', { n: Math.abs(c - target) })));
+              el.addEventListener('click', () => {
+                if (done) return;
+                if (c !== 7) { Sound.se('error'); note.textContent = t('tut.m11.duelMiss'); return; }
+                done = true; el.classList.add('sel', 'hit'); note.textContent = t('tut.m11.duelDone'); note.classList.add('gold'); Sound.se('card'); onDone();
+              });
+              return el;
+            }));
+            area.append(h('div', { class: 'p05 dl prac' }, h('div', { class: 'p05-mid' }, h('div', { class: 'p05-total hot' }, h('small', null, t('duel.target')), h('b', null, String(target)))), row, note));
+          } else area.append(GUIDES[e.id]().practice.build(onDone));
+        };
+        const draw = () => {
+          clear(tabs);
+          tabs.append(h('span', { class: 'small dim' }, t('tut.m11.pick')), ...M11_EVENTS.map((e, i) => button(`${i + 1} ${e.name}`, () => show(i), { small: true, kind: cur === i ? 'primary' : 'secondary' })));
+        };
+        draw();
+        area.append(h('div', { class: 'small dim' }, t('tut.m11.pickNote')));
+        box.append(tabs, area);
+        return box;
+      },
+    },
+  };
+}
+
+const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide, m07: m07Guide, p07: p07Guide, m08: m08Guide, p08: p08Guide, m09: m09Guide, p09: p09Guide, m10: m10Guide, p10: p10Guide, m11: m11Guide };
 
 export const hasGuide = (id: string) => id in GUIDES;
 

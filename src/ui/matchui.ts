@@ -5,7 +5,7 @@
  */
 import { G } from '../app/game';
 import { Sound } from '../audio/audio';
-import { engineOf, stepNpcs } from '../core/runner';
+import { buildCtx, engineOf, stepNpcs } from '../core/runner';
 import { rel, rngOf, shortName } from '../core/state';
 import type { GameState, MatchSlot } from '../core/types';
 import type { CharId, NpcId } from '../data/characters';
@@ -31,6 +31,8 @@ import { renderP08 } from './games/p08';
 import { renderP09 } from './games/p09';
 import { renderM10 } from './games/m10';
 import { renderP10 } from './games/p10';
+import { renderM11 } from './games/m11';
+import { renderDuel } from './games/duel';
 import { renderM09 } from './games/m09';
 import { renderM06 } from './games/m06';
 import { renderP06 } from './games/p06';
@@ -67,6 +69,8 @@ const RENDERERS: Record<string, Renderer> = {
   p09: renderP09 as Renderer,
   m10: renderM10 as Renderer,
   p10: renderP10 as Renderer,
+  m11: renderM11 as Renderer,
+  duel: renderDuel as Renderer,
   m09: renderM09 as Renderer,
   m01: renderM01 as Renderer,
   m02: renderM02 as Renderer,
@@ -243,7 +247,19 @@ export function playMatch(slot: MatchSlot): Promise<void> {
     );
     layer = openLayer(el, { pausesClock: false, name: 'match' });
     // 開発版のみ：画面の自動確認から、進行中の競技を参照できるようにする
-    if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fcSlot?: MatchSlot }).__fcSlot = slot;
+    if (import.meta.env.VITE_CHANNEL !== 'product') {
+      const w = window as unknown as { __fcSlot?: MatchSlot; __fcAuto?: () => boolean };
+      w.__fcSlot = slot;
+      // 開発版のみ：主人公の手を CPU と同じ考え方で 1 手進める（長い競技の自動確認用）
+      w.__fcAuto = () => {
+        if (closed || engine.done(slot.state) || !engine.pending(slot.state).includes('hero')) return false;
+        let mv = engine.ai(engine.view(slot.state, 'hero'), buildCtx(s, 'hero', slot.id, rngOf(s)));
+        if (!engine.validate(slot.state, 'hero', mv)) mv = engine.defaultMove(slot.state, 'hero');
+        engine.submit(slot.state, 'hero', mv);
+        sync();
+        return true;
+      };
+    }
     sync();
   });
 }
