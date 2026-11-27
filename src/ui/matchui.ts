@@ -26,6 +26,8 @@ import { renderM05 } from './games/m05';
 import { renderP05 } from './games/p05';
 import { renderM07 } from './games/m07';
 import { renderP07 } from './games/p07';
+import { renderM08 } from './games/m08';
+import { renderP08 } from './games/p08';
 import { renderM06 } from './games/m06';
 import { renderP06 } from './games/p06';
 import { renderP03 } from './games/p03';
@@ -56,6 +58,8 @@ export type Renderer = (view: never, ui: MatchUi) => { main: Child; side?: Child
 const RENDERERS: Record<string, Renderer> = {
   m07: renderM07 as Renderer,
   p07: renderP07 as Renderer,
+  m08: renderM08 as Renderer,
+  p08: renderP08 as Renderer,
   m01: renderM01 as Renderer,
   m02: renderM02 as Renderer,
   m03: renderM03 as Renderer,

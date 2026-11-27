@@ -2,7 +2,7 @@
  * M08 バリケード（v11、5 人、共通の盤面）
  * 五角形に見える盤面：中心 1 点と、3 重の輪（各 10 点）の計 31 点。隣り合う点（同じ輪の隣、内外の輪の同じ向き、中心と一番内側の輪）が道でつながる。
  * 各自の開始点は外側の輪の角（5 か所）。ゴールは、盤面の反対側にある外側の輪の点。各自、壁を 3 本持つ。
- * 手番に、隣の空いた点へ 1 歩動くか、道 1 本を壁でふさぐ。他の人がいる点には入れない。誰かのゴールへの道が完全に無くなる壁は置けない。
+ * 手番に、隣の空いた点へ 1 歩動くか、道 1 本を壁でふさぐ。他の人がいる点には入れないが、隣にいる人は飛び越えられる（道がふさがって動けなくなるのを防ぐ）。誰かのゴールへの道が完全に無くなる壁は置けない。
  * 最大 25 巡。ゴールに着いた人は盤面から外れ、以後は手番が無い。先手は巡ごとに交代する。
  * 順位：着いた巡が早い順（同じ巡なら動いた歩数が少ない順）。着けなかった人は、残りの最短距離が短い順、使った壁が少ない順。
  * 3 巡ごとに 15 秒の相談時間がある。ピースで買える補助はない。
@@ -119,10 +119,17 @@ export interface M08View {
 
 type Core = Pick<M08State, 'players' | 'seats' | 'pos' | 'walls' | 'wallsLeft' | 'arrived'>;
 
-/** 動ける点：隣で、壁が無く、他の人がいない */
+/** 動ける点：隣で、壁が無く、他の人がいない点。隣に人がいる時は、その人を飛び越えた先の空いた点（壁が無い道でつながる点）へも進める */
 export function movesFor(s: Core, i: number): number[] {
-  if (s.pos[i] < 0) return [];
-  return ADJ[s.pos[i]].filter(([n, e]) => !s.walls[e] && !s.pos.includes(n)).map(([n]) => n);
+  const from = s.pos[i];
+  if (from < 0) return [];
+  const out = new Set<number>();
+  for (const [n, e] of ADJ[from]) {
+    if (s.walls[e]) continue;
+    if (!s.pos.includes(n)) { out.add(n); continue; }
+    for (const [m, e2] of ADJ[n]) if (!s.walls[e2] && m !== from && !s.pos.includes(m)) out.add(m);
+  }
+  return [...out];
 }
 
 /** その道に壁を置けるか：まだ壁が無く、置いた後も全員にゴールまでの道が残る */
@@ -159,32 +166,51 @@ function m08Ai(v: M08View, ctx: AiCtx): M08Move {
   const st = skill(ctx.stats.strategy);
   const lg = skill(ctx.stats.logic);
   const goal = goalNode(v.seats[i]);
-  const dm = distMap(v.walls, goal);
-  const sd = 0.25 + ctx.noise * 0.9 + (1 - st) * 0.9;
+  // 他の人がいる点は、通れるが遠回りと同じくらい損だと見て道を選ぶ
+  const occupied = new Set(v.pos.filter((p, k) => p >= 0 && k !== i));
+  const dm = new Array<number>(NODES).fill(99);
+  dm[goal] = 0;
+  const open = [goal];
+  while (open.length) {
+    open.sort((a, b) => dm[a] - dm[b]);
+    const c = open.shift()!;
+    for (const [n, e] of ADJ[c]) {
+      if (v.walls[e]) continue;
+      const w = dm[c] + 1 + (occupied.has(c) ? 1.5 : 0);
+      if (w < dm[n]) { dm[n] = w; if (!open.includes(n)) open.push(n); }
+    }
+  }
+  const sd = 0.2 + ctx.noise * 0.8 + (1 - st) * 0.8;
   let best: M08Move = { t: 'pass' };
   let bestVal = -Infinity;
   const myDist = v.dist[i];
+  // 直前にいた点へ戻るのは損（行ったり来たりを避ける）
+  const mine = v.log.filter((l) => l.seat === v.seats[i] && l.kind === 'move');
+  const cameFrom = mine.length ? mine[mine.length - 1].from : -1;
   for (const n of v.canMove) {
-    // 進む：ゴールまでの残りが短いほど良い。次の点が他の人の通り道で詰まりやすい中心は少し避ける
-    const val = -dm[n] + (n === goal ? 3 : 0) + ctx.rng.gauss(0, sd);
+    const val = -dm[n] + (n === goal ? 3 : 0) - (n === cameFrom ? 0.6 : 0) + ctx.rng.gauss(0, sd);
     if (val > bestVal) { bestVal = val; best = { t: 'move', to: n }; }
   }
+  const moveVal = bestVal;
   if (v.wallsLeft[i] > 0 && myDist > 1) {
     const rivals = v.players.map((_, k) => k).filter((k) => k !== i && v.pos[k] >= 0);
+    // 着いた人の数で、止める必要の強さが変わる（残りの席が少ないほど、先行する人を止めたい）
     for (const e of v.canWall) {
       const w = [...v.walls];
       w[e] = true;
-      const mine = distTo(w, v.pos[i], goal) - myDist;
-      if (mine > 0) continue;
+      if (distTo(w, v.pos[i], goal) > myDist) continue;
       let gain = 0;
       for (const k of rivals) {
         const d = distTo(w, v.pos[k], goalNode(v.seats[k])) - v.dist[k];
         if (d <= 0) continue;
-        // 自分より先に着きそうな人ほど重く見る
-        gain += d * (v.dist[k] <= myDist ? 0.75 : v.dist[k] <= myDist + 1 ? 0.4 : 0.15);
+        // 自分より先に着きそうな人で、ゴールが近い人ほど重く見る
+        const ahead = v.dist[k] < myDist ? 1 : v.dist[k] === myDist ? 0.6 : 0.15;
+        const near = v.dist[k] <= 2 ? 1 : v.dist[k] <= 3 ? 0.6 : 0.3;
+        gain += Math.min(d, 4) * ahead * near;
       }
-      if (gain <= 0) continue;
-      const val = -(myDist) - 0.9 + gain * (0.55 + lg * 0.6) + ctx.rng.gauss(0, sd);
+      if (gain < 1) continue;
+      // 壁を置くと自分は 1 手遅れる
+      const val = moveVal - 1.6 + gain * (0.6 + lg * 0.6) + ctx.rng.gauss(0, sd);
       if (val > bestVal) { bestVal = val; best = { t: 'wall', edge: e }; }
     }
   }
@@ -229,7 +255,8 @@ export const M08: MatchEngine<M08State, M08Move, M08View> = {
     '盤面は、中心の 1 点と 3 重の輪（各 10 点）です。線でつながった隣の点へ動けます。',
     '各自の開始点は外側の角です。ゴールは、盤面の反対側にある外側の点（自分の色の旗）です。',
     '手番にできることは 1 つ：隣の空いた点へ 1 歩動くか、道 1 本を壁でふさぐかです。壁は 1 人 3 本まで。',
-    '他の人がいる点には入れません。壁のある道は誰も通れません。',
+    '他の人がいる点には入れません。隣の点に人がいる時は、その人を飛び越えて、その先の空いた点へ進めます（1 歩と数えます）。',
+    '壁のある道は誰も通れません。飛び越える時も、壁は越えられません。',
     '誰かのゴールへの道が完全に無くなる壁は置けません。',
     `最大 ${ROUNDS} 巡。ゴールに着いた人は盤面から外れ、以後は手番がありません。先手は巡ごとに交代します。`,
     '順位：ゴールに着いた巡が早い順。同じ巡なら、動いた歩数が少ない順。着けなかった人は、残りの最短距離が短い順、使った壁が少ない順。',

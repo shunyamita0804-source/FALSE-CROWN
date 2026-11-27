@@ -27,6 +27,12 @@ import { cellAt as hexAt } from '../matches/hex';
 import { TilePlacer, type PlacerSel } from './tileplacer';
 import { G as HEX3, HOLE, HOLE_V, flipsFor as p07Flips, legalFor as p07Legal, startBoard as p07Start } from '../matches/p07';
 import { FlipBoard, type FlipSel } from './flipboard';
+import { EDGES as M08_EDGES, edgeBetween as m08Edge, movesFor as m08Moves, nodeOf as m08Node, startNode as m08Start, wallsFor as m08Walls } from '../matches/m08';
+import { ringBoard } from './ringboard';
+import { P08_PRACTICE, type Scale } from '../matches/p08';
+import { ScaleBoard } from './scaleboard';
+import { condList } from './games/p08';
+import type { CharId } from '../data/characters';
 import { DiffQuiz, diffFigure, diffReview, figEl, FIG_NAME } from './diffquiz';
 import { rotated, type Cell } from '../matches/poly';
 import { ChainBoard } from './chainboard';
@@ -665,7 +671,99 @@ function p07Guide(): Guide {
   };
 }
 
-const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide, m07: m07Guide, p07: p07Guide };
+// ---- M08 バリケード ----
+
+function m08Guide(): Guide {
+  const seats = [0, 1, 2, 3, 4];
+  const noWalls = () => new Array<boolean>(M08_EDGES.length).fill(false);
+  const starts = () => seats.map(m08Start);
+  const fig = (pos: number[], walls: boolean[], scale = 0.56) => ringBoard({ seats, pos, walls, me: 0, mode: 'none', canMove: [], canWall: [], showPath: true, scale });
+  const cap = (el: HTMLElement, text: string) => h('div', { class: 'tg-fig' }, el, h('div', { class: 'tg-cap' }, text));
+  return {
+    name: 'バリケード',
+    pages: [
+      { title: t('tut.m08.t1'), text: t('tut.m08.p1'), figure: () => fig(starts(), noWalls(), 0.72) },
+      { title: t('tut.m08.t2'), text: t('tut.m08.p2'), figure: () => chips([{ label: '1', value: t('tut.m08.c1') }, { label: '2', value: t('tut.m08.c2') }], [t('tut.m08.or')]) },
+      {
+        title: t('tut.m08.t3'), text: t('tut.m08.p3'),
+        figure: () => {
+          const w = noWalls();
+          w[m08Edge(m08Node(3, 1), m08Node(3, 2))] = true;
+          w[m08Edge(m08Node(3, 9), m08Node(3, 8))] = true;
+          const pos = starts();
+          pos[0] = m08Node(3, 1);
+          pos[1] = m08Node(3, 2);
+          return h('div', { class: 'tg-row' }, cap(fig(starts(), w, 0.5), t('tut.m08.wallCap')), cap(fig(pos, noWalls(), 0.5), t('tut.m08.jumpCap')));
+        },
+      },
+      { title: t('tut.m08.t4'), text: t('tut.m08.p4'), figure: () => facts([['25', t('tut.m08.f1')], ['3', t('tut.m08.f2')], ['3', t('tut.m08.f3')]]) },
+    ],
+    practice: {
+      text: t('tut.m08.practice'),
+      build: (onDone) => {
+        const box = h('div', { class: 'hx7 rb7 prac' });
+        const st = { players: seats.map((x) => `p${x}` as CharId), seats, pos: starts(), walls: noWalls(), wallsLeft: seats.map(() => 3), arrived: seats.map(() => -1) };
+        let step = 0;
+        let mode: 'move' | 'wall' = 'move';
+        let node: number | undefined;
+        let edge: number | undefined;
+        const draw = () => {
+          clear(box);
+          const canMove = step === 0 ? m08Moves(st, 0) : [];
+          const canWall = step === 1 && mode === 'wall' ? m08Walls(st, 0) : [];
+          const board = ringBoard({ seats, pos: st.pos, walls: st.walls, me: 0, mode: step === 0 ? 'move' : step === 1 && mode === 'wall' ? 'wall' : 'none', canMove, canWall, selNode: node, selEdge: edge, showPath: true, scale: 0.78 },
+            (n) => { if (step !== 0 || !canMove.includes(n)) return; node = n; Sound.se('select'); draw(); },
+            (e) => { if (step !== 1) return; edge = e; Sound.se('select'); draw(); });
+          const foot = h('div', { class: 'hx7-foot' });
+          if (step === 0) foot.append(button(t('m08.doMove'), () => { if (node === undefined) return; st.pos[0] = node; node = undefined; step = 1; Sound.se('chip'); draw(); }, { kind: 'primary', disabled: node === undefined }));
+          else if (step === 1) foot.append(
+            button(t('m08.modeWall', { n: 3 }), () => { mode = 'wall'; Sound.se('click'); draw(); }, { small: true, kind: mode === 'wall' ? 'primary' : undefined }),
+            button(t('m08.doWall'), () => { if (edge === undefined) return; st.walls[edge] = true; edge = undefined; step = 2; Sound.se('chipsHit'); draw(); onDone(); }, { kind: 'primary', disabled: edge === undefined }));
+          box.append(h('div', { class: 'hx7-left' }, board), h('div', { class: 'hx7-panel' }, h('div', { class: `small fb-note${step === 2 ? ' gold' : ''}` }, t(step === 0 ? 'tut.m08.prac1' : step === 1 ? 'tut.m08.prac2' : 'tut.m08.pracDone')), foot));
+        };
+        draw();
+        return box;
+      },
+    },
+  };
+}
+
+// ---- P08 数字の天秤 ----
+
+function p08Guide(): Guide {
+  const demo: Scale = { tiles: [1, 2, 3, 4, 5, 6, 7, 8], fixL: 4, fixR: 0, minUse: 1, mustL: [], mustR: [] };
+  const demo2: Scale = { tiles: [1, 2, 3, 4, 5, 6, 7, 9], fixL: 5, fixR: 2, minUse: 4, mustL: [0], mustR: [] };
+  const fig = (sc: Scale, place: number[], scale = 0.62) => new ScaleBoard(sc, { readonly: true, place, scale }).el;
+  return {
+    name: '数字の天秤',
+    pages: [
+      { title: t('tut.p08.t1'), text: t('tut.p08.p1'), figure: () => fig(demo, [0, 1, 0, 0, 0, 2, 0, 0]) },
+      { title: t('tut.p08.t2'), text: t('tut.p08.p2'), figure: () => fig(demo, [0, 0, 0, 0, 0, 0, 0, 0]) },
+      { title: t('tut.p08.t3'), text: t('tut.p08.p3'), figure: () => h('div', { class: 'tg-row' }, fig(demo2, [1, 0, 2, 0, 1, 0, 0, 2], 0.5), h('div', { class: 'sb-panel' }, condList(demo2, { left: 11, right: 14, nL: 2, nR: 2, used: 4, balanced: false, useOk: true, mustOk: true, panOk: true, ok: false }, [1, 0, 2, 0, 1, 0, 0, 2]))) },
+      { title: t('tut.p08.t4'), text: t('tut.p08.p4'), figure: () => facts([['7', t('tut.p08.f1')], ['90', t('tut.p08.f2')], ['20', t('tut.p08.f3')], ['+5', t('tut.p08.f4')]]) },
+    ],
+    practice: {
+      text: t('tut.p08.practice'),
+      build: (onDone) => {
+        const box = h('div', { class: 'p08-play prac' });
+        let done = false;
+        const panel = h('div', { class: 'sb-panel' });
+        const upd = () => {
+          const j = board.judge();
+          clear(panel);
+          panel.append(h('h4', null, t('p08.condTitle')), condList(P08_PRACTICE, j, board.place), h('div', { class: `small${j.ok ? ' gold' : ' dim'}` }, j.ok ? t('tut.p08.pracDone') : t('p08.howNote')));
+          if (j.ok && !done) { done = true; Sound.se('result'); onDone(); }
+        };
+        const board = new ScaleBoard(P08_PRACTICE, { onChange: upd, scale: 0.8 });
+        upd();
+        box.append(board.el, panel);
+        return box;
+      },
+    },
+  };
+}
+
+const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide, m07: m07Guide, p07: p07Guide, m08: m08Guide, p08: p08Guide };
 
 export const hasGuide = (id: string) => id in GUIDES;
 
