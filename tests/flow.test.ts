@@ -1,3 +1,4 @@
+import { isImplemented } from '../src/matches/registry';
 import { describe, expect, it } from 'vitest';
 import { autoAdvance } from '../src/core/autoplay';
 import { aliveIds } from '../src/core/state';
@@ -45,16 +46,18 @@ describe('1日の進行（自動対戦）', () => {
     for (const n of outs.values()) expect(n).toBeLessThan(N * 0.5);
   });
 
-  it('DAY2 は旧ルールの競技しかないため、本編では DAY2 の朝で止まる（v11 で置き換えるまで完成扱いにしない）', async () => {
+  it('実装と確認が済んだ日まで通しで進み、その次の日の朝で止まる（未完成の競技を完成扱いにしない）', async () => {
     for (let seed = 1; seed <= 20; seed++) {
       const s = freshState(seed * 13);
       s.phase = 'morning';
-      const ok = await autoAdvance(s, 3, 'morning');
+      const ok = await autoAdvance(s, 4, 'morning');
       expect(ok).toBe(false);
       if (!s.actors.hero.alive) continue;
-      expect(s.day).toBe(2);
+      const day2 = isImplemented('m02') && isImplemented('p02');
+      expect(s.day).toBe(day2 ? 3 : 2);
       expect(s.phase).toBe('morning');
-      expect(aliveIds(s).length).toBe(11);
+      expect(aliveIds(s).length).toBe(day2 ? 10 : 11);
+      if (day2) expect(s.history[1].mainRanking!.length).toBe(11);
     }
   }, 60_000);
 

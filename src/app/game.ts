@@ -14,7 +14,7 @@ import type { CharId, NpcId } from '../data/characters';
 import storyJson from '../data/story_events.json';
 import endingsJson from '../data/endings.json';
 import { t } from '../i18n/i18n';
-import { clampPhaseLeft, clockMinutes, crossed, fmtClock, phaseDuration } from '../core/clock';
+import { clampPhaseLeft, CLOCK, clockMinutes, crossed, fmtClock, phaseDuration } from '../core/clock';
 import { isImplemented } from '../matches/registry';
 import { addInvite, clearSocial, INVITE_TIME, isBedroom, observeAttitude, ownerOf, witnessEntry } from '../npc/social';
 
@@ -100,6 +100,8 @@ export const G = {
   perf: { fps: 0, slow: 0, w: 0, h: 0 },
   /** 会話中など、NPC から話しかけられない状態 */
   heroBusy: false,
+  /** 扉を通った直後。方向キーを一度離すまで、歩いて扉に入り直さない */
+  doorHold: false,
   meta: loadMeta() as Meta,
   ui: null as unknown as Screens,
   /** 終局してタイトルへ戻る時に呼ばれる */
@@ -113,7 +115,7 @@ export const G = {
     const curfew = s.phase === 'curfew';
     const before = clockMinutes(s);
     // 開発版のみ：自由時間の残りを早く減らせる（NPC の行動速度や競技には影響しない）。消灯後は時計を進めない
-    if (!curfew) s.phaseLeft = Math.max(0, s.phaseLeft - dt * (CHANNEL === 'dev' ? G.meta.settings.timeScale || 1 : 1));
+    if (!curfew) s.phaseLeft = Math.max(0, s.phaseLeft - dt * CLOCK.realRate * (CHANNEL === 'dev' ? G.meta.settings.timeScale || 1 : 1));
     if (!curfew) clockEvents(s, before, clockMinutes(s));
     const hero = s.actors.hero;
     moveActor(s, hero, dt, speedOf('hero'));
@@ -144,14 +146,28 @@ export const G = {
     } else if (target.kind === 'door') {
       const d = target.door;
       if (canEnter(s, 'hero', d.to, d.lock)) {
+        // 部屋の切り替え：短く暗転して行き先の名前を出し、明けるまで操作を受け付けない。
+        // 着いた直後に押しっぱなしの方向で扉へ戻ってしまわないよう、方向キーを一度離すまで扉は反応しない
         const from = s.actors.hero.pos.room;
-        if (enterDoor(s, s.actors.hero, d)) {
-          // 他人の個室へ入るところは、廊下にいた人に見られることがある
-          if (isBedroom(d.to) && d.to !== 'bedroom_hero') witnessEntry(s, ownerOf(d.to), 'hero', from, rngOf(s));
-          Sound.se(d.kind === 'iron' ? 'latch' : 'doorOpen');
-          lastStepKey = '';
-          setFieldBgm();
-        }
+        const dest = ROOMS[d.to];
+        G.heroBusy = true;
+        G.doorHold = true;
+        Sound.se(d.kind === 'iron' ? 'latch' : 'doorOpen');
+        void (async () => {
+          try {
+            await fade(true, 170, dest ? `${dest.name.startsWith(dest.floor) ? '' : dest.floor + '　'}${dest.name}` : '');
+            if (G.state === s && enterDoor(s, s.actors.hero, d)) {
+              // 他人の個室へ入るところは、廊下にいた人に見られることがある
+              if (isBedroom(d.to) && d.to !== 'bedroom_hero') witnessEntry(s, ownerOf(d.to), 'hero', from, rngOf(s));
+              lastStepKey = '';
+              setFieldBgm();
+            }
+            await new Promise((r) => setTimeout(r, 260));
+            await fade(false, 240);
+          } finally {
+            G.heroBusy = false;
+          }
+        })();
       } else {
         // 歩いて扉に触れただけの時は何も出さない（行動ボタンを押した時だけ理由を伝える）
         const why = quiet ? '' : denyReason(s, d.to, d.lock);
@@ -525,6 +541,7 @@ async function step(s: GameState): Promise<boolean> {
       if (first()) gatherAt(s, 'main_arena');
       showField(true);
       Sound.bgm('match_main');
+      await fade(false);
       await banner(t('banner.gather'));
       await G.ui.rulesScreen(mainMatchId(s.day), { prison: false });
       enter('main');
@@ -537,6 +554,7 @@ async function step(s: GameState): Promise<boolean> {
     }
     case 'main': {
       showField(false);
+      void fade(false);
       Sound.bgm('match_main');
       const id = mainMatchId(s.day);
       if (!s.match || s.match.kind !== 'main' || s.match.day !== s.day) { npcRescuePromises(s); s.match = newSlot(s, id, aliveIds(s), 'main'); }
@@ -602,11 +620,13 @@ async function step(s: GameState): Promise<boolean> {
       if (heroIn) {
         showField(true);
         Sound.bgm('match_prison');
+        await fade(false);
         await banner(t('banner.prison'));
         await G.ui.rulesScreen(id, { prison: true });
         showField(false);
       } else {
         showField(false);
+        await fade(false);
         await banner(t('banner.prisonAway'));
       }
       const slot = s.match;

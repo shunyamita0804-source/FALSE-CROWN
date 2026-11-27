@@ -80,6 +80,7 @@ export const UI_ASSETS: Record<string, AssetDef> = {
   'v11/m01/puzzle_frame': { path: 'ui/v11/m01/puzzle_frame', slice: S(96) },
   'v11/m01/tile_surface': { path: 'ui/v11/m01/tile_surface' },
   'v11/m01/completion_glow': { path: 'ui/v11/m01/completion_glow' },
+  'v11/m02/flash_frame': { path: 'ui/v11/m02/flash_frame', slice: S(60) },
   'v11/prison/compact_frame': { path: 'ui/v11/prison/compact_frame', slice: S(96) },
   'v11/hidden/challenge_frame': { path: 'ui/v11/hidden/challenge_frame', slice: S(96) },
 };

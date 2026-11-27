@@ -9,6 +9,8 @@ import type { GameState, Phase } from './types';
 export const CLOCK = {
   /** 実時間 1 秒あたりのゲーム内の分 */
   minutesPerSecond: 1,
+  /** 実時間に対する時計の進み方。0.7 は「ゲーム内の 1 分 ＝ 実時間 約 1.4 秒」（実機で速すぎるとの指摘を受けて 1.0 から変更） */
+  realRate: 0.7,
   wake: 7 * 60,
   breakfast: 8 * 60,
   free: 9 * 60,

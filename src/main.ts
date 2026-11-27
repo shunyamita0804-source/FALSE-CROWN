@@ -19,7 +19,7 @@ import { deleteSave, loadGame } from './save/save';
 import { BootScene } from './scenes/BootScene';
 import { FieldScene } from './scenes/FieldScene';
 import { setHeroGender } from './ui/art';
-import { alertDialog, initStage, toast, uiKey } from './ui/dom';
+import { alertDialog, initStage, installErrorScreen, toast, uiKey } from './ui/dom';
 import { playMatch } from './ui/matchui';
 import * as screens from './ui/screens';
 import { talkTo } from './ui/talk';
@@ -28,6 +28,7 @@ if (window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window) 
 document.body.dataset.channel = CHANNEL;
 
 initStage();
+installErrorScreen(__APP_VERSION__);
 applyUiAssets();
 Sound.init(G.meta.settings.bgm, G.meta.settings.se, G.meta.settings.voice);
 screens.initSettings();

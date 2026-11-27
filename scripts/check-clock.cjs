@@ -20,7 +20,7 @@ const { chromium, devices } = require('playwright');
   if (out) await page.screenshot({ path: out + '/clock_hud.png' });
   await page.waitForTimeout(3000);
   const s2 = await st();
-  check('時計は実時間 1 秒で約 1 分進む', Math.abs((s1.left - s2.left) - 3000) < 700, `${s1.left - s2.left}ms`);
+  check('時計は実時間 約 1.4 秒で 1 分進む', Math.abs((s1.left - s2.left) - 2100) < 600, `${s1.left - s2.left}ms`);
   // 手帳を開いている間は止まる
   await page.getByRole('button', { name: /手帳/ }).tap(); await page.waitForTimeout(300);
   const a = await st(); await page.waitForTimeout(1500); const b = await st();

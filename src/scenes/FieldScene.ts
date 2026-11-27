@@ -436,6 +436,7 @@ export class FieldScene extends Phaser.Scene {
       const held = dirs.find((d) => Input.isDown(d));
       // 押している方向は「意図」として渡し、1 マス歩き終えた瞬間に次の 1 マスへ途切れずに進ませる
       hero.intent = held;
+      if (!held) G.doorHold = false;
       if (held) {
         hero.path = [];
         hero.route = [];
@@ -445,7 +446,7 @@ export class FieldScene extends Phaser.Scene {
             // 壁に向かって押した：扉なら通る
             const room = ROOMS[hero.pos.room];
             const door = room.doors.find((d) => doorDir(d) === held && doorApproach(room, d).some((t) => t.x === hero.pos.x && t.y === hero.pos.y));
-            if (door && (before === held || Input.justPressed(held))) G.interact({ kind: 'door', door }, true);
+            if (door && !G.doorHold && (before === held || Input.justPressed(held))) G.interact({ kind: 'door', door }, true);
           }
         }
       }
