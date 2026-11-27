@@ -53,6 +53,8 @@ import { boardFigure, COLOR_NAME, itemEl, MemQuiz, SHAPE_NAME } from './memquiz'
 import { PolyBoard } from './polyboard';
 import { HIDDEN_GUIDES } from './hiddenguides';
 import { SUB_GUIDES } from './subguides';
+import { VOICED } from './voiceguides';
+import { voicedTutorial } from './voicetut';
 
 export interface GuidePage {
   title: string;
@@ -1076,10 +1078,16 @@ function m11Guide(): Guide {
 
 const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide, m07: m07Guide, p07: p07Guide, m08: m08Guide, p08: p08Guide, m09: m09Guide, p09: p09Guide, m10: m10Guide, p10: p10Guide, m11: m11Guide, h06: () => p10Guide(true), ...SUB_GUIDES, ...HIDDEN_GUIDES };
 
-export const hasGuide = (id: string) => id in GUIDES;
+export const hasGuide = (id: string) => id in GUIDES || id in VOICED;
+
+/** 試合中の「ルール」から、音声付きの説明を見直す（無ければ false） */
+export function reviewVoiced(matchId: string): Promise<void> | null {
+  return VOICED[matchId] ? voicedTutorial(matchId, VOICED[matchId](), { review: true }) : null;
+}
 
 /** 段階的な説明と練習。終えるか飛ばすと解決する。開いている間、大会の時計は止まる */
 export function tutorialScreen(matchId: string, opts: { cutNote?: string } = {}): Promise<void> {
+  if (VOICED[matchId]) return voicedTutorial(matchId, VOICED[matchId](), opts);
   const g = GUIDES[matchId]();
   return new Promise((resolve) => {
     let layer: Layer;

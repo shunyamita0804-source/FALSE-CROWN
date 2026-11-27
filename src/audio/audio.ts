@@ -64,6 +64,9 @@ class AudioManager {
   private voiceGain: GainNode | null = null;
   private voiceSrc: AudioBufferSourceNode | null = null;
   private voiceSeq = 0;
+  /** ボイスの間だけ BGM を下げる */
+  private duckGain: GainNode | null = null;
+  private voiceEnd: (() => void) | null = null;
   private voiceBuffers = new Map<string, Promise<AudioBuffer | null>>();
   private current: { id: BgmId; el: HTMLAudioElement; gain: GainNode } | null = null;
   private wanted: BgmId | null = null;
@@ -102,7 +105,8 @@ class AudioManager {
       this.seGain = this.ctx.createGain();
       this.bgmGain.gain.value = this.bgmVol;
       this.seGain.gain.value = this.seVol;
-      this.bgmGain.connect(this.ctx.destination);
+      this.duckGain = this.ctx.createGain();
+      this.bgmGain.connect(this.duckGain).connect(this.ctx.destination);
       this.seGain.connect(this.ctx.destination);
       this.voiceGain = this.ctx.createGain();
       this.voiceGain.gain.value = this.voiceVol;
@@ -335,9 +339,9 @@ class AudioManager {
    * ボイスを 1 つ鳴らす（url は音源ファイル、gain は音量の補正倍率）。前のボイスは止める（同時再生しない）。
    * 音量が 0、未解錠、中断中は鳴らさない。読み込めなければ無音のまま。
    */
-  voice(url: string, gain = 1): void {
+  voice(url: string, gain = 1, opts: { duck?: boolean; onStart?: (sec: number) => void; onEnd?: () => void } = {}): void {
     this.stopVoice();
-    if (!this.unlocked || !this.ctx || this.suspended || this.voiceVol <= 0) return;
+    if (!this.unlocked || !this.ctx || this.suspended || this.voiceVol <= 0) { opts.onEnd?.(); return; }
     const ctx = this.ctx;
     const seq = ++this.voiceSeq;
     let p = this.voiceBuffers.get(url);
@@ -350,15 +354,24 @@ class AudioManager {
     }
     void p.then((b) => {
       // 読み込みの間に次の会話や画面へ進んでいたら鳴らさない
-      if (!b || seq !== this.voiceSeq || this.suspended || !this.voiceGain) return;
+      if (!b || seq !== this.voiceSeq || this.suspended || !this.voiceGain) { if (seq === this.voiceSeq) opts.onEnd?.(); return; }
       const src = ctx.createBufferSource();
       src.buffer = b;
       const g = ctx.createGain();
       g.gain.value = gain;
       src.connect(g).connect(this.voiceGain);
-      src.onended = () => { if (this.voiceSrc === src) this.voiceSrc = null; };
+      const end = () => {
+        if (this.voiceEnd !== end) return;
+        this.voiceEnd = null;
+        if (opts.duck) this.unduck();
+        opts.onEnd?.();
+      };
+      src.onended = () => { if (this.voiceSrc === src) this.voiceSrc = null; end(); };
       this.voiceSrc = src;
+      this.voiceEnd = end;
+      if (opts.duck && this.duckGain) this.duckGain.gain.setTargetAtTime(0.3, ctx.currentTime, 0.08);
       src.start();
+      opts.onStart?.(b.duration);
     });
   }
 
@@ -368,6 +381,13 @@ class AudioManager {
     const src = this.voiceSrc;
     this.voiceSrc = null;
     if (src) try { src.stop(); } catch { /* すでに止まっている */ }
+    const end = this.voiceEnd;
+    this.voiceEnd = null;
+    if (end) { this.unduck(); }
+  }
+
+  private unduck(): void {
+    if (this.ctx && this.duckGain) this.duckGain.gain.setTargetAtTime(1, this.ctx.currentTime, 0.25);
   }
 
   get voicePlaying(): boolean {

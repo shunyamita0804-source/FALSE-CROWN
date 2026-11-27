@@ -2,5 +2,6 @@
   "common.back": "Back", "common.cancel": "Cancel", "common.close": "Close", "common.confirm": "Confirm", "common.next": "Next", "common.ok": "OK", "common.skip": "Skip", "common.toTitle": "Title",
   "title.sub": "A SURVIVAL GAME OF WITS", "title.continue": "Continue", "title.new": "New Game", "title.settings": "Settings", "title.howto": "How to Play", "title.credits": "Credits",
   "title.purchase": "Full Version", "title.restore": "Restore Purchase", "title.language": "Language", "title.dev": "Developer Menu",
-  "title.devBuild": "Development build (all days unlocked)", "title.productBuild": "Release"
+  "title.devBuild": "Development build (all days unlocked)", "title.productBuild": "Release",
+  "vt.gm": "Game Master", "vt.replay": "Replay", "vt.stop": "Stop voice", "vt.play": "Play", "vt.good": "Well done", "vt.m01.title": "The event", "vt.m01.rules": "Basic rules", "vt.m01.controls": "Controls", "vt.m01.noflip": "Pieces cannot be flipped", "vt.m01.doRotate": "Try it: pick a piece and press Rotate", "vt.m01.doPlace": "Now place that piece inside the frame", "vt.m01.format": "Groups and stages", "vt.m01.group": "Group {n}", "vt.m01.scoring": "Scoring", "vt.m01.team": "Whole group completes", "vt.m01.indiv": "Final ranking uses individual totals", "vt.m01.hint": "Hint", "vt.m01.doHint": "Try it: press Hint (free during the tutorial)", "vt.m01.hintOnce": "In the real match it costs 2 pieces, once per event"
 }

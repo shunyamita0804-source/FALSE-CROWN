@@ -16,6 +16,8 @@ export interface PolyBoardOpts {
   cell?: number;
   /** 置き場のピースの 1 マスの大きさ（省略時は盤面から決める） */
   trayCell?: number;
+  /** ピースを回した時（説明で、操作を見届けるため） */
+  onRotate?: (piece: number) => void;
   onChange?: (placed: Placement[]) => void;
   onComplete?: (placed: Placement[]) => void;
   /** 操作できない表示（説明用の図） */
@@ -108,6 +110,7 @@ export class PolyBoard {
     this.rot[i] = (this.rot[i] + 1) % 4;
     Sound.se('select');
     this.draw();
+    this.opts.onRotate?.(i);
   }
 
   undo(): void {
