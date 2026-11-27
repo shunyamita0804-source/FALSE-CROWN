@@ -10,7 +10,7 @@ import bgmTable from '../data/bgm.json';
 const BASE = import.meta.env.BASE_URL;
 
 export type BgmId = 'title' | 'corridor' | 'room' | 'living' | 'common' | 'lounge' | 'prison' | 'hidden' | 'match_main' | 'match_prison' | 'final' | 'elimination' | 'ending';
-export interface BgmDef { label: string; file: string; title: string; loop: boolean; xfade?: boolean; by: string }
+export interface BgmDef { label: string; file: string; title: string; loop: boolean; xfade?: boolean; resume?: boolean; by: string }
 /** 場面 → 音源の対応は src/data/bgm.json で管理する（差し替え手順は docs/bgm.md） */
 export const BGM = (bgmTable as unknown as { scenes: Record<BgmId, BgmDef> }).scenes;
 export const BGM_CREDITS = (bgmTable as unknown as { credits: Record<string, { name: string; url: string; license: string }> }).credits;
@@ -60,6 +60,8 @@ class AudioManager {
   private seVol = 0.8;
   private current: { id: BgmId; el: HTMLAudioElement; gain: GainNode } | null = null;
   private wanted: BgmId | null = null;
+  /** 場面ごとの再生位置（秒）。resume 指定の場面は、戻った時に続きから鳴らす */
+  private positions = new Map<BgmId, number>();
   private buffers = new Map<string, AudioBuffer | Promise<AudioBuffer | null> | null>();
   private last = new Map<string, number>();
   private counter = 0;
@@ -148,6 +150,7 @@ class AudioManager {
     const old = this.current;
     this.current = null;
     if (old) {
+      if (BGM[old.id]?.resume && Number.isFinite(old.el.currentTime)) this.positions.set(old.id, old.el.currentTime);
       old.gain.gain.cancelScheduledValues(now);
       old.gain.gain.setValueAtTime(old.gain.gain.value, now);
       old.gain.gain.linearRampToValueAtTime(0, now + fadeMs / 1000);
@@ -176,6 +179,15 @@ class AudioManager {
       return;
     }
     this.current = { id, el, gain };
+    // 続きから鳴らす（曲の終わり際だった時は頭から）
+    const at = def.resume ? this.positions.get(id) ?? 0 : 0;
+    if (at > 1) {
+      el.addEventListener('loadedmetadata', () => {
+        try {
+          if (Number.isFinite(el.duration) && at < el.duration - 12) el.currentTime = at;
+        } catch { /* 位置を戻せない環境では頭から */ }
+      }, { once: true });
+    }
     if (!this.suspended) void el.play().catch(() => undefined);
     if (def.xfade) {
       el.loop = false;

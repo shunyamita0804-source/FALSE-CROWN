@@ -1,5 +1,5 @@
 {
-  "note": "場面ごとの BGM の割り当て。曲を差し替えるときは、音源を public/assets/audio/bgm/ に置き、該当する場面の file と title、by（credits の名前）を書き換えるだけでよい。file を空文字にするとその場面は無音になる。loop は繰り返し再生、xfade は専用ループ音源でない曲の末尾と先頭を短く重ねる指定。手順は docs/bgm.md。",
+  "note": "場面ごとの BGM の割り当て。曲を差し替えるときは、音源を public/assets/audio/bgm/ に置き、該当する場面の file と title、by（credits の名前）を書き換えるだけでよい。file を空文字にするとその場面は無音になる。loop は繰り返し再生、xfade は専用ループ音源でない曲の末尾と先頭を短く重ねる指定。手順は docs/bgm.md。 resume を true にした場面は、別の曲へ切り替えた時の再生位置を覚えておき、戻った時に続きから鳴らす（部屋に入るたびに頭出ししない）。",
   "scenes": {
     "title": {
       "label": "タイトル",
@@ -15,35 +15,41 @@
       "title": "Airport Lounge",
       "loop": true,
       "xfade": true,
-      "by": "incompetech"
+      "by": "incompetech",
+      "resume": true
     },
     "room": {
-      "label": "個室（専用曲は未決定。暫定でラウンジ曲）",
-      "file": "B03_alt_coffee_lounge.m4a",
-      "title": "Coffee_Lounge",
+      "label": "個室",
+      "file": "avec_soin.mp3",
+      "title": "Avec Soin",
       "loop": true,
-      "by": "peritune"
+      "xfade": true,
+      "resume": true,
+      "by": "incompetech"
     },
     "living": {
       "label": "生活棟のその他の部屋（図書室など。暫定でラウンジ曲）",
       "file": "B03_alt_coffee_lounge.m4a",
       "title": "Coffee_Lounge",
       "loop": true,
-      "by": "peritune"
+      "by": "peritune",
+      "resume": true
     },
     "common": {
       "label": "共用施設、食堂、1 階",
       "file": "B03_taishoroman_theme2.m4a",
       "title": "TaishoRoman_Theme2",
       "loop": true,
-      "by": "peritune"
+      "by": "peritune",
+      "resume": true
     },
     "lounge": {
       "label": "ラウンジ",
       "file": "B03_alt_coffee_lounge.m4a",
       "title": "Coffee_Lounge",
       "loop": true,
-      "by": "peritune"
+      "by": "peritune",
+      "resume": true
     },
     "prison": {
       "label": "監獄棟",
@@ -51,7 +57,8 @@
       "title": "Suspense3",
       "loop": true,
       "xfade": true,
-      "by": "peritune"
+      "by": "peritune",
+      "resume": true
     },
     "hidden": {
       "label": "隠し部屋、裏ゲーム",
@@ -59,7 +66,8 @@
       "title": "Investigation",
       "loop": true,
       "xfade": true,
-      "by": "peritune"
+      "by": "peritune",
+      "resume": true
     },
     "match_main": {
       "label": "競技説明、作戦時間、メインマッチ",

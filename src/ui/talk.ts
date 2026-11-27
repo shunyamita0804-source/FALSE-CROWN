@@ -14,7 +14,8 @@ import storyJson from '../data/story_events.json';
 import { t } from '../i18n/i18n';
 import type { BrainEvent } from '../npc/brain';
 import { say, type LineKey } from '../npc/lines';
-import { accuse, commit, dealLabel, evaluate, noteDeal, type Proposal } from '../npc/negotiation';
+import { absorb, accuse, commit, dealLabel, evaluate, noteDeal, type Proposal } from '../npc/negotiation';
+import { aboutTarget, addInvite, endInvite, INVITE_TIME, inviteVerdict, isPrivate, observeAttitude } from '../npc/social';
 import { actorsIn, distance } from '../world/sim';
 import { icon, portraitUrl } from './art';
 import { button, choose, clear, closeLayer, h, openLayer, panel, type Layer } from './dom';
@@ -25,6 +26,12 @@ const EXPR: Partial<Record<LineKey, string>> = {
   reject_price: 'wary', reject_principle: 'anger', trust_low: 'wary', refuse: 'wary', accuseDoubt: 'wary',
   counter: 'think', info_offer: 'smirk', alliance_offer: 'normal', loan_request: 'sad', accuseBelieve: 'think', noInfo: 'normal',
   smalltalk: 'normal', greeting: 'normal', greetWary: 'wary', info_uncertain: 'think', plan_request: 'think',
+};
+
+/** 相手の反応から主人公が読み取れる好意の変化（値、1 日 1 回だけ数えるか）。関係一覧の推定に使う */
+const ATTITUDE: Partial<Record<LineKey, [number, boolean]>> = {
+  accept: [8, false], gift_received: [6, false], trust_high: [6, false], promise_fulfilled: [8, false], alliance_offer: [6, true], smalltalk: [2, true], accuseBelieve: [2, false],
+  reject_price: [-2, false], reject_principle: [-8, false], trust_low: [-8, true], refuse: [-5, false], greetWary: [-4, true], accuseDoubt: [-3, false],
 };
 
 interface OptEvent { id: string; day: number; lines: { speaker: string; text: string }[]; trigger?: string }
@@ -52,6 +59,8 @@ export function askNumber(title: string, text: string, min: number, max: number,
 
 function witnesses(s: GameState, npc: NpcId): CharId[] {
   const a = s.actors[npc];
+  // 個室で 2 人きりなら、誰にも見られない（v10）
+  if (isPrivate(s, 'hero', npc)) return [];
   return actorsIn(s, a.pos.room).filter((x) => x.id !== npc && x.id !== 'hero' && distance(x, a) <= 7 && NPC_BY_ID[x.id as NpcId].stats.observation >= 7).map((x) => x.id);
 }
 
@@ -73,6 +82,7 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
     const text = h('div', { class: 'dlg-text' });
     const menu = h('div', { class: 'talk-menu' });
     const info = h('div', { class: 'talk-info hud-box' });
+    const priv = () => !inMatch && isPrivate(s, 'hero', npc);
     const hold = () => {
       A.busyUntil = s.simTime + 2500;
       A.path = [];
@@ -82,6 +92,8 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
       if (!closed && !inMatch) hold();
     }, 400);
     const line = (key: LineKey, vars: { x?: string } = {}, expr?: string) => {
+      const seen = ATTITUDE[key];
+      if (seen) observeAttitude(s, npc, seen[0], seen[1] ? key : undefined);
       text.textContent = say(s, npc, key, { name: me, ...vars });
       portrait.src = portraitUrl(npc, expr ?? EXPR[key] ?? 'normal');
     };
@@ -101,7 +113,8 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
       document.body.classList.remove('talking');
       closeLayer(layer);
       G.heroBusy = false;
-      A.busyUntil = s.simTime + 600;
+      // 話し終えても、すぐには立ち去らない（同行中はすぐ付いてくる）
+      A.busyUntil = s.simTime + (A.goal?.kind === 'follow' ? 300 : 4000);
       A.talkCd.hero = s.simTime + CONFIG.npc.approachHeroCooldown;
       A.bubble = undefined;
       G.save();
@@ -221,14 +234,113 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
         adjustRel(s, npc, 'hero', { like: 2, trust: 1 });
         adjustRel(s, 'hero', npc, { like: 2, trust: 1 });
       }
-      // 任意の人物イベント（相手が生存し、同じ場所にいる時だけ発生）
+      line('smalltalk');
+    };
+
+    /** 個人的な話（私的な場所だけ）。既存の解放条件（日数と信頼）はそのまま */
+    const personal = async () => {
       const ev = OPTIONAL.find((e) => e.lines[0]?.speaker === npc && s.day >= e.day && !s.seen.includes(e.id));
       if (ev && rel(s, npc, 'hero').trust >= 45) {
         s.seen.push(ev.id);
+        observeAttitude(s, npc, 6);
         raw(ev.lines.map((l) => l.text).join('\n'), 'think');
         return;
       }
-      line('smalltalk');
+      raw(t('talk.personalNone', { name: def.short }));
+    };
+
+    /** 公の場で聞ける話：誰でも見て分かることだけ */
+    const publicInfo = async () => {
+      const alive = aliveIds(s);
+      const rich = [...alive].sort((a, b) => s.actors[b].pieces - s.actors[a].pieces)[0];
+      const last = s.history[s.history.length - 1];
+      const parts = [t('talk.pubRich', { name: rich === 'hero' ? me : shortName(s, rich), n: s.actors[rich].pieces })];
+      if (last?.mainRanking?.length) parts.push(t('talk.pubRank', { day: last.day, name: shortName(s, last.mainRanking[0]) }));
+      if (last?.eliminated?.length) parts.push(t('talk.pubOut', { day: last.day, name: shortName(s, last.eliminated[0]) }));
+      raw(parts.join('\n') + '\n' + t('talk.pubHint'));
+    };
+
+    /** 他者の動向（私的な場所だけ）：相手が実際に知っていることだけを聞ける */
+    const askAbout = async () => {
+      const targets = aliveIds(s).filter((x) => x !== 'hero' && x !== npc);
+      const target = await choose<CharId | null>(t('talk.about'), t('talk.aboutAsk'), [...targets.map((x) => ({ label: nameOf(s, x), value: x as CharId | null })), { label: t('common.cancel'), value: null }], { cancel: null, pauses: false });
+      if (!target) return;
+      const ans = aboutTarget(s, npc, 'hero', target, rngOf(s));
+      if (ans.kind === 'refuse') return line('trust_low');
+      if (ans.kind === 'none') return raw(t('talk.aboutNone', { name: shortName(s, target) }));
+      if (ans.kind === 'price') {
+        const ok = await choose(t('talk.about'), t('talk.aboutPrice', { name: def.short, n: ans.price }), [{ label: t('talk.aboutPay', { n: ans.price }), value: true, kind: 'primary', disabled: hero.pieces < ans.price }, { label: t('common.cancel'), value: false }], { cancel: false, pauses: false });
+        if (!ok || !transfer(s, 'hero', npc, ans.price, '情報の代金')) return line('exit');
+        Sound.se('coins');
+        refreshInfo();
+      }
+      for (const i of ans.infos) absorb(s, 'hero', i.id, npc, Math.min(0.85, (A.knows[i.id]?.conf ?? 0.6) * 0.9));
+      raw(ans.infos.map((i) => `「${i.text}」`).join('\n'), 'think');
+    };
+
+    /** 密談に誘う：応じたら同行してもらい、自分の個室で話す */
+    const invite = async () => {
+      if (A.goal?.kind === 'follow' && A.goal.target === 'hero') {
+        endInvite(s, 'hero', npc);
+        A.goal = undefined;
+        return raw(t('talk.followEnd', { name: def.short }));
+      }
+      const v = inviteVerdict(s, 'hero', npc, rngOf(s));
+      if (!v.accept || !addInvite(s, 'hero', npc)) {
+        observeAttitude(s, npc, v.reason === 'distrust' ? -4 : 0);
+        return raw(t(`talk.invite.${v.reason === 'ok' ? 'full' : v.reason}`), v.reason === 'distrust' ? 'wary' : 'normal');
+      }
+      observeAttitude(s, npc, 3);
+      A.goal = { kind: 'follow', target: 'hero', note: 'private', until: s.simTime + INVITE_TIME };
+      A.path = [];
+      A.route = [];
+      Sound.se('confirm');
+      raw(t('talk.invite.ok'), 'normal');
+    };
+
+    const tradeMenu = async () => {
+      const hasLoan = activeDeals(s, 'hero', npc).some((d) => d.kind === 'loan' && d.from === 'hero');
+      const pick = await choose<string | null>(t('talk.trade'), t('talk.tradeText'), [
+        { label: t('talk.gift'), value: 'gift' }, { label: hasLoan ? t('talk.repayTitle') : t('talk.loan'), value: 'loan' }, { label: t('common.cancel'), value: null },
+      ], { cancel: null, pauses: false });
+      if (pick === 'gift') await gift();
+      else if (pick === 'loan') await loan();
+    };
+
+    const treatyMenu = async () => {
+      const pick = await choose<'alliance' | 'nonaggression' | null>(t('talk.treaty'), t(priv() ? 'talk.treatyPrivate' : 'talk.treatyPublic'), [
+        { label: t('talk.alliance'), value: 'alliance', kind: 'primary' }, { label: t('talk.nonaggression'), value: 'nonaggression' }, { label: t('common.cancel'), value: null },
+      ], { cancel: null, pauses: false });
+      if (pick) await proposeTreaty(pick);
+    };
+
+    const infoMenu = async () => {
+      if (!priv()) {
+        const pick = await choose<string | null>(t('talk.info'), t('talk.infoPublicText'), [
+          { label: t('talk.pubAsk'), value: 'pub' }, { label: t('talk.accuse'), value: 'accuse' }, { label: t('talk.secretAsk'), value: 'secret' }, { label: t('common.cancel'), value: null },
+        ], { cancel: null, pauses: false });
+        if (pick === 'pub') await publicInfo();
+        else if (pick === 'accuse') await doAccuse();
+        else if (pick === 'secret') raw(t('talk.needPrivate'));
+        return;
+      }
+      const pick = await choose<string | null>(t('talk.info'), t('talk.infoPrivateText'), [
+        { label: t('talk.buy'), value: 'buy' }, { label: t('talk.sell'), value: 'sell' }, { label: t('talk.accuse'), value: 'accuse' }, { label: t('talk.pubAsk'), value: 'pub' }, { label: t('common.cancel'), value: null },
+      ], { cancel: null, pauses: false });
+      if (pick === 'buy') await buyInfo();
+      else if (pick === 'sell') await sellInfo();
+      else if (pick === 'accuse') await doAccuse();
+      else if (pick === 'pub') await publicInfo();
+    };
+
+    const secretMenu = async () => {
+      const pick = await choose<string | null>(t('talk.secret'), t('talk.secretText'), [
+        { label: t('talk.secretInfo'), value: 'buy' }, { label: t('talk.secretSell'), value: 'sell' }, { label: t('talk.about'), value: 'about' }, { label: t('talk.personal'), value: 'personal' }, { label: t('common.cancel'), value: null },
+      ], { cancel: null, pauses: false });
+      if (pick === 'buy') await buyInfo();
+      else if (pick === 'sell') await sellInfo();
+      else if (pick === 'about') await askAbout();
+      else if (pick === 'personal') await personal();
     };
 
     // ---- 競技中の交渉 ----
@@ -280,17 +392,20 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
         add(t('talk.planAsk'), () => planMenu('npc'));
         add(t('talk.planOffer'), () => planMenu('hero'));
         add(t('talk.intent'), askIntent, 'help');
-      } else add(t('talk.smalltalk'), smalltalk);
-      add(t('talk.alliance'), () => proposeTreaty('alliance'), 'alliance');
-      add(t('talk.nonaggression'), () => proposeTreaty('nonaggression'), 'contract');
-      if (!inMatch) {
-        add(t('talk.buy'), buyInfo, 'rumor');
-        add(t('talk.sell'), sellInfo, 'evidence');
-        add(activeDeals(s, 'hero', npc).some((d) => d.kind === 'loan' && d.from === 'hero') ? t('talk.repayTitle') : t('talk.loan'), loan);
-        add(t('talk.accuse'), doAccuse, 'warning');
+        add(t('talk.alliance'), () => proposeTreaty('alliance'), 'alliance');
+        add(t('talk.nonaggression'), () => proposeTreaty('nonaggression'), 'contract');
+        add(t('talk.gift'), gift);
+      } else {
+        // v10：公の場と個室で主メニューが変わる。個室でも第三者がいれば公の場と同じ扱い
+        const following = A.goal?.kind === 'follow' && A.goal.target === 'hero';
+        add(t('talk.smalltalk'), smalltalk);
+        add(t('talk.info'), infoMenu, 'rumor');
+        add(t('talk.trade'), tradeMenu);
+        add(t('talk.treaty'), treatyMenu, 'alliance');
+        if (priv()) add(t('talk.secret'), secretMenu, 'contract');
+        if (!priv() || following) add(following ? t('talk.followStop') : t('talk.inviteAsk'), invite);
       }
-      add(t('talk.gift'), gift);
-      menu.append(button([icon('back'), t('talk.leave')], () => {
+      menu.append(button([icon('back'), t(inMatch ? 'talk.leave' : priv() ? 'talk.end' : 'talk.nothing')], () => {
         Sound.se('back');
         close();
       }, { kind: 'ghost', small: true }));

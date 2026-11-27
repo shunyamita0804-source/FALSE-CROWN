@@ -5,15 +5,16 @@
  */
 import { Sound, type BgmId } from '../audio/audio';
 import { engineOf, newSlot, resolveTies, runToEnd } from '../core/runner';
-import { addInfo, adjustRel, aliveIds, learn, log, nameOf, shortName, transfer } from '../core/state';
+import { addInfo, adjustRel, aliveIds, learn, log, nameOf, rngOf, shortName, transfer } from '../core/state';
 import { applyMainResult, applyPrisonResult, endDay, gatherAt, mainMatchId, moveToHouses, prisonMatchId, startMorning } from '../core/tournament';
 import type { GameState, MatchSlot, Phase } from '../core/types';
 import type { CharId, NpcId } from '../data/characters';
-import { CONFIG } from '../data/config';
 import storyJson from '../data/story_events.json';
 import endingsJson from '../data/endings.json';
 import { t } from '../i18n/i18n';
+import { clampPhaseLeft, clockMinutes, crossed, fmtClock, phaseDuration } from '../core/clock';
 import { isImplemented } from '../matches/registry';
+import { addInvite, clearSocial, INVITE_TIME, isBedroom, observeAttitude, ownerOf, witnessEntry } from '../npc/social';
 
 /** その日のメインマッチと監獄マッチが両方とも実装済みか */
 const dayPlayable = (day: number) => isImplemented(mainMatchId(day)) && (!prisonMatchId(day) || isImplemented(prisonMatchId(day)!));
@@ -22,11 +23,11 @@ import { recordBetrayal, settlePlans } from '../npc/negotiation';
 import { loadMeta, saveGame, saveMeta, type Meta } from '../save/save';
 import type { Target } from '../scenes/FieldScene';
 import { CLUE_BY_EVENT } from '../story/clues';
-import { alertDialog, anyModal, choose, clockPaused, confirmDialog, fade, toast } from '../ui/dom';
+import { alertDialog, anyModal, choose, clockPaused, confirmDialog, fade, toast, topLayer } from '../ui/dom';
 import { fxPop } from '../ui/art';
 import { canEnter, denyReason } from '../world/access';
 import { ROOMS } from '../world/maps';
-import { enterDoor, moveActor, placeIn, speedOf } from '../world/sim';
+import { enterDoor, moveActor, placeIn, setRouteTo, speedOf } from '../world/sim';
 import { CHANNEL, dayUnlocked } from './entitlement';
 
 export interface StoryLine {
@@ -88,6 +89,8 @@ export const G = {
   /** プレイヤーがフィールドを操作できる */
   fieldActive: false,
   fieldVisible: false,
+  /** 描画の状況（実機での確認用。設定画面に表示する） */
+  perf: { fps: 0, slow: 0, w: 0, h: 0 },
   /** 会話中など、NPC から話しかけられない状態 */
   heroBusy: false,
   meta: loadMeta() as Meta,
@@ -100,8 +103,11 @@ export const G = {
     const s = G.state;
     if (!s || !freeEnd || clockPaused() || document.hidden) return;
     s.simTime += dt;
-    // 開発版のみ：自由時間の残りを早く減らせる（NPC の行動速度や競技には影響しない）
-    s.phaseLeft -= dt * (CHANNEL === 'dev' ? G.meta.settings.timeScale || 1 : 1);
+    const curfew = s.phase === 'curfew';
+    const before = clockMinutes(s);
+    // 開発版のみ：自由時間の残りを早く減らせる（NPC の行動速度や競技には影響しない）。消灯後は時計を進めない
+    if (!curfew) s.phaseLeft = Math.max(0, s.phaseLeft - dt * (CHANNEL === 'dev' ? G.meta.settings.timeScale || 1 : 1));
+    if (!curfew) clockEvents(s, before, clockMinutes(s));
     const hero = s.actors.hero;
     moveActor(s, hero, dt, speedOf('hero'));
     const key = `${hero.pos.room}:${hero.pos.x},${hero.pos.y}`;
@@ -112,10 +118,18 @@ export const G = {
     const events = tickNpcs(s, dt, G.heroBusy || anyModal());
     for (const e of events) onBrainEvent(e);
     G.ui.hudUpdate();
-    if (s.phaseLeft <= 0 && !anyModal()) freeEnd();
+    if (!curfew && s.phaseLeft <= 0) {
+      // 締切：会話は切り上げる（成立済みの取引は残る）。確認中の画面は閉じるのを待つ
+      const top = topLayer();
+      if (top && (top.name === 'talk' || top.name === 'inspect') && top.onCancel) {
+        top.onCancel();
+        toast(t('clock.cutTalk'), 'info', 2600);
+      }
+      if (!anyModal()) freeEnd();
+    }
   },
 
-  interact(target: Target): void {
+  interact(target: Target, quiet = false): void {
     const s = G.state;
     if (!s || !target || !G.fieldActive || anyModal()) return;
     if (target.kind === 'npc') {
@@ -123,13 +137,17 @@ export const G = {
     } else if (target.kind === 'door') {
       const d = target.door;
       if (canEnter(s, 'hero', d.to, d.lock)) {
+        const from = s.actors.hero.pos.room;
         if (enterDoor(s, s.actors.hero, d)) {
+          // 他人の個室へ入るところは、廊下にいた人に見られることがある
+          if (isBedroom(d.to) && d.to !== 'bedroom_hero') witnessEntry(s, ownerOf(d.to), 'hero', from, rngOf(s));
           Sound.se(d.kind === 'iron' ? 'latch' : 'doorOpen');
           lastStepKey = '';
           setFieldBgm();
         }
       } else {
-        const why = denyReason(s, d.to, d.lock);
+        // 歩いて扉に触れただけの時は何も出さない（行動ボタンを押した時だけ理由を伝える）
+        const why = quiet ? '' : denyReason(s, d.to, d.lock);
         if (why) {
           Sound.se('locked');
           toast(why, 'info', 2200);
@@ -149,8 +167,12 @@ export const G = {
   skipFree(): void {
     const s = G.state;
     if (!s || !freeEnd) return;
-    fastForward(s, Math.max(0, s.phaseLeft));
-    s.phaseLeft = 0;
+    if (s.phase !== 'curfew') {
+      const before = clockMinutes(s);
+      fastForward(s, Math.max(0, s.phaseLeft));
+      s.phaseLeft = 0;
+      clockEvents(s, before, clockMinutes(s), true);
+    }
     freeEnd();
   },
 
@@ -172,6 +194,27 @@ function onBrainEvent(e: BrainEvent): void {
     if (anyModal() || G.heroBusy) return;
     Sound.se('notice');
     void G.ui.talkTo(e.npc, { event: e });
+  } else if (e.type === 'invite') {
+    if (anyModal() || G.heroBusy) return;
+    Sound.se('notice');
+    const npc = e.npc;
+    const name = shortName(s, npc);
+    G.heroBusy = true;
+    void choose(t('inviteIn.title', { name }), t('inviteIn.text', { name }), [{ label: t('inviteIn.yes'), value: true, kind: 'primary' }, { label: t('inviteIn.no'), value: false }], { cancel: false, pauses: false }).then((ok) => {
+      G.heroBusy = false;
+      const a = s.actors[npc];
+      if (!ok || !a.alive || !addInvite(s, npc, 'hero')) return;
+      observeAttitude(s, npc, 4);
+      a.goal = { kind: 'goto', room: `bedroom_${npc}`, note: 'host:hero', until: s.simTime + INVITE_TIME };
+      a.path = [];
+      a.route = [];
+      setRouteTo(s, a, `bedroom_${npc}`);
+      toast(t('inviteIn.go', { name }), 'info', 3600);
+    });
+  } else if (e.type === 'sight' && e.other) {
+    G.ui.hudLog(t('log.sawEnter', { a: shortName(s, e.npc), b: shortName(s, e.other) }));
+  } else if (e.type === 'followEnd') {
+    G.ui.hudLog(t('log.followEnd', { a: shortName(s, e.npc) }));
   } else if (e.type === 'talk' && e.other) {
     G.ui.hudLog(t('log.sawTalk', { a: shortName(s, e.npc), b: shortName(s, e.other) }));
   } else if (e.type === 'deal' && e.other) {
@@ -194,7 +237,28 @@ export function setFieldBgm(): void {
   else if (room.id === 'living_hallway') id = 'corridor';
   else if (room.id.endsWith('lounge')) id = 'lounge';
   else if (room.area === 'common' || room.area === 'ground') id = 'common';
-  Sound.bgm(id);
+  // 部屋を移る時は、少し長めに重ねて切り替える
+  Sound.bgm(id, 1500);
+}
+
+// ---------------- 時計 ----------------
+
+/** 予定の時刻をまたいだ時の通知。同じ通知を 2 度出さない（セーブからの再開でも同じ） */
+function clockEvents(s: GameState, before: number, after: number, silent = false): void {
+  for (const e of crossed(s.day, before, after, s.flags)) {
+    s.flags[e.key] = true;
+    if (silent) continue;
+    // 自分に関係のない予定は知らせない（監獄棟にいる間の食事など）
+    const inPrison = s.actors.hero.house === 'prison';
+    if (inPrison && ['dinner', 'bath', 'breakfast'].includes(e.item.key)) continue;
+    if (e.item.key === 'prison' && s.actors.hero.house !== 'prison' && e.notice) continue;
+    if (e.notice) {
+      Sound.se('tick');
+      toast(t('clock.notice', { what: t(`sched.${e.item.key}`), n: e.notice }), 'info', 3600);
+    } else if (!e.item.hard && t(`sched.at.${e.item.key}`) !== `sched.at.${e.item.key}`) {
+      toast(`${fmtClock(e.item.at)}　${t(`sched.at.${e.item.key}`)}`, 'info', 3600);
+    }
+  }
 }
 
 // ---------------- 調査 ----------------
@@ -219,7 +283,8 @@ async function inspect(id: string, text: string, event?: string): Promise<void> 
     }
   }
   if (event === 'rest_bed' && freeEnd) {
-    const ok = await confirmDialog(t('rest.title'), t('rest.text', { time: phaseName(s.phase) }), { ok: t('rest.ok'), cancel: t('common.cancel') });
+    const sleep = s.phase === 'curfew';
+    const ok = await confirmDialog(t(sleep ? 'sleep.title' : 'rest.title'), sleep ? t('sleep.text') : t('rest.text', { time: fmtClock(clockMinutes(s) + s.phaseLeft / 1000) }), { ok: t(sleep ? 'sleep.ok' : 'rest.ok'), cancel: t('common.cancel') });
     if (ok) {
       await fade(true);
       G.skipFree();
@@ -227,7 +292,7 @@ async function inspect(id: string, text: string, event?: string): Promise<void> 
     }
   } else if (event === 'dining_meal' && freeEnd) {
     // 食事：同じ時間帯に 1 回、その場にいる参加者と少し打ち解ける（日常の交流）
-    const key = `meal:${s.day}:${s.phase}`;
+    const key = `meal:${s.day}:${clockMinutes(s) < 15 * 60 ? 'am' : 'pm'}`;
     if (!s.flags[key]) {
       const ok = await confirmDialog(t('meal.title'), t('meal.text'), { ok: t('meal.ok'), cancel: t('common.cancel') });
       if (ok) {
@@ -291,6 +356,7 @@ function freePhase(): Promise<void> {
   G.fieldVisible = true;
   G.fieldActive = true;
   lastStepKey = '';
+  clampPhaseLeft(s);
   G.ui.hudShow(true);
   G.ui.hudUpdate();
   setFieldBgm();
@@ -298,6 +364,8 @@ function freePhase(): Promise<void> {
   return new Promise((res) => {
     freeEnd = () => {
       freeEnd = null;
+      // 締切：同行と招待を解く（成立済みの取引は残る）
+      clearSocial(s);
       G.fieldActive = false;
       s.actors.hero.path = [];
       res();
@@ -417,13 +485,14 @@ async function step(s: GameState): Promise<boolean> {
       }
       if (first()) {
         startMorning(s);
-        s.phaseLeft = CONFIG.phaseTime.morning;
+        s.phaseLeft = phaseDuration('morning');
         log(s, t('log.morning', { day: s.day }), 'day');
       }
       showField(true);
       await fade(false);
       await story(`S${dd(s.day)}A`);
       await freePhase();
+      await fade(true);
       enter('rules');
       return true;
     }
@@ -433,12 +502,11 @@ async function step(s: GameState): Promise<boolean> {
       Sound.bgm('match_main');
       await banner(t('banner.gather'));
       await G.ui.rulesScreen(mainMatchId(s.day), { prison: false });
-      enter('strategy');
+      enter('main');
       return true;
     }
     case 'strategy': {
-      if (first()) s.phaseLeft = CONFIG.phaseTime.strategy;
-      await freePhase();
+      // 旧版の「作戦時間」。v10 で朝の自由行動（11:00 からの競技準備）に統合した。古いセーブはそのまま競技へ進む
       enter('main');
       return true;
     }
@@ -480,7 +548,7 @@ async function step(s: GameState): Promise<boolean> {
     }
     case 'house': {
       const inPrison = s.actors.hero.house === 'prison';
-      if (first()) s.phaseLeft = inPrison ? CONFIG.phaseTime.prison : CONFIG.phaseTime.living;
+      if (first()) s.phaseLeft = phaseDuration('house');
       showField(true);
       await fade(false);
       if (!s.seen.includes(`house@${s.day}`)) {
@@ -488,6 +556,7 @@ async function step(s: GameState): Promise<boolean> {
         await alertDialog(t(inPrison ? 'house.prisonTitle' : 'house.livingTitle'), t(inPrison ? 'house.prisonText' : 'house.livingText'), t('common.next'));
       }
       await freePhase();
+      await fade(true);
       enter('prison');
       return true;
     }
@@ -556,10 +625,35 @@ async function step(s: GameState): Promise<boolean> {
           s.actors[id].goal = undefined;
           placeIn(s, id, id === 'hero' ? 'living_hallway' : 'living_lounge');
         }
-        s.phaseLeft = CONFIG.phaseTime.night;
+        s.phaseLeft = phaseDuration('night');
       }
       showField(true);
       await fade(false);
+      await freePhase();
+      await fade(true);
+      enter('curfew');
+      return true;
+    }
+    case 'curfew': {
+      // 22:00 消灯：全員が自分の個室へ。寝台で眠ると翌朝 07:00 になる
+      if (first()) {
+        for (const id of aliveIds(s)) {
+          const a = s.actors[id];
+          a.house = null;
+          a.goal = undefined;
+          a.path = [];
+          a.route = [];
+          a.step = undefined;
+          placeIn(s, id, `bedroom_${id}`);
+        }
+      }
+      showField(true);
+      await fade(false);
+      if (!s.seen.includes(`curfew@${s.day}`)) {
+        s.seen.push(`curfew@${s.day}`);
+        Sound.se('phase');
+        await alertDialog(t('curfew.title'), t('curfew.text'), t('common.next'));
+      }
       await freePhase();
       await fade(true);
       const notes = endDay(s);

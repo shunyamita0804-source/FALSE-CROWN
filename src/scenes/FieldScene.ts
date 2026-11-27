@@ -3,15 +3,20 @@ import { G } from '../app/game';
 import { assetFile, CHAR_FOOT, CHAR_H, CHAR_SCALE, CHAR_W, charFolder, TILE } from '../assets/registry';
 import { drawCharSheet, drawLightmap, drawProp, drawRoom, drawShadow } from '../assets/placeholders';
 import { hashString } from '../core/rng';
+import { shortName } from '../core/state';
 import type { Actor, Dir } from '../core/types';
 import { ALL_IDS, HERO_PALETTES, NPC_BY_ID, type CharId, type NpcId } from '../data/characters';
 import { fitCameraToReference, type LogicalView } from '../display/viewport';
+import { t } from '../i18n/i18n';
 import { Input } from '../input/InputState';
 import { anyModal } from '../ui/dom';
 import { ROOMS, doorApproach, doorDir, propVisible, type DoorDef, type InspectDef, type RoomDef } from '../world/maps';
 import { PROPS } from '../world/props';
 import { DIRS, actorsIn, facingTile, tryStep } from '../world/sim';
 import { WALK_LINGER_MS, walkFrame } from '../world/walk';
+import standAlign from '../data/stand_align.json';
+
+const STAND_ALIGN = standAlign as Record<string, Record<string, { x: number; y: number; k: number }>>;
 
 /** 仮素材テクスチャの解像度倍率（論理 64px/タイル に対して） */
 const TEX = 1.5;
@@ -47,7 +52,8 @@ export class FieldScene extends Phaser.Scene {
   private mapCache: string[] = [];
   private loading = new Set<string>();
   private actors = new Map<CharId, ActorView>();
-  private marks: Phaser.GameObjects.Image[] = [];
+  private lastFrameAt = 0;
+  private marks: (Phaser.GameObjects.Image | Phaser.GameObjects.Text)[] = [];
   private flagsKey = '';
   private camTarget = new Phaser.Math.Vector2();
   target: Target = null;
@@ -245,6 +251,14 @@ export class FieldScene extends Phaser.Scene {
         .setAngle({ up: 0, right: 90, down: 180, left: 270 }[d.dir]);
       this.tweens.add({ targets: m, alpha: 0.3, x: m.x + v.dx * 6, y: m.y + v.dy * 6, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       this.marks.push(m);
+      // 行き先の名前を出入口に表示する（他の参加者の個室は持ち主の名前）
+      const owner = d.to.startsWith('bedroom_') ? d.to.slice('bedroom_'.length) : '';
+      const name = owner && owner !== 'hero' ? t('door.roomOf', { name: shortName(s, owner as CharId) }) : d.label;
+      const lx = cx * TILE + (d.dir === 'left' ? 26 : d.dir === 'right' ? -26 : 0);
+      const ly = cy * TILE + (d.dir === 'up' ? 30 : d.dir === 'down' ? -30 : 0);
+      const lab = this.add.text(lx, ly, name, { fontFamily: '"Noto Sans JP", "Hiragino Sans", sans-serif', fontSize: '17px', color: '#f3ead2', backgroundColor: 'rgba(8,12,28,0.78)', padding: { x: 7, y: 3 } })
+        .setOrigin(d.dir === 'left' ? 0 : d.dir === 'right' ? 1 : 0.5, 0.5).setDepth(8592).setResolution(Math.max(1, Math.ceil(this.view.zoom * 2) / 2));
+      this.marks.push(lab);
     }
     // 調査地点の目印
     for (const ins of room.inspects) {
@@ -320,17 +334,29 @@ export class FieldScene extends Phaser.Scene {
       } else v.idle += dt;
       const walking = !!a.step || v.idle < WALK_LINGER_MS;
       if (!walking || jumped) v.dist = 0;
-      const standKey = `stand:${charFolder(a.id, s.hero.gender)}`;
-      const walkKey = `char:${charFolder(a.id, s.hero.gender)}`;
+      const folder = charFolder(a.id, s.hero.gender);
+      const standKey = `stand:${folder}`;
+      const walkKey = `char:${folder}`;
       const row = DIR_ROW[a.pos.dir];
       if (!walking && this.textures.exists(standKey)) {
         if (v.sprite.texture.key !== standKey) v.sprite.setTexture(standKey);
         v.sprite.setFrame(row);
+        // 待機画像は歩行画像と基準位置（頭部の中心、足元）や大きさが少し違うものがある。
+        // 画像は変えず、描画の原点と表示倍率だけを合わせて、歩き出しと停止で位置が動かないようにする。
+        const al = STAND_ALIGN[folder]?.[a.pos.dir];
+        if (al) {
+          v.sprite.setOrigin(al.x / CHAR_W, al.y / CHAR_H);
+          v.sprite.setDisplaySize(CHAR_W * CHAR_SCALE * al.k, CHAR_H * CHAR_SCALE * al.k);
+        } else {
+          v.sprite.setOrigin(CHAR_FOOT.x / CHAR_W, CHAR_FOOT.y / CHAR_H);
+          v.sprite.setDisplaySize(CHAR_W * CHAR_SCALE, CHAR_H * CHAR_SCALE);
+        }
       } else {
         if (v.sprite.texture.key !== walkKey) v.sprite.setTexture(walkKey);
         v.sprite.setFrame(row * 4 + (walking ? walkFrame(v.dist) : 1));
+        v.sprite.setOrigin(CHAR_FOOT.x / CHAR_W, CHAR_FOOT.y / CHAR_H);
+        v.sprite.setDisplaySize(CHAR_W * CHAR_SCALE, CHAR_H * CHAR_SCALE);
       }
-      v.sprite.setDisplaySize(CHAR_W * CHAR_SCALE, CHAR_H * CHAR_SCALE);
       v.sprite.setDepth(py);
       v.shadow.setDepth(py - 1);
       v.label.setPosition(px, py - CHAR_H * CHAR_SCALE + 14).setDepth(8700);
@@ -369,6 +395,14 @@ export class FieldScene extends Phaser.Scene {
       if (a.id === 'hero') continue;
       if (Math.abs(a.pos.x - hero.pos.x) + Math.abs(a.pos.y - hero.pos.y) === 1) return { kind: 'npc', id: a.id };
     }
+    // 向いている方向の 2 マス先にいる NPC にも声を掛けられる（机越しや、歩いている相手を呼び止める時）
+    const f2 = { x: f.x + (f.x - hero.pos.x), y: f.y + (f.y - hero.pos.y) };
+    for (const a of actorsIn(s, room.id)) {
+      if (a.id === 'hero') continue;
+      const ax = a.step ? a.step.x : a.pos.x;
+      const ay = a.step ? a.step.y : a.pos.y;
+      if ((ax === f2.x && ay === f2.y) || (a.pos.x === f2.x && a.pos.y === f2.y)) return { kind: 'npc', id: a.id };
+    }
     for (const d of room.doors) {
       if (doorDir(d) === hero.pos.dir && doorApproach(room, d).some((t) => t.x === hero.pos.x && t.y === hero.pos.y)) return { kind: 'door', door: d };
     }
@@ -385,6 +419,16 @@ export class FieldScene extends Phaser.Scene {
     const hero = s.actors.hero;
     if (hero.pos.room !== this.roomId || this.flagsKey !== this.currentFlagsKey(ROOMS[hero.pos.room])) this.buildRoom();
     const dt = Math.min(delta, 100);
+    // 描画の状況を記録する（1 秒あたりのコマ数と、50ms を超えて遅れたコマの数）
+    const now = performance.now();
+    if (this.lastFrameAt) {
+      const gap = now - this.lastFrameAt;
+      G.perf.fps = G.perf.fps ? G.perf.fps * 0.95 + (1000 / Math.max(1, gap)) * 0.05 : 1000 / Math.max(1, gap);
+      if (gap > 50) G.perf.slow++;
+    }
+    this.lastFrameAt = now;
+    G.perf.w = this.scale.gameSize.width;
+    G.perf.h = this.scale.gameSize.height;
     const control = G.fieldActive && !anyModal() && !G.heroBusy;
     if (control) {
       // 4 方向移動：押している方向へ 1 タイルずつ進む
@@ -401,7 +445,7 @@ export class FieldScene extends Phaser.Scene {
             // 壁に向かって押した：扉なら通る
             const room = ROOMS[hero.pos.room];
             const door = room.doors.find((d) => doorDir(d) === held && doorApproach(room, d).some((t) => t.x === hero.pos.x && t.y === hero.pos.y));
-            if (door && (before === held || Input.justPressed(held))) G.interact({ kind: 'door', door });
+            if (door && (before === held || Input.justPressed(held))) G.interact({ kind: 'door', door }, true);
           }
         }
       }

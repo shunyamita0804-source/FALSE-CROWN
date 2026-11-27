@@ -15,7 +15,7 @@ const url = process.argv[2] || 'http://localhost:4173/FALSE-CROWN/';
   await page.waitForTimeout(3000);
   const results = [];
   const check = (name, ok, detail) => { results.push(ok); console.log(`${ok ? 'OK  ' : 'FAIL'} ${name}${detail ? ' (' + detail + ')' : ''}`); };
-  const quiet = () => page.evaluate(() => { const st = window.__fc.G.state; for (const [id, a] of Object.entries(st.actors)) if (id !== 'hero') a.talkCd = { ...(a.talkCd || {}), hero: 1e15 }; });
+  const quiet = () => page.evaluate(() => { const st = window.__fc.G.state; for (const [id, a] of Object.entries(st.actors)) if (id !== 'hero') { a.talkCd = { ...(a.talkCd || {}), hero: 1e15 }; a.goal = undefined; a.path = []; a.route = []; a.step = undefined; a.busyUntil = 1e15; a.nextThink = 1e15; if (a.pos.room !== 'dining') window.__fc.sim.placeIn(st, id, 'dining'); } st.phaseLeft = 290000; });
   const place = (room, x, y) => page.evaluate(([room, x, y]) => { const h = window.__fc.G.state.actors.hero; h.step = undefined; h.path = []; h.route = []; h.pos = { room, x, y, dir: 'down' }; }, [room, x, y]);
   const center = async (sel) => { const b = await page.locator(sel).boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; };
   const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map((p, i) => ({ x: p.x, y: p.y, id: i })) });
@@ -86,7 +86,7 @@ const url = process.argv[2] || 'http://localhost:4173/FALSE-CROWN/';
   for (const id of ids) {
     await page.evaluate((id) => { const { G, sim } = window.__fc; for (const a of Object.values(G.state.actors)) if (a.id !== 'hero' && a.id !== id) { a.path = []; a.route = []; a.step = undefined; sim.placeIn(G.state, a.id, 'dining'); a.busyUntil = G.state.simTime + 60000; } }, id);
     for (const [dir, x0, y0, x1, y1] of legs) {
-      await page.evaluate(([id, x0, y0, x1, y1]) => { const { G, sim } = window.__fc; const a = G.state.actors[id]; a.path = []; a.route = []; a.step = undefined; a.goal = undefined; a.busyUntil = 0; sim.placeIn(G.state, id, 'living_hallway', { x: x0, y: y0 }); sim.setPathTo(G.state, a, x1, y1); }, [id, x0, y0, x1, y1]);
+      await page.evaluate(([id, x0, y0, x1, y1]) => { const { G, sim } = window.__fc; const a = G.state.actors[id]; a.path = []; a.route = []; a.step = undefined; a.goal = undefined; a.busyUntil = 0; a.nextThink = 1e15; G.state.phaseLeft = 290000; sim.placeIn(G.state, id, 'living_hallway', { x: x0, y: y0 }); sim.setPathTo(G.state, a, x1, y1); }, [id, x0, y0, x1, y1]);
       const rec = (await record(dir === 'left' || dir === 'right' ? 2300 : 1100, [id])).filter((r) => r[id]);
       const axis = dir === 'left' || dir === 'right' ? 'x' : 'y'; const sign = dir === 'right' || dir === 'down' ? 1 : -1;
       let n = 0, wrong = 0, stand = 0; const speeds = []; const frames = [];

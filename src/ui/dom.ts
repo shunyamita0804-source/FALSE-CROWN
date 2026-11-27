@@ -4,6 +4,8 @@
  *
  * 論理画面は高さ 720 を基準とし、横幅は端末の縦横比に合わせて伸縮する（1280×720 が基準）。
  */
+import { fitPageToScreen } from '../display/viewport';
+
 export type Child = Node | string | number | null | undefined | false | Child[];
 
 export function h<K extends keyof HTMLElementTagNameMap>(
@@ -49,8 +51,9 @@ let logicalW = 1280;
 export function initStage(): HTMLElement {
   stage = document.getElementById('ui') as HTMLElement;
   const apply = () => {
-    const vw = window.visualViewport?.width ?? window.innerWidth;
-    const vh = window.visualViewport?.height ?? window.innerHeight;
+    const box = fitPageToScreen();
+    const vw = box.width;
+    const vh = box.height;
     // 縦長の画面では幅基準にして、基準比率（16:9）より狭くならないようにする
     scale = Math.min(vh / REF_H, vw / 960);
     logicalW = vw / scale;
@@ -59,14 +62,7 @@ export function initStage(): HTMLElement {
     stage.style.height = `${logicalH}px`;
     stage.style.transform = `scale(${scale})`;
     // セーフエリアを論理座標へ換算
-    const probe = document.getElementById('safe-probe');
-    if (probe) {
-      const cs = getComputedStyle(probe);
-      for (const side of ['top', 'right', 'bottom', 'left'] as const) {
-        const px = parseFloat(cs.getPropertyValue(`padding-${side}`)) || 0;
-        stage.style.setProperty(`--safe-${side}`, `${px / scale}px`);
-      }
-    }
+    for (const side of ['top', 'right', 'bottom', 'left'] as const) stage.style.setProperty(`--safe-${side}`, `${box.safe[side] / scale}px`);
     document.documentElement.style.setProperty('--ui-scale', String(scale));
   };
   window.addEventListener('resize', apply);
@@ -102,6 +98,21 @@ export function onLayersChanged(fn: () => void): void {
   listeners.add(fn);
 }
 
+/**
+ * いちばん手前のウィンドウだけを操作できるようにする。
+ * 背後のウィンドウには layer-covered を付けて操作を受け付けなくし（入力の貫通を防ぐ）、会話コマンドなどは CSS で隠す。
+ */
+function refreshCover(): void {
+  const top = topLayer();
+  for (const l of layers) {
+    const covered = l.modal && !!top && l !== top;
+    l.el.classList.toggle('layer-covered', covered);
+    if (covered) l.el.setAttribute('inert', '');
+    else l.el.removeAttribute('inert');
+  }
+  stage.classList.toggle('has-modal', !!top);
+}
+
 export function openLayer(el: HTMLElement, opts: Partial<Omit<Layer, 'el'>> = {}): Layer {
   const layer: Layer = { el, pausesClock: opts.pausesClock ?? false, modal: opts.modal ?? true, onCancel: opts.onCancel, onKey: opts.onKey, name: opts.name ?? 'layer' };
   el.classList.add('layer');
@@ -109,6 +120,7 @@ export function openLayer(el: HTMLElement, opts: Partial<Omit<Layer, 'el'>> = {}
   stage.appendChild(el);
   layers.push(layer);
   requestAnimationFrame(() => el.classList.add('open'));
+  refreshCover();
   listeners.forEach((f) => f());
   focusFirst(layer);
   return layer;
@@ -120,6 +132,7 @@ export function closeLayer(layer: Layer): void {
   layers.splice(i, 1);
   layer.el.classList.remove('open');
   layer.el.remove();
+  refreshCover();
   listeners.forEach((f) => f());
   const top = topLayer();
   if (top) focusFirst(top, true);
@@ -228,9 +241,11 @@ export function toast(text: string, kind: 'info' | 'good' | 'bad' = 'info', ms =
     box = h('div', { id: 'toasts' });
     stage.appendChild(box);
   }
+  // 同じ文言が出ている間は重ねて出さない
+  if ([...box.children].some((c) => c.textContent === text)) return;
   const t = h('div', { class: `toast toast-${kind}` }, text);
   box.appendChild(t);
-  while (box.children.length > 4) box.firstChild?.remove();
+  while (box.children.length > 3) box.firstChild?.remove();
   setTimeout(() => t.classList.add('show'), 10);
   setTimeout(() => {
     t.classList.remove('show');
@@ -275,7 +290,7 @@ export function choose<T>(title: string, text: Child, options: { label: string; 
       closeLayer(layer);
       resolve(v);
     };
-    const el = h('div', { class: 'overlay' }, panel(title, [h('div', { class: 'text' }, text), h('div', { class: 'choices' }, options.map((o, i) => h('div', { class: 'choice-row' }, button(o.label, () => done(o.value), { kind: o.kind ?? 'secondary', autofocus: i === 0, disabled: o.disabled }), o.hint ? h('span', { class: 'hint' }, o.hint) : null)))], { cls: 'dialog' }));
+    const el = h('div', { class: 'overlay' }, panel(title, [h('div', { class: 'text' }, text), h('div', { class: `choices${options.length >= 4 ? ' many' : ''}` }, options.map((o, i) => h('div', { class: 'choice-row' }, button(o.label, () => done(o.value), { kind: o.kind ?? 'secondary', autofocus: i === 0, disabled: o.disabled }), o.hint ? h('span', { class: 'hint' }, o.hint) : null)))], { cls: 'dialog' }));
     layer = openLayer(el, { onCancel: opts.cancel !== undefined ? () => done(opts.cancel as T) : undefined, pausesClock: opts.pauses ?? true, name: 'choose' });
   });
 }

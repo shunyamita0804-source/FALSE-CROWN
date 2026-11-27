@@ -13,6 +13,7 @@ import type { GameState, Phase } from '../core/types';
 import { DEFAULT_HERO_NAMES, NPC_IDS, type CharId } from '../data/characters';
 import { CONFIG } from '../data/config';
 import { t } from '../i18n/i18n';
+import { phaseDuration } from '../core/clock';
 import { CATALOG, isImplemented, MATCHES } from '../matches/registry';
 import { saveMeta } from '../save/save';
 import { setHeroGender } from '../ui/art';
@@ -83,7 +84,7 @@ export function devMenu(): Promise<GameState | null> {
       s.flags.phaseKey = '1:morning';
       s.seen.push('S00', 'S01A');
       startMorning(s);
-      s.phaseLeft = CONFIG.phaseTime.morning;
+      s.phaseLeft = phaseDuration('morning');
       for (const id of ROOM_IDS) for (const d of ROOMS[id].doors) if (d.lock) s.flags[d.lock] = true;
       s.flags.devUnlockAll = true;
       placeIn(s, 'hero', roomId);
@@ -107,13 +108,16 @@ export function devMenu(): Promise<GameState | null> {
         h('h4', { class: 'gold' }, '任意の時点から開始（そこまでは自動対戦）'),
         h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' },
           button('DAY1 朝', () => void startAt(1, 'morning'), { small: true }),
-          button('DAY1 作戦時間', () => void startAt(1, 'strategy'), { small: true }),
           button('DAY1 メインマッチ', () => void startAt(1, 'main'), { small: true }),
           button('DAY1 生活棟の自由時間', () => void startAt(1, 'house', 'living'), { small: true }),
           button('DAY1 監獄棟の自由時間（脱落の検証）', () => void startAt(1, 'house', 'prison'), { small: true }),
           button('DAY1 監獄マッチ（主人公参加）', () => void startAt(1, 'prison', 'prison'), { small: true }),
           button('DAY1 夜', () => void startAt(1, 'night'), { small: true }),
+          button('DAY1 消灯', () => void startAt(1, 'curfew'), { small: true }),
           button('DAY2 朝', () => void startAt(2, 'morning'), { small: true }),
+          button('DAY2 メインマッチ', () => void startAt(2, 'main'), { small: true }),
+          button('DAY2 監獄マッチ（主人公参加）', () => void startAt(2, 'prison', 'prison'), { small: true }),
+          button('DAY2 夜', () => void startAt(2, 'night'), { small: true }),
         ),
         h('h4', { class: 'gold' }, '任意の施設から開始（DAY1 朝、検証用に全ての鍵を解錠）'),
         ...(['3F', '2F', '1F', 'B1', 'B2'] as const).map((f) => h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap;align-items:center' }, h('b', { class: 'gold', style: 'width:36px' }, f),

@@ -115,10 +115,12 @@ function nextDoor(a: Actor): DoorDef | undefined {
 }
 
 /** アクターの移動を dt ミリ秒進める */
-export function moveActor(state: GameState, a: Actor, dt: number, speed: number): void {
+export function moveActor(state: GameState, a: Actor, dt: number, speed: number, halt = false): void {
   let budget = (dt / 1000) * speed;
   let guard = 0;
   while (budget > 0 && guard++ < 8) {
+    // halt：いま踏み出している 1 マスだけ歩き切って、その場で立ち止まる（経路は残す）
+    if (halt && !a.step) break;
     if (a.step) {
       const need = 1 - a.step.p;
       if (budget >= need) {

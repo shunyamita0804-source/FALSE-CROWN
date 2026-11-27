@@ -5,12 +5,13 @@
 import { isImplemented } from '../matches/registry';
 import { fastForward } from '../npc/brain';
 import { settlePlans } from '../npc/negotiation';
-import { CONFIG } from '../data/config';
+import { phaseDuration } from './clock';
 import type { CharId } from '../data/characters';
 import { engineOf, newSlot, resolveTies, runToEnd } from './runner';
 import { aliveIds } from './state';
 import { applyMainResult, applyPrisonResult, endDay, gatherAt, mainMatchId, moveToHouses, prisonMatchId, startMorning } from './tournament';
 import type { GameState, Phase } from './types';
+import { placeIn } from '../world/sim';
 
 export interface AutoOpts {
   /** 自由時間の NPC 行動を再現する（false なら省略して高速化） */
@@ -26,7 +27,7 @@ async function rank(s: GameState, id: string, players: CharId[], kind: 'main' | 
   return { ranking, scores: engine.scores(slot.state) };
 }
 
-const ORDER: Phase[] = ['morning', 'rules', 'strategy', 'main', 'reward', 'house', 'prison', 'elimination', 'night'];
+const ORDER: Phase[] = ['morning', 'rules', 'main', 'reward', 'house', 'prison', 'elimination', 'night', 'curfew'];
 
 /**
  * 現在のフェーズから、指定のフェーズ（の開始時点）まで自動で進める。
@@ -47,15 +48,14 @@ export async function autoAdvance(s: GameState, untilDay: number, untilPhase: Ph
       case 'morning':
         if (!isImplemented(mainMatchId(s.day))) return false;
         startMorning(s);
-        free(CONFIG.phaseTime.morning);
+        free(phaseDuration('morning'));
         s.phase = 'rules';
         break;
       case 'rules':
         gatherAt(s, 'main_arena');
-        s.phase = 'strategy';
+        s.phase = 'main';
         break;
       case 'strategy':
-        free(CONFIG.phaseTime.strategy);
         s.phase = 'main';
         break;
       case 'main': {
@@ -69,7 +69,7 @@ export async function autoAdvance(s: GameState, untilDay: number, untilPhase: Ph
         s.phase = 'house';
         break;
       case 'house':
-        free(CONFIG.phaseTime.living);
+        free(phaseDuration('house'));
         s.phase = 'prison';
         break;
       case 'prison': {
@@ -88,7 +88,11 @@ export async function autoAdvance(s: GameState, untilDay: number, untilPhase: Ph
         break;
       case 'night':
         for (const id of aliveIds(s)) s.actors[id].house = null;
-        free(CONFIG.phaseTime.night);
+        free(phaseDuration('night'));
+        s.phase = 'curfew';
+        break;
+      case 'curfew':
+        for (const id of aliveIds(s)) placeIn(s, id, `bedroom_${id}`);
         endDay(s);
         s.phase = 'morning';
         break;

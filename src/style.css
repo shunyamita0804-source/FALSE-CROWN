@@ -536,3 +536,52 @@ html[data-ui-assets~="button/secondary_normal"] .m01-acts .btn { padding: 0 2px;
 .p02-key.wide { grid-column: span 2; font-size: 0.9em; }
 .p02-key:disabled { opacity: 0.28; cursor: default; }
 .p02-key:active:not(:disabled) { background: rgba(216,178,90,0.3); }
+
+/* ===== ゲーム内時計（v10） ===== */
+.hud-phase { font-size: 0.8em; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.hud-phase.low { color: var(--crimson2); opacity: 1; }
+html[data-ui-assets~="panel/hud"] .hud-band .hud-phase { font-size: 0.74em; }
+html[data-ui-assets~="panel/hud"] .hud-band .hud-timer { font-size: 1.2em; }
+
+/* ===== 関係一覧（v10） ===== */
+.rel-gauge { width: 112px; flex: none; display: flex; flex-direction: column; gap: 3px; align-items: flex-start; }
+.rel-gauge small { font-size: 0.72em; }
+.rel-steps { display: inline-flex; gap: 3px; }
+.rel-steps i { width: 16px; height: 9px; border-radius: 2px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18); }
+.rel-steps.s1 i.on, .rel-steps.s2 i.on { background: var(--crimson2); border-color: var(--crimson2); }
+.rel-steps.s3 i.on { background: #b9bdcc; border-color: #b9bdcc; }
+.rel-steps.s4 i.on, .rel-steps.s5 i.on { background: var(--gold2); border-color: var(--gold2); }
+.rel-line { opacity: 0.92; }
+.rel-out { opacity: 0.55; }
+
+/* ===== ウィンドウの重なりと入力の貫通を防ぐ（v0.7.0） ===== */
+/* 手前に別のウィンドウが開いている間、背後のウィンドウは操作できず、会話コマンドは表示しない */
+.layer-covered { pointer-events: none; }
+.layer-covered .talk-menu, .layer-covered .dlg-next { visibility: hidden; }
+/* ウィンドウが開いている間は、画面上の方向キーと行動ボタンを隠す（ウィンドウと重ならないようにする） */
+.has-modal .touch-pad, .has-modal .touch-act { visibility: hidden; pointer-events: none; }
+/* 会話中は上部の帯と記録を隠し、立ち絵やコマンドと重ならないようにする */
+body.talking .hud, body.talking .hud-log, body.talking .prompt { visibility: hidden; }
+/* 行動ボタン：いまできることを 1 語で表示する。対象が無い時は薄くする */
+.touch-act .act-label { display: inline-block; padding: 2px 10px; border-radius: 14px; background: rgba(6,9,20,0.72); font-size: 26px; letter-spacing: 0.06em; white-space: nowrap; }
+.touch-act .act-label:empty { display: none; }
+.touch-act button.idle { opacity: 0.55; }
+/* 選択肢が 4 つ以上ある時は 2 列に並べ、画面からはみ出さないようにする */
+.choices.many { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+.choices.many .choice-row .btn { min-width: 0; width: 100%; }
+.choices.many .choice-row { flex-direction: column; align-items: stretch; gap: 2px; }
+.overlay > .panel.dialog { max-height: calc(100% - 20px); }
+/* 上部の帯：時刻の欄を広く取り、収まらない文字は省略する */
+html[data-ui-assets~="panel/hud"] .hud-band { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.1fr) minmax(0, 0.5fr) minmax(0, 1.3fr); }
+.hud-phase { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.title-foot { font-size: 16px; color: #aab0cc; }
+
+/* ===== 文字サイズを一段階大きくする（iPhone 横画面での読みやすさ） ===== */
+body.touch #ui { font-size: calc(20.5px * var(--text-scale)); }
+body.touch .small, body.touch .hint, body.touch .logline { font-size: 0.9em; }
+body.touch .dlg-text { font-size: 1.2em; line-height: 1.7; }
+body.touch .tag { font-size: 0.84em; }
+body.touch .hud-log div { font-size: 0.9em; }
+body.touch .prompt { font-size: 1em; }
+body.touch table.list th { font-size: 0.9em; }
+body.touch .box h4 { font-size: 0.96em; }

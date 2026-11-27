@@ -41,10 +41,24 @@ function assetList() {
 // Capacitor（iOS）ビルド時は相対パス './' を使う: `BASE_PATH=./ npm run build`
 const base = process.env.BASE_PATH ?? '/FALSE-CROWN/';
 
+// ビルドごとの識別子。起動時に version.json と照らし合わせ、端末に古い版が残っていれば入れ替える
+const buildId = String(Date.now());
+const builtAt = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 16).replace('T', ' ');
+
+function versionFile() {
+  return {
+    name: 'fc-version-file',
+    generateBundle(this: { emitFile: (f: { type: 'asset'; fileName: string; source: string }) => void }) {
+      this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ version: pkg.version, build: buildId, builtAt }) });
+    },
+  };
+}
+
 export default defineConfig({
   base,
   define: {
-    __APP_VERSION__: JSON.stringify(`${pkg.version} (${new Date().toISOString().slice(0, 10)})`),
+    __APP_VERSION__: JSON.stringify(`${pkg.version} (${builtAt})`),
+    __BUILD_ID__: JSON.stringify(buildId),
   },
   build: {
     target: 'es2022',
@@ -53,6 +67,7 @@ export default defineConfig({
   },
   plugins: [
     assetList(),
+    versionFile(),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: false,
@@ -81,7 +96,7 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         // 初回読み込みを軽くするため、BGM と表情差分の立ち絵はプリキャッシュせず、使った時にキャッシュする。
         // （BGM はオフライン時は鳴らない。効果音・顔アイコン・歩行素材・通常立ち絵はオフラインでも使える）
-        globIgnores: ['**/assets/audio/bgm/**', '**/assets/characters/*/portrait_!(normal).png', '**/assets/maps/**', '**/assets/backgrounds/**', '**/assets/props/**', '**/assets/tilesets/**', '**/assets/ui/background/**', '**/assets/ui/games/**'],
+        globIgnores: ['**/version.json', '**/assets/audio/bgm/**', '**/assets/characters/*/portrait_!(normal).png', '**/assets/maps/**', '**/assets/backgrounds/**', '**/assets/props/**', '**/assets/tilesets/**', '**/assets/ui/background/**', '**/assets/ui/games/**'],
         runtimeCaching: [
           {
             // マップ背景とストーリー背景は容量が大きいので、表示した時にキャッシュする

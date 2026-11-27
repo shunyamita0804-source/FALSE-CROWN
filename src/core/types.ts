@@ -15,6 +15,7 @@ export type Phase =
   | 'prison'
   | 'elimination'
   | 'night'
+  | 'curfew'
   | 'final'
   | 'ending';
 
@@ -82,6 +83,10 @@ export interface Actor {
   /** 表示用の吹き出し */
   bubble?: { text: string; until: number };
   busyUntil?: number;
+  /** 主人公が近づいてきたので立ち止まって待つ時刻まで（NPC のみ） */
+  waitUntil?: number;
+  /** 次に立ち止まって待てる時刻（待ち続けないための間隔） */
+  waitCd?: number;
 }
 
 export type DealKind =
