@@ -363,6 +363,7 @@ export class FieldScene extends Phaser.Scene {
   private onTap(p: Phaser.Input.Pointer): void {
     const s = G.state;
     if (!s || !G.fieldActive || anyModal() || G.heroBusy) return;
+    if (p.event && p.event.target !== this.game.canvas) return;
     const cam = this.cameras.main;
     const wp = cam.getWorldPoint(p.x, p.y);
     const tx = Math.floor(wp.x / TILE);

@@ -12,7 +12,6 @@ import { DEFAULT_HERO_NAMES, NPC_BY_ID, NPC_IDS, type CharId, type NpcId } from 
 import { CONFIG, scheduleFor, type Difficulty } from '../data/config';
 import guideJson from '../data/match_guide.json';
 import { getLang, LANGS, setLang, t, type Lang } from '../i18n/i18n';
-import { Input } from '../input/InputState';
 import { CATALOG, isImplemented, MATCHES } from '../matches/registry';
 import { TIEBREAK } from '../matches/tiebreak';
 import { describeDeal } from '../npc/negotiation';
@@ -218,7 +217,6 @@ export function hudShow(v: boolean): void {
     ),
     logBox, prompt, pad, act,
   );
-  Input.bindTouch(el);
   hudLayer = openLayer(el, { modal: false, name: 'hud' });
   hudEls = { day, phase, timer, room, pieces: pc, prompt, log: logBox, skip };
   hudUpdate();
