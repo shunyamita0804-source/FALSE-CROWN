@@ -6,6 +6,7 @@
  */
 import { NPC_BY_ID, PROFILES, type CharId, type NpcId } from '../data/characters';
 import { CONFIG } from '../data/config';
+import { clockMinutes, lifeSlot } from '../core/clock';
 import { Rng } from '../core/rng';
 import { activeDeals, addInfo, adjustRel, aliveIds, aliveNpcs, allied, fact, learn, nameOf, rel, rngOf } from '../core/state';
 import type { Actor, GameState, Info } from '../core/types';
@@ -27,6 +28,8 @@ export interface BrainEvent {
 const THINK = 3000;
 const TALK_TIME = 8000;
 const SEARCH_TIME = 6000;
+const MEAL_TIME = 18_000;
+const BATH_TIME = 20_000;
 
 function prof(id: NpcId) {
   return PROFILES[id];
@@ -116,6 +119,14 @@ function think(state: GameState, a: Actor, rng: Rng): void {
   } else {
     const room = ROOMS[a.pos.room];
     cands.push({ u: 2, run: () => { a.goal = { kind: 'wander', room: room.id, spot: rng.pick(room.spots), until: state.simTime + rng.int(8_000, 20_000) }; } });
+  }
+  // 生活の予定（v10）：朝食と夕食は食堂へ、入浴の時間は個室へ。取るかどうかは人物と状況しだい
+  const slot = state.phase === 'curfew' ? null : lifeSlot(clockMinutes(state));
+  if ((slot === 'breakfast' || slot === 'dinner') && !state.flags[`ate:${state.day}:${slot}:${id}`] && canEnter(state, id, 'dining') && reachable(state, a, 'dining') !== null) {
+    cands.push({ u: 20 + (def.personality.loyalty - 50) / 25 + (60 - def.personality.ambition) / 30, run: () => { a.goal = { kind: 'goto', room: 'dining', spot: rng.pick(ROOMS.dining.spots), note: 'meal', until: state.simTime + 70_000 }; } });
+  }
+  if (slot === 'bath' && !state.flags[`bath:${state.day}:${id}`] && canEnter(state, id, `bedroom_${id}`) && reachable(state, a, `bedroom_${id}`) !== null) {
+    cands.push({ u: 16 + (100 - def.personality.explore) / 30, run: () => { a.goal = { kind: 'rest', room: `bedroom_${id}`, note: 'bath', until: state.simTime + 50_000 }; } });
   }
   // 休息（夜は個室へ）
   if (state.phase === 'night' && canEnter(state, id, `bedroom_${id}`)) {
@@ -328,6 +339,26 @@ export function tickNpcs(state: GameState, dt: number, heroBusy: boolean): Brain
       } else if (a.route.length && a.route[a.route.length - 1] !== b.pos.room) {
         setRouteTo(state, a, b.pos.room);
       }
+    } else if (a.goal?.note === 'meal' && a.pos.room === 'dining' && !a.step && !a.path.length && !a.route.length) {
+      // 食事：同じ時間に食卓を囲んだ相手と少し打ち解ける
+      const slot = lifeSlot(clockMinutes(state)) ?? 'late';
+      state.flags[`ate:${state.day}:${slot}:${id}`] = true;
+      a.busyUntil = state.simTime + MEAL_TIME;
+      a.bubble = { text: '🍽', until: state.simTime + MEAL_TIME };
+      for (const o of actorsIn(state, 'dining')) {
+        if (o.id === id || o.id === 'hero' || !state.flags[`ate:${state.day}:${slot}:${o.id}`]) continue;
+        const key = `dined:${state.day}:${slot}:${[id, o.id].sort().join('+')}`;
+        if (state.flags[key]) continue;
+        state.flags[key] = true;
+        adjustRel(state, id, o.id, { like: 1 });
+        adjustRel(state, o.id, id, { like: 1 });
+      }
+      a.goal = undefined;
+    } else if (a.goal?.note === 'bath' && a.pos.room === `bedroom_${id}` && !a.step && !a.path.length && !a.route.length) {
+      // 入浴は個室の中（画面には出さない）
+      state.flags[`bath:${state.day}:${id}`] = true;
+      a.busyUntil = state.simTime + BATH_TIME;
+      a.goal = undefined;
     } else if (a.goal?.kind === 'explore' && a.goal.spot) {
       if (a.pos.room === a.goal.room && !a.moving && !a.step) {
         if (Math.abs(a.pos.x - a.goal.spot.x) + Math.abs(a.pos.y - a.goal.spot.y) <= 2) searchSpot(state, a, events);

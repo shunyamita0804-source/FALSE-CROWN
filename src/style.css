@@ -536,3 +536,9 @@ html[data-ui-assets~="button/secondary_normal"] .m01-acts .btn { padding: 0 2px;
 .p02-key.wide { grid-column: span 2; font-size: 0.9em; }
 .p02-key:disabled { opacity: 0.28; cursor: default; }
 .p02-key:active:not(:disabled) { background: rgba(216,178,90,0.3); }
+
+/* ===== ゲーム内時計（v10） ===== */
+.hud-phase { font-size: 0.8em; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.hud-phase.low { color: var(--crimson2); opacity: 1; }
+html[data-ui-assets~="panel/hud"] .hud-band .hud-phase { font-size: 0.74em; }
+html[data-ui-assets~="panel/hud"] .hud-band .hud-timer { font-size: 1.2em; }

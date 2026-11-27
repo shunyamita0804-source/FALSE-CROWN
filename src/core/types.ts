@@ -15,6 +15,7 @@ export type Phase =
   | 'prison'
   | 'elimination'
   | 'night'
+  | 'curfew'
   | 'final'
   | 'ending';
 

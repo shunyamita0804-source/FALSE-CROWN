@@ -13,6 +13,8 @@ export function canEnter(state: GameState, who: CharId, roomId: string, lock?: s
   const room = ROOMS[roomId];
   if (!room) return false;
   if (lock && !state.flags[lock]) return false;
+  // 消灯（22:00）後は、自分の個室から出られない
+  if (state.phase === 'curfew') return roomId === `bedroom_${who}`;
   if (roomId.startsWith('bedroom_')) return roomId === `bedroom_${who}`;
   const a = state.actors[who];
   if (room.area === 'secret') return who === 'hero';
@@ -28,6 +30,7 @@ export function passFn(state: GameState, who: CharId) {
 /** 入れない理由（プレイヤー向けの説明） */
 export function denyReason(state: GameState, roomId: string, lock?: string): string {
   const room = ROOMS[roomId];
+  if (state.phase === 'curfew') return '消灯時間を過ぎている。朝まで個室から出られない。';
   if (roomId.startsWith('bedroom_')) return '他の参加者の個室には入れない。';
   if (lock && !state.flags[lock]) return room.area === 'secret' ? '' : '鍵がかかっている。';
   const h = state.actors.hero.house;

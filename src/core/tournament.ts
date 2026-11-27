@@ -130,8 +130,12 @@ export function startMorning(state: GameState): void {
   for (const id of aliveIds(state)) {
     const a = state.actors[id];
     a.house = null;
-    if (id === 'hero') placeIn(state, id, 'bedroom_hero');
-    else placeIn(state, id, ['dining', 'main_hall', 'common_lounge', 'garden', 'living_lounge'][Math.abs(id.length * 7 + state.day * 3 + id.charCodeAt(5)) % 5]);
+    // 07:00 起床：全員が自分の個室から 1 日を始める（v10）
+    a.goal = undefined;
+    a.path = [];
+    a.route = [];
+    a.step = undefined;
+    placeIn(state, id, `bedroom_${id}`);
   }
 }
 

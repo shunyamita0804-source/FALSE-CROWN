@@ -6,6 +6,7 @@
 import { CHANNEL, fullUnlocked, Purchase } from '../app/entitlement';
 import { ENDINGS, G, phaseName, type RankingView, type StoryLine } from '../app/game';
 import { BGM, BGM_CREDITS, Sound } from '../audio/audio';
+import { clockMinutes, fmtClock, nextSchedule } from '../core/clock';
 import { activeDeals, nameOf, shortName } from '../core/state';
 import type { GameState } from '../core/types';
 import { DEFAULT_HERO_NAMES, NPC_BY_ID, NPC_IDS, type CharId, type NpcId } from '../data/characters';
@@ -19,7 +20,7 @@ import { deleteSave, exportSave, hasSave, importSave, saveMeta } from '../save/s
 import { canEnter } from '../world/access';
 import { ROOMS } from '../world/maps';
 import { bgUrl, emblemUrl, face, fxBanner, icon, logoUrl, portraitUrl, setHeroGender } from './art';
-import { alertDialog, append, button, clear, closeLayer, confirmDialog, fmtTime, h, openLayer, panel, toast, type Child, type Layer } from './dom';
+import { alertDialog, append, button, clear, closeLayer, confirmDialog, h, openLayer, panel, toast, type Child, type Layer } from './dom';
 
 const GUIDE = Object.fromEntries((guideJson as { id: string; goal: string; practice: string; attention: string }[]).map((g) => [g.id.toLowerCase(), g]));
 
@@ -212,7 +213,7 @@ export function hudShow(v: boolean): void {
   const el = h('div', null,
     h('div', { class: 'hud' },
       h('div', { class: 'hud-band' },
-        h('div', { class: 'hud-cell' }, day, phase, icon('timer'), timer),
+        h('div', { class: 'hud-cell' }, day, icon('timer'), timer, phase),
         h('div', { class: 'hud-cell' }, icon('map'), room),
         h('div', { class: 'hud-cell' }, pc),
         h('div', { class: 'hud-cell fill hud-menu' }, skip, button([icon('notebook'), t('hud.menu')], () => G.openMenu(), { small: true })),
@@ -230,17 +231,21 @@ export function hudUpdate(): void {
   if (!s || !hudEls) return;
   const e = hudEls;
   e.day.textContent = `DAY ${s.day}`;
-  e.phase.textContent = phaseName(s.phase);
   const free = G.inFreePhase();
-  e.timer.textContent = free ? fmtTime(s.phaseLeft) : '';
-  const low = free && s.phaseLeft < 30_000;
+  const curfew = s.phase === 'curfew';
+  // ゲーム内時刻と、次の予定までの時間（v10）
+  e.timer.textContent = fmtClock(clockMinutes(s));
+  const next = curfew ? null : nextSchedule(s);
+  e.phase.textContent = curfew ? t('sched.sleepHint') : next ? t('hud.next', { what: t(`sched.${next.item.key}`), at: fmtClock(next.item.at), n: next.inMin }) : '';
+  const low = free && !curfew && !!next?.item.hard && next.inMin <= 10;
   e.timer.classList.toggle('low', low);
-  const sec = Math.ceil(s.phaseLeft / 1000);
-  if (low && sec !== lastTick && sec <= 10 && sec > 0) Sound.se('tick');
+  e.phase.classList.toggle('low', low);
+  const sec = next?.inMin ?? -1;
+  if (low && sec !== lastTick && sec <= 5 && sec > 0) Sound.se('tick');
   lastTick = sec;
   e.room.textContent = `${ROOMS[s.actors.hero.pos.room].floor}　${ROOMS[s.actors.hero.pos.room].name}`;
   e.pieces.textContent = String(s.actors.hero.pieces);
-  e.skip.style.display = free ? '' : 'none';
+  e.skip.style.display = free && !curfew ? '' : 'none';
   const tg = G.fieldActive ? G.field?.target : null;
   if (tg) {
     const label = tg.kind === 'npc' ? t('prompt.talk', { name: shortName(s, tg.id) }) : tg.kind === 'door' ? t('prompt.door', { name: tg.door.label }) : t('prompt.inspect');
