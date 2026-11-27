@@ -13,6 +13,8 @@ export const CHAR_W = 96;
 export const CHAR_H = 128;
 /** セル内の足元基準 */
 export const CHAR_FOOT = { x: 48, y: 120 };
+/** フィールド上の表示倍率（素材は加工せず、表示だけを拡大。足元の位置は変えない） */
+export const CHAR_SCALE = 1.3;
 
 export interface AssetDef {
   /** public/assets/ からの相対パス（拡張子なし） */

@@ -126,13 +126,13 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--g
 .prompt b { color: var(--gold2); }
 
 /* ---- タッチ操作 ---- */
-.touch-pad { position: absolute; left: calc(18px + var(--safe-left)); bottom: calc(18px + var(--safe-bottom)); width: 168px; height: 168px; display: none; }
+.touch-pad { position: absolute; left: calc(18px + var(--safe-left)); bottom: calc(18px + var(--safe-bottom)); width: 276px; height: 276px; display: none; }
 .touch-act { position: absolute; right: calc(22px + var(--safe-right)); bottom: calc(24px + var(--safe-bottom)); display: none; }
 body.touch .touch-pad, body.touch .touch-act { display: block; }
-.touch-pad button { position: absolute; width: 56px; height: 56px; border-radius: 10px; border: 1.5px solid rgba(216,178,90,0.55); background: rgba(14,20,40,0.55); color: var(--gold2); font-size: 20px; padding: 0; touch-action: none; }
+.touch-pad button { position: absolute; width: 92px; height: 92px; border-radius: 16px; border: 1.5px solid rgba(216,178,90,0.55); background: rgba(14,20,40,0.55); color: var(--gold2); font-size: 34px; padding: 0; touch-action: none; }
 .touch-pad button.pressed, .touch-act button.pressed { background: rgba(216,178,90,0.4); }
-.touch-pad .up { left: 56px; top: 0; } .touch-pad .down { left: 56px; bottom: 0; } .touch-pad .left { left: 0; top: 56px; } .touch-pad .right { right: 0; top: 56px; }
-.touch-act button { width: 84px; height: 84px; border-radius: 50%; border: 2px solid var(--gold); background: rgba(14,20,40,0.6); color: var(--gold2); font: inherit; font-size: 15px; touch-action: none; }
+.touch-pad .up { left: 92px; top: 0; } .touch-pad .down { left: 92px; bottom: 0; } .touch-pad .left { left: 0; top: 92px; } .touch-pad .right { right: 0; top: 92px; }
+.touch-act button { width: 140px; height: 140px; border-radius: 50%; border: 2px solid var(--gold); background: rgba(14,20,40,0.6); color: var(--gold2); font: inherit; font-size: 24px; touch-action: none; }
 
 /* ---- 会話 ---- */
 .dlg-screen { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; }
@@ -291,3 +291,11 @@ h4 { margin: 10px 0 4px; font-weight: 500; }
 .dlg-screen .talk-menu { z-index: 2; }
 .dlg-screen .dlg-box { z-index: 1; }
 .match-main { gap: 8px; } .match .box { padding: 8px 14px; } .terr b { display: inline-block; margin-right: 8px; } .terr small { display: inline-block; margin-right: 6px; }
+
+/* タッチ端末では押しやすさを優先してボタンを大きくする */
+body.touch .btn { min-height: 58px; font-size: 1.06em; }
+body.touch .btn-s { min-height: 54px; min-width: 76px; font-size: 0.98em; }
+body.touch .tab { min-height: 54px; }
+
+/* ストーリー背景（正式素材。縦横比を保ったまま画面を覆う） */
+.overlay.story-bg { background-color: #05060c; background-size: cover; background-position: center; background-repeat: no-repeat; }

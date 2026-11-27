@@ -16,6 +16,9 @@ import { t } from '../i18n/i18n';
 import { CATALOG, isImplemented, MATCHES } from '../matches/registry';
 import { saveMeta } from '../save/save';
 import { setHeroGender } from '../ui/art';
+import { startMorning } from '../core/tournament';
+import { ROOMS, ROOM_IDS } from '../world/maps';
+import { placeIn } from '../world/sim';
 import { alertDialog, button, choose, clear, closeLayer, h, openLayer, panel, toast, type Layer } from '../ui/dom';
 import { playMatch } from '../ui/matchui';
 import { rankingScreen, rulesScreen } from '../ui/screens';
@@ -73,6 +76,19 @@ export function devMenu(): Promise<GameState | null> {
       }
       done(s);
     };
+    /** 任意の施設から開始（DAY1 朝）。検証用に全ての鍵を開けた状態にする */
+    const startIn = (roomId: string) => {
+      const s = fresh();
+      s.phase = 'morning';
+      s.flags.phaseKey = '1:morning';
+      s.seen.push('S00', 'S01A');
+      startMorning(s);
+      s.phaseLeft = CONFIG.phaseTime.morning;
+      for (const id of ROOM_IDS) for (const d of ROOMS[id].doors) if (d.lock) s.flags[d.lock] = true;
+      s.flags.devUnlockAll = true;
+      placeIn(s, 'hero', roomId);
+      done(s);
+    };
     const render = () => {
       clear(body);
       const groups: [string, string][] = [['main', 'メインマッチ'], ['prison', '監獄マッチ'], ['hidden', '裏ゲーム'], ['sub', 'サブゲーム']];
@@ -99,6 +115,9 @@ export function devMenu(): Promise<GameState | null> {
           button('DAY1 夜', () => void startAt(1, 'night'), { small: true }),
           button('DAY2 朝', () => void startAt(2, 'morning'), { small: true }),
         ),
+        h('h4', { class: 'gold' }, '任意の施設から開始（DAY1 朝、検証用に全ての鍵を解錠）'),
+        ...(['3F', '2F', '1F', 'B1', 'B2'] as const).map((f) => h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap;align-items:center' }, h('b', { class: 'gold', style: 'width:36px' }, f),
+          ROOM_IDS.filter((id) => ROOMS[id].floor === f && (!id.startsWith('bedroom_') || id === 'bedroom_hero')).map((id) => button(ROOMS[id].name, () => startIn(id), { small: true })))),
         h('div', { class: 'dim small' }, '棟を指定した開始では、自動対戦の結果と異なる場合に限り、検証用に主人公の配置を入れ替えます。'),
         h('h4', { class: 'gold' }, '自由時間の進み方（開発版のみ）'),
         h('div', { class: 'row', style: 'gap:6px' }, [1, 4, 20].map((v) => button(`${v}倍`, () => {

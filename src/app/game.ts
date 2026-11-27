@@ -230,7 +230,7 @@ function fill(text: string, vars: Record<string, string>): string {
 }
 
 /** イベントを 1 度だけ再生する（必須イベントは時計停止） */
-async function story(id: string, vars: Record<string, string> = {}, repeat = false): Promise<void> {
+async function story(id: string, vars: Record<string, string> = {}, repeat = false, bg?: string): Promise<void> {
   const s = G.state!;
   const ev = STORY[id];
   if (!ev) return;
@@ -239,7 +239,7 @@ async function story(id: string, vars: Record<string, string> = {}, repeat = fal
   s.seen.push(key);
   save();
   const v = { player: s.hero.name, ...vars };
-  await G.ui.playStory(ev.lines.map((l) => ({ speaker: fill(l.speaker, v), text: fill(l.text, v) })));
+  await G.ui.playStory(ev.lines.map((l) => ({ speaker: fill(l.speaker, v), text: fill(l.text, v) })), { bg });
 }
 
 // ---------------- フェーズ ----------------
@@ -371,7 +371,7 @@ async function step(s: GameState): Promise<boolean> {
     case 'prologue': {
       showField(false);
       Sound.bgm('B01');
-      await story('S00');
+      await story('S00', {}, false, 'arrival');
       enter('morning');
       return true;
     }
@@ -520,7 +520,7 @@ async function step(s: GameState): Promise<boolean> {
         await finish('E_BAD');
         return false;
       }
-      await story(`S${dd(s.day)}P`, { eliminated: nameOf(s, out) });
+      await story(`S${dd(s.day)}P`, { eliminated: nameOf(s, out) }, false, 'prison_night');
       enter('night');
       return true;
     }

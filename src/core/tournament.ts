@@ -7,6 +7,7 @@ import { type CharId } from '../data/characters';
 import { CONFIG, scheduleFor } from '../data/config';
 import { expireDeals } from '../npc/negotiation';
 import { dailyDecay } from '../npc/brain';
+import { ROOMS } from '../world/maps';
 import { placeIn } from '../world/sim';
 import { aliveIds, fact, log, nameOf, publish, transfer } from './state';
 import type { DayRecord, GameState } from './types';
@@ -135,5 +136,6 @@ export function startMorning(state: GameState): void {
 }
 
 export function gatherAt(state: GameState, room: string, ids: CharId[] = aliveIds(state)): void {
-  for (const id of ids) placeIn(state, id, room, { x: 6 + ((ids.indexOf(id) * 3) % 20), y: 12 + (ids.indexOf(id) % 3) * 2 });
+  const spots = ROOMS[room].spots;
+  ids.forEach((id, i) => placeIn(state, id, room, spots[i % spots.length]));
 }
