@@ -450,3 +450,89 @@ body.touch .dlg-screen .talk-menu { grid-template-columns: repeat(2, 250px); }
 html[data-ui-assets~="button/secondary_normal"] .m01-acts .btn { padding: 0 2px; }
 .m01-acts .m01-act { gap: 6px; }
 .nation .m01-res { display: flex; }
+
+/* ===== M02 黄金の競売 ===== */
+.m02-players { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.m02-player { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 5px 8px; border: 1px solid #3a4468; border-radius: 8px; background: rgba(10,14,28,0.7); }
+.m02-player.me { border-color: var(--gold2); box-shadow: inset 0 0 14px rgba(216,178,90,0.22); }
+.m02-player.won { border-color: var(--green); }
+.m02-player.tied { border-color: var(--crimson2); }
+.m02-player .face { width: 34px; height: 34px; flex: none; }
+.m02-pinfo { flex: 1; min-width: 0; }
+.m02-pname { display: flex; align-items: center; gap: 8px; font-size: 0.86em; white-space: nowrap; }
+.m02-pname b { overflow: hidden; text-overflow: ellipsis; }
+.m02-funds { display: inline-flex; align-items: center; gap: 3px; margin-left: auto; font-variant-numeric: tabular-nums; color: var(--gold2); }
+.m02-bag { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; min-height: 22px; }
+.m02-own { display: inline-flex; align-items: center; gap: 2px; }
+.m02-own small { font-size: 0.74em; font-variant-numeric: tabular-nums; }
+.m02-own.out { opacity: 0.35; }
+.m02-pscore { text-align: center; line-height: 1; flex: none; }
+.m02-pscore b { display: block; font-size: 1.3em; font-variant-numeric: tabular-nums; }
+.m02-pscore small { font-size: 0.66em; opacity: 0.7; }
+.m02-remain { display: flex; align-items: center; gap: 14px; padding: 0 4px; }
+.m02-stage { display: flex; gap: 16px; align-items: stretch; }
+.m02-podium { display: flex; gap: 14px; align-items: center; flex: 1; min-width: 0; }
+.m02-lotart { flex: none; padding: 6px; border-radius: 10px; background: radial-gradient(circle at 50% 40%, rgba(216,178,90,0.28), rgba(10,14,30,0) 70%); }
+.m02-lotno { display: flex; align-items: center; gap: 8px; font-size: 0.86em; color: var(--gold2); letter-spacing: 0.06em; }
+.m02-lotname { font-family: var(--serif); font-size: 1.9em; line-height: 1.2; }
+.m02-tie { color: var(--crimson2); }
+.m02-bidbox { flex: 1.15; min-width: 0; display: flex; flex-direction: column; gap: 7px; align-items: center; justify-content: center; }
+.m02-bidnum { display: flex; align-items: baseline; gap: 10px; }
+.m02-bidnum b { font-size: 2.5em; font-variant-numeric: tabular-nums; min-width: 2.2em; text-align: center; color: var(--gold2); line-height: 1; }
+.m02-steps { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.m02-steps .btn-s { min-width: 54px; }
+.m02-last { display: flex; gap: 12px; align-items: center; }
+.m02-last h4 { margin-bottom: 2px; }
+.m02-scoretable { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 6px; }
+.m02-hist { display: flex; align-items: center; gap: 6px; }
+.m02-final { display: flex; flex-direction: column; gap: 3px; }
+.m02-frow { display: flex; align-items: center; gap: 10px; padding: 3px 8px; border-radius: 6px; }
+.m02-frow.me { background: rgba(216,178,90,0.14); }
+.m02-frow .face { width: 28px; height: 28px; }
+.m02-frow > b:first-of-type { width: 4.5em; }
+.m02-frow .m02-bag { flex: 1; }
+.m02-frow > b.gold { font-size: 1.25em; width: 2em; text-align: right; font-variant-numeric: tabular-nums; }
+.m02-rank { width: 1.6em; text-align: right; opacity: 0.7; font-variant-numeric: tabular-nums; }
+.m02-partners { display: flex; gap: 6px; flex-wrap: wrap; }
+.m02-partner { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; min-height: 40px; border-radius: 20px; border: 1px solid #3a4468; background: rgba(10,14,28,0.7); color: inherit; font: inherit; font-size: 0.86em; cursor: pointer; }
+.m02-partner .face { width: 30px; height: 30px; }
+.m02-partner.sel { border-color: var(--gold2); background: rgba(216,178,90,0.18); }
+.m02-builder { display: flex; gap: 10px; align-items: center; }
+.m02-side { flex: 1; min-width: 0; border: 1px solid rgba(216,178,90,0.22); border-radius: 8px; padding: 6px 10px; }
+.m02-side h4 { margin-bottom: 4px; }
+.m02-siderow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.m02-pick { display: inline-flex; flex-direction: column; align-items: center; gap: 0; width: 50px; min-height: 52px; padding: 3px 0; border-radius: 8px; border: 1px solid #3a4468; background: rgba(10,14,28,0.7); color: inherit; font: inherit; cursor: pointer; }
+.m02-pick small { font-size: 0.7em; font-variant-numeric: tabular-nums; }
+.m02-pick.sel { border-color: var(--gold2); background: rgba(216,178,90,0.2); }
+.m02-pick:disabled { opacity: 0.3; cursor: default; }
+.m02-money { min-width: 2.4em; text-align: center; font-size: 1.2em; font-variant-numeric: tabular-nums; }
+.m02-arrow { font-size: 1.6em; color: var(--gold2); flex: none; }
+.m02-swap { display: flex; align-items: center; gap: 14px; }
+.m02-swapside { flex: 1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border: 1px solid rgba(216,178,90,0.22); border-radius: 8px; padding: 8px 12px; }
+.m02-swapside .face { width: 34px; height: 34px; }
+
+/* ===== P02 四つの金庫 ===== */
+.p02-safes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.p02-safe { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 8px 10px; border-radius: 10px; border: 1.5px solid #4a5478; background: linear-gradient(170deg, rgba(34,40,62,0.92), rgba(12,15,28,0.92)); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.p02-safe:disabled { cursor: default; opacity: 1; }
+.p02-safe.sel { border-color: var(--gold2); box-shadow: 0 0 0 2px rgba(216,178,90,0.35), inset 0 0 18px rgba(216,178,90,0.18); }
+.p02-safe.open { border-color: var(--green); background: linear-gradient(170deg, rgba(24,52,44,0.9), rgba(10,20,22,0.92)); }
+.p02-safehead { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+.p02-dial { display: flex; gap: 5px; justify-content: center; }
+.p02-dial span { width: 34px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid var(--gold-dim); background: #0a0d1a; font-family: var(--serif); font-size: 26px; font-variant-numeric: tabular-nums; color: var(--gold2); }
+.p02-safe.open .p02-dial span { color: var(--green); border-color: var(--green); }
+.p02-dial.big span { width: 52px; height: 64px; font-size: 40px; }
+.p02-dial span.empty { color: #4a5478; }
+.p02-hist { height: 96px; overflow-y: auto; touch-action: pan-y; display: flex; flex-direction: column; gap: 2px; }
+.p02-line { display: flex; align-items: baseline; gap: 6px; font-size: 0.8em; white-space: nowrap; }
+.p02-line.gain .p02-code { color: var(--gold2); }
+.p02-code { font-variant-numeric: tabular-nums; letter-spacing: 0.12em; font-size: 1.15em; }
+.p02-hb b { font-size: 1.1em; }
+.p02-input { display: flex; gap: 18px; align-items: center; }
+.p02-entry { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: none; width: 250px; text-align: center; }
+.p02-input > .col { flex: 1; min-width: 0; }
+.p02-keys { display: grid; grid-template-columns: repeat(6, 52px); gap: 6px; flex: none; }
+.p02-key { height: 48px; border-radius: 8px; border: 1px solid var(--gold-dim); background: rgba(20,26,48,0.9); color: var(--ivory); font: inherit; font-size: 1.25em; font-variant-numeric: tabular-nums; cursor: pointer; }
+.p02-key.wide { grid-column: span 2; font-size: 0.9em; }
+.p02-key:disabled { opacity: 0.28; cursor: default; }
+.p02-key:active:not(:disabled) { background: rgba(216,178,90,0.3); }

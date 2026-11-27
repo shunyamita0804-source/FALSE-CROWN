@@ -1,11 +1,15 @@
 import type { MatchEngine } from './types';
 import { M01 } from './m01';
+import { M02 } from './m02';
 import { P01 } from './p01';
+import { P02 } from './p02';
 
 /** 実装済みの競技。未実装の競技は IMPLEMENTED に含めない（完成扱いしない）。 */
 export const MATCHES: Record<string, MatchEngine> = {
   m01: M01,
+  m02: M02,
   p01: P01,
+  p02: P02,
 };
 
 export interface CatalogEntry {

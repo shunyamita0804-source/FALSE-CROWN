@@ -14,6 +14,9 @@ import storyJson from '../data/story_events.json';
 import endingsJson from '../data/endings.json';
 import { t } from '../i18n/i18n';
 import { isImplemented } from '../matches/registry';
+
+/** その日のメインマッチと監獄マッチが両方とも実装済みか */
+const dayPlayable = (day: number) => isImplemented(mainMatchId(day)) && (!prisonMatchId(day) || isImplemented(prisonMatchId(day)!));
 import { fastForward, tickNpcs, type BrainEvent } from '../npc/brain';
 import { recordBetrayal, settlePlans } from '../npc/negotiation';
 import { loadMeta, saveGame, saveMeta, type Meta } from '../save/save';
@@ -187,6 +190,8 @@ export function setFieldBgm(): void {
   if (room.area === 'secret') id = 'hidden';
   else if (room.area === 'prison') id = 'prison';
   else if (s.phase === 'strategy' || s.phase === 'rules') id = 'match_main';
+  else if (room.id.startsWith('bedroom_')) id = 'room';
+  else if (room.id === 'living_hallway') id = 'corridor';
   else if (room.id.endsWith('lounge')) id = 'lounge';
   else if (room.area === 'common' || room.area === 'ground') id = 'common';
   Sound.bgm(id);
@@ -397,7 +402,7 @@ async function step(s: GameState): Promise<boolean> {
     }
     case 'morning': {
       // 2 日目以降：完全版の解放と、実装済みの範囲を確認する
-      if (!dayUnlocked(s.day) || !isImplemented(mainMatchId(s.day))) {
+      if (!dayUnlocked(s.day) || !dayPlayable(s.day)) {
         showField(false);
         await fade(false);
       }
@@ -405,7 +410,7 @@ async function step(s: GameState): Promise<boolean> {
         const ok = await G.ui.purchaseScreen(true);
         if (!ok) return false;
       }
-      if (!isImplemented(mainMatchId(s.day))) {
+      if (!dayPlayable(s.day)) {
         showField(false);
         await alertDialog(t('wip.title'), t('wip.text', { day: s.day }), t('common.toTitle'));
         return false;
