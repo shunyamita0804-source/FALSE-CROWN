@@ -634,6 +634,33 @@
           "text": "ありがとう。借りができたね。",
           "gain": 0.86
         }
+      },
+      "extra": {
+        "introduction": {
+          "file": "11_introduction.mp3",
+          "text": "九条蓮司だ。職業はギャンブラー。せっかくの大会だ、楽しませてもらうよ。",
+          "gain": 0.83
+        },
+        "victory": {
+          "file": "12_victory.mp3",
+          "text": "ふっ、どうやら今回も俺の読みが正しかったようだね。",
+          "gain": 0.84
+        },
+        "defeat": {
+          "file": "13_defeat.mp3",
+          "text": "参ったね。まさか、ここまで読みを外すとは。",
+          "gain": 1.12
+        },
+        "elimination": {
+          "file": "14_elimination.mp3",
+          "text": "ここで終わりか。まあ、勝負の世界じゃこんなこともあるさ。楽しかったよ。",
+          "gain": 0.82
+        },
+        "betrayal": {
+          "file": "15_betrayal.mp3",
+          "text": "ふっ、俺を出し抜くとはね。大したもんだよ。ただし、忘れないからな。",
+          "gain": 0.89
+        }
       }
     },
     "npc_11_kisaragi": {
