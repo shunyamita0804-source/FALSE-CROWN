@@ -38,6 +38,10 @@ import { condList } from './games/p08';
 import { P09_PRACTICE, expected as p09Expected, scoreOf as p09Score, type Mirror } from '../matches/p09';
 import { toolBar as p09Tools } from './games/p09';
 import { MirrorBoard } from './mirrorboard';
+import { DELIVER_PTS as M10_DELIVER, M10_PRACTICE, actsOf as m10Acts, applyAct as m10Apply, startBoard as m10Start, type Board as M10Board } from '../matches/m10';
+import { triBoard } from './triboard';
+import { CENTERS as P10_CENTERS, applyStep as p10Apply, startPieces as p10Start, stepsOf as p10Steps, type Piece as P10Piece } from '../matches/p10';
+import { P10_COLORS } from './games/p10';
 import type { CharId } from '../data/characters';
 import { DiffQuiz, diffFigure, diffReview, figEl, FIG_NAME } from './diffquiz';
 import { rotated, type Cell } from '../matches/poly';
@@ -874,7 +878,139 @@ function p09Guide(): Guide {
   };
 }
 
-const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide, m07: m07Guide, p07: p07Guide, m08: m08Guide, p08: p08Guide, m09: m09Guide, p09: p09Guide };
+// ---- M10 トライアングル ----
+
+function m10Guide(): Guide {
+  const carry: M10Board = { soldiers: [{ seat: 0, pos: 1, gem: 0 }, { seat: 0, pos: 2, gem: -1 }, { seat: 1, pos: 7, gem: -1 }, { seat: 2, pos: 8, gem: -1 }], ground: [], waiting: [0], delivered: [0, 0, 0] };
+  const fight: M10Board = { soldiers: [{ seat: 0, pos: 4, gem: -1 }, { seat: 0, pos: 2, gem: -1 }, { seat: 1, pos: 7, gem: 1 }, { seat: 1, pos: 11, gem: -1 }, { seat: 2, pos: 9, gem: -1 }, { seat: 2, pos: 13, gem: -1 }], ground: [{ node: 8, id: 2 }], waiting: [], delivered: [0, 0, 0] };
+  const fig = (b: M10Board, marks: Record<number, string> = {}, flagMarks: Record<number, string> = {}) => triBoard({ board: b, seats: [0, 1, 2], me: 0, marks, flagMarks, scale: 0.6 });
+  return {
+    name: 'トライアングル',
+    pages: [
+      { title: t('tut.m10.t1'), text: t('tut.m10.p1'), figure: () => fig(m10Start([0, 1, 2]), { 1: 'movable', 2: 'movable' }) },
+      { title: t('tut.m10.t2'), text: t('tut.m10.p2'), figure: () => fig(carry, { 1: 'sel' }, { 0: 'deliver' }) },
+      { title: t('tut.m10.t3'), text: t('tut.m10.p3'), figure: () => fig(fight, { 4: 'sel', 7: 'can cap' }) },
+      { title: t('tut.m10.t4'), text: t('tut.m10.p4'), figure: () => facts([['+4', t('tut.m10.f1')], ['+1', t('tut.m10.f2')], ['+1', t('tut.m10.f3')], ['+1', t('tut.m10.f4')]]) },
+    ],
+    practice: {
+      text: t('tut.m10.practice'),
+      build: (onDone) => {
+        const box = h('div', { class: 'hx7 tb7 prac' });
+        let b: M10Board = M10_PRACTICE;
+        let from: number | undefined;
+        let to: number | undefined;
+        let done = false;
+        const draw = () => {
+          clear(box);
+          const acts = done ? [] : m10Acts(b, 0);
+          const sel = from !== undefined ? b.soldiers.find((s) => s.pos === from) : undefined;
+          const mine = acts.filter((a) => a.from === from);
+          const dests = mine.filter((a) => a.t === 'move').map((a) => (a as { to: number }).to);
+          const canDel = mine.some((a) => a.t === 'deliver');
+          const marks: Record<number, string> = {};
+          const flagMarks: Record<number, string> = {};
+          if (!done) {
+            if (sel) { marks[sel.pos] = 'sel'; for (const c of dests) marks[c] = c === to ? 'can chosen' : 'can'; if (canDel) flagMarks[0] = to === -2 ? 'deliver chosen' : 'deliver'; }
+            else for (const s of b.soldiers) marks[s.pos] = 'movable';
+          }
+          const go = () => {
+            if (from === undefined || to === undefined) return;
+            const r = m10Apply(b, 0, to === -2 ? { t: 'deliver', from } : { t: 'move', from, to });
+            b = r.board;
+            Sound.se(r.fx.deliver ? 'coins' : 'chip');
+            if (r.fx.deliver) { done = true; onDone(); }
+            from = r.fx.deliver || to === undefined || to < 0 ? undefined : to;
+            to = undefined;
+            draw();
+          };
+          const board = triBoard({ board: b, seats: [0], me: 0, marks, flagMarks, scale: 0.72 },
+            done ? undefined : (c) => {
+              if (b.soldiers.some((s) => s.pos === c)) { from = from === c ? undefined : c; to = undefined; Sound.se('select'); draw(); return; }
+              if (!sel || !dests.includes(c)) { Sound.se('error'); return; }
+              if (to === c) { go(); return; }
+              to = c; Sound.se('select'); draw();
+            },
+            done ? undefined : (fs) => { if (fs !== 0 || !canDel) { Sound.se('error'); return; } if (to === -2) { go(); return; } to = -2; Sound.se('select'); draw(); });
+          const carrying = b.soldiers.some((s) => s.gem >= 0);
+          box.append(h('div', { class: 'hx7-left' }, board), h('div', { class: 'hx7-panel' },
+            h('div', { class: `small fb-note${done ? ' gold' : ''}` }, done ? t('tut.m10.pracDone', { n: M10_DELIVER }) : !sel ? t('m10.howPick') : to !== undefined ? t('m08.moveReady') : canDel ? t('m10.howDeliver') : carrying && sel.gem >= 0 ? t('m10.howCarry') : t('m10.howMove')),
+            h('div', { class: 'hx7-foot' }, done ? null : button(t(to === -2 ? 'm10.doDeliver' : 'm09.doMove'), go, { kind: 'primary', disabled: to === undefined }))));
+        };
+        draw();
+        return box;
+      },
+    },
+  };
+}
+
+// ---- P10 最後の一手 ----
+
+function p10Guide(): Guide {
+  const at = (x: number, y: number) => y * 5 + x;
+  const centers = (extra: Record<number, string> = {}) => { const m: Record<number, string> = {}; for (const c of P10_CENTERS) m[c] = 'center'; for (const [c, v] of Object.entries(extra)) m[Number(c)] = `${m[Number(c)] ?? ''} ${v}`; return m; };
+  const fig = (ps: P10Piece[], cell: number, marks: Record<number, string> = {}) => pieceBoard({ n: 5, cell, pieces: ps.map((p) => ({ pos: p.pos, seat: p.seat, kind: 'pawn' as const })), colors: P10_COLORS, me: 0, marks: centers(marks) });
+  const cap = (el: HTMLElement, text: string) => h('div', { class: 'tg-fig' }, el, h('div', { class: 'tg-cap' }, text));
+  const mid: P10Piece[] = [{ seat: 0, pos: at(1, 1) }, { seat: 1, pos: at(2, 1) }, { seat: 1, pos: at(4, 3) }, { seat: 0, pos: at(0, 3) }];
+  const hold: P10Piece[] = [{ seat: 0, pos: at(2, 2) }, { seat: 0, pos: at(1, 2) }, { seat: 1, pos: at(3, 2) }, { seat: 1, pos: at(4, 0) }, { seat: 0, pos: at(0, 4) }];
+  return {
+    name: '最後の一手',
+    pages: [
+      { title: t('tut.p10.t1'), text: t('tut.p10.p1'), figure: () => fig(p10Start(), 70) },
+      {
+        title: t('tut.p10.t2'), text: t('tut.p10.p2'),
+        figure: () => h('div', { class: 'tg-row' }, cap(fig(mid, 54, { [at(1, 1)]: 'sel', [at(3, 1)]: 'can cap' }), t('tut.m09.before')), h('span', { class: 'dq-arrow' }, '▶'),
+          cap(fig(p10Apply(mid, 0, { from: at(1, 1), to: at(3, 1), cap: at(2, 1) }), 54, { [at(1, 1)]: 'from', [at(2, 1)]: 'to hit', [at(3, 1)]: 'to' }), t('tut.m09.after'))),
+      },
+      { title: t('tut.p10.t3'), text: t('tut.p10.p3'), figure: () => h('div', { class: 'tg-row' }, fig(hold, 62), facts([['+2', t('tut.p10.f1')], ['+1', t('tut.p10.f2')]])) },
+      { title: t('tut.p10.t4'), text: t('tut.p10.p4'), figure: () => facts([['20', t('tut.p10.g1')], ['2', t('tut.p10.g2')], ['15', t('tut.p10.g3')]]) },
+    ],
+    practice: {
+      text: t('tut.p10.practice'),
+      build: (onDone) => {
+        const box = h('div', { class: 'hx7 pz7 prac' });
+        let pieces: P10Piece[] = [{ seat: 0, pos: at(1, 2) }, { seat: 0, pos: at(0, 0) }, { seat: 1, pos: at(2, 2) }, { seat: 1, pos: at(4, 4) }];
+        let from: number | undefined;
+        let to: number | undefined;
+        let done = false;
+        const draw = () => {
+          clear(box);
+          const steps = done ? [] : p10Steps(pieces, 0);
+          const sel = from !== undefined ? pieces.find((p) => p.pos === from && p.seat === 0) : undefined;
+          const mine = steps.filter((s) => s.from === from);
+          const chosen = to !== undefined ? mine.find((s) => s.to === to) : undefined;
+          const marks: Record<number, string> = {};
+          if (!done) {
+            if (sel) { marks[sel.pos] = 'sel'; for (const s of mine) marks[s.to] = s.cap !== undefined ? 'can cap' : 'can'; } else for (const p of pieces) if (p.seat === 0) marks[p.pos] = 'movable';
+            if (chosen) marks[chosen.to] = `${marks[chosen.to]} chosen`;
+          }
+          const confirm = () => {
+            if (!chosen) return;
+            if (chosen.cap === undefined) { from = to = undefined; Sound.se('error'); draw(); return; }
+            pieces = p10Apply(pieces, 0, chosen);
+            from = to = undefined;
+            done = true;
+            Sound.se('chipsHit');
+            draw();
+            onDone();
+          };
+          const board = pieceBoard({ n: 5, cell: 86, pieces: pieces.map((p) => ({ pos: p.pos, seat: p.seat, kind: 'pawn' as const })), colors: P10_COLORS, me: 0, marks: centers(marks), onCell: done ? undefined : (c) => {
+            if (pieces.some((p) => p.pos === c && p.seat === 0)) { from = c; to = undefined; Sound.se('select'); draw(); return; }
+            if (!sel || !mine.some((s) => s.to === c)) return;
+            if (to === c) { confirm(); return; }
+            to = c; Sound.se('select'); draw();
+          } });
+          box.append(h('div', { class: 'hx7-left' }, board), h('div', { class: 'hx7-panel' },
+            h('div', { class: `small fb-note${done || chosen?.cap !== undefined ? ' gold' : ''}` }, done ? t('tut.p10.pracDone') : !sel ? t('m09.howPick') : !chosen ? t('p10.howMove') : chosen.cap !== undefined ? t('p10.gainCap', { n: 3 }) : t('tut.p10.practice')),
+            h('div', { class: 'hx7-foot' }, done ? null : button(t('m09.doMove'), confirm, { kind: 'primary', disabled: !chosen }))));
+        };
+        draw();
+        return box;
+      },
+    },
+  };
+}
+
+const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide, m07: m07Guide, p07: p07Guide, m08: m08Guide, p08: p08Guide, m09: m09Guide, p09: p09Guide, m10: m10Guide, p10: p10Guide };
 
 export const hasGuide = (id: string) => id in GUIDES;
 
