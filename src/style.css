@@ -1290,3 +1290,78 @@ button.xc-card { cursor: pointer; }
 .sb-cond i { font-style: normal; width: 1.2em; text-align: center; font-weight: 700; }
 .sb-cond.ok { border-color: #9be7a6; background: rgba(120,220,140,0.14); }
 .sb-cond.ok i { color: #9be7a6; }
+
+/* ---- 駒を置くマス目の盤面（M09 四王の戦場・改、P10 最後の一手） ---- */
+.pzb { display: grid; gap: 0; border: 3px solid rgba(216,178,90,0.7); border-radius: 10px; overflow: hidden; flex: none; user-select: none; -webkit-user-select: none; touch-action: manipulation; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+.pzb-cell { position: relative; width: var(--pz-cell); height: var(--pz-cell); padding: 0; border: 0; border-radius: 0; display: flex; align-items: center; justify-content: center; color: inherit; }
+.pzb-cell.even { background: #2c3350; } .pzb-cell.odd { background: #232840; }
+.pzb-cell:disabled { opacity: 1; }
+.pzb-cell.center { background: radial-gradient(circle, rgba(216,178,90,0.75), rgba(216,178,90,0.28)); box-shadow: inset 0 0 0 3px var(--gold2); }
+.pzb-cell.center.award { animation: pzAward .7s ease-out; }
+.pzb-cell.from { box-shadow: inset 0 0 0 4px rgba(255,255,255,0.35); }
+.pzb-cell.to { box-shadow: inset 0 0 0 4px rgba(255,255,255,0.8); }
+.pzb-cell.to.hit { box-shadow: inset 0 0 0 5px #ff8f84; }
+.pzb-cell.movable .pz { animation: pzBob 1.2s ease-in-out infinite; }
+.pzb-cell.sel { box-shadow: inset 0 0 0 5px #fff; background: rgba(255,255,255,0.22); }
+.pzb-cell.can::after { content: ''; position: absolute; width: 34%; height: 34%; border-radius: 50%; background: var(--gold2); opacity: 0.9; animation: fbDot 1.1s ease-in-out infinite; pointer-events: none; }
+.pzb-cell.can.cap::after { width: 86%; height: 86%; background: none; border: 5px solid #ff6a5c; border-radius: 14px; opacity: 1; }
+.pzb-cell.chosen { box-shadow: inset 0 0 0 6px var(--gold2); background: rgba(216,178,90,0.4); }
+.pzb-cell.threat { box-shadow: inset 0 0 0 5px #ff4a3a; animation: fbWill .7s ease-in-out infinite; }
+@keyframes pzBob { 50% { transform: translateY(-4px); } }
+@keyframes pzAward { 0% { filter: brightness(2.4); } }
+.pz { position: relative; display: inline-flex; align-items: flex-end; justify-content: center; pointer-events: none; flex: none; }
+.pz-base { position: absolute; left: 12%; right: 12%; bottom: 3%; height: 34%; border-radius: 50%; background: var(--c); border: 2.5px solid rgba(0,0,0,0.6); }
+.pz.me .pz-base { border-color: #fff; border-width: 3.5px; }
+.pz img { position: relative; width: 100%; height: 100%; object-fit: contain; }
+.pz b { position: relative; font-size: 1.4em; margin-bottom: 20%; }
+.pz-rank .m01-rankrow { min-height: 34px; gap: 6px; }
+.pz-rank .m01-rankrow.now { box-shadow: inset 3px 0 0 var(--gold2); }
+.pz-rank .m01-rankrow.out { opacity: 0.55; }
+.pz-note { display: flex; flex-direction: column; gap: 4px; }
+.pz-warn { color: #ff8f84; font-weight: 700; }
+.pz-legend { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* ---- P09 鏡の決闘 ---- */
+.p09-play { flex: 1; display: flex; align-items: center; justify-content: center; gap: 26px; min-width: 0; }
+.mb { position: relative; flex: none; padding: 30px 0 0; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+.mb-grid { display: grid; border: 3px solid rgba(216,178,90,0.6); border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+.mb-cell { position: relative; width: var(--mb-cell); height: var(--mb-cell); padding: 0; border: 0; border-radius: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10); display: flex; align-items: center; justify-content: center; color: inherit; }
+.mb-cell:disabled { opacity: 1; }
+.mb-cell.src { background: #171b2e; }
+.mb-cell.dst { background: #2f3757; }
+.mb-cell.axis { background: #3a3320; }
+.mb:not(.ro) .mb-cell.dst:active { background: #46507a; }
+.mb-tile { display: block; width: 68%; height: 68%; border-radius: 16%; pointer-events: none; }
+.mb-tile.blk { background: linear-gradient(#f6efd9, #d9cba2); border: 2.5px solid #b89a4a; box-shadow: 0 3px 6px rgba(0,0,0,0.45); }
+.mb-tile.arw { background: linear-gradient(#3d6fd0, #284c98); border: 2.5px solid #a9c4ff; box-shadow: 0 3px 6px rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; }
+.mb-tile.arw svg { width: 82%; height: 82%; }
+.mb-tile.arw path { fill: #fff; }
+.mb-tile.src { filter: saturate(0.8) brightness(0.92); }
+.mb-tile.ghost { opacity: 0.38; }
+.mb-cell.ok { box-shadow: inset 0 0 0 4px #7fdc90; }
+.mb-cell.ng { box-shadow: inset 0 0 0 4px #ff7b6e; background: #5a2a2e; }
+.mb-cell.miss { box-shadow: inset 0 0 0 3px rgba(255,123,110,0.6); }
+.mb-cell.hint { box-shadow: inset 0 0 0 5px #fff; animation: mbHint 1s ease-in-out infinite alternate; }
+@keyframes mbHint { from { background: #2f3757; } to { background: #6a74a8; } }
+.mb-axis { position: absolute; left: 3px; top: 33px; pointer-events: none; }
+.mb-axis svg { overflow: visible; display: block; }
+.mb-axis line { stroke: var(--gold2); stroke-width: 6; stroke-linecap: round; filter: drop-shadow(0 0 6px rgba(255,220,130,0.9)); }
+.mb-lab { position: absolute; top: 0; font-size: 0.86em; font-weight: 700; padding: 1px 12px; border-radius: 9px; background: rgba(8,10,22,0.8); border: 1.5px solid rgba(255,255,255,0.2); white-space: nowrap; }
+.mb-lab.dst { border-color: var(--gold2); color: var(--gold2); }
+.mb.ax-v .mb-lab.src, .mb.ax-d .mb-lab.src { left: 0; } .mb.ax-v .mb-lab.dst, .mb.ax-d .mb-lab.dst { right: 0; }
+.mb.ax-h, .mb.ax-d, .mb.ax-a { padding-bottom: 30px; }
+.mb.ax-h .mb-lab.src { left: 0; } .mb.ax-h .mb-lab.dst { left: 0; top: auto; bottom: 0; }
+.mb.ax-a .mb-lab.src { left: 0; } .mb.ax-a .mb-lab.dst { right: 0; top: auto; bottom: 0; }
+.mb.ax-d .mb-lab.src { top: auto; bottom: 0; }
+.mb.ro .mb-lab { display: none; } .mb.mb.ro { padding: 0; } .mb.ro .mb-axis { top: 3px; }
+.mb.ro .mb-axis line { stroke-width: 4; }
+.mb-left { width: 230px; flex: none; display: flex; flex-direction: column; gap: 12px; }
+.mb-right { width: 220px; flex: none; display: flex; flex-direction: column; gap: 10px; }
+.mb-right .btn { min-height: 46px; }
+.mb-tools { display: flex; flex-direction: column; gap: 10px; }
+.mb-tool { display: flex; align-items: center; gap: 14px; min-height: 84px; padding: 6px 14px; border-radius: 12px; border: 2.5px solid rgba(255,255,255,0.2); background: rgba(8,12,26,0.8); color: inherit; }
+.mb-tool .mb-tile, .mb-tool .mb-erase { width: 60px; height: 60px; flex: none; }
+.mb-tool small { font-size: 1.05em; font-weight: 700; }
+.mb-tool.on { border-color: var(--gold2); background: rgba(216,178,90,0.2); box-shadow: 0 0 0 3px rgba(216,178,90,0.35); }
+.mb-erase { display: flex; align-items: center; justify-content: center; border-radius: 12px; border: 2.5px dashed #ff9d92; color: #ff9d92; font-size: 1.8em; font-weight: 700; }
+.p09-break { gap: 12px; }

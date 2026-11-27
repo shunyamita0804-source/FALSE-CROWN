@@ -31,7 +31,13 @@ import { EDGES as M08_EDGES, edgeBetween as m08Edge, movesFor as m08Moves, nodeO
 import { ringBoard } from './ringboard';
 import { P08_PRACTICE, type Scale } from '../matches/p08';
 import { ScaleBoard } from './scaleboard';
+import { CENTER as M09_CENTER, movesOf as m09Moves, startPieces as m09Start, type Piece as M09Piece } from '../matches/m09';
+import { pieceBoard } from './pieceboard';
+import { M09_COLORS } from './games/m09';
 import { condList } from './games/p08';
+import { P09_PRACTICE, expected as p09Expected, scoreOf as p09Score, type Mirror } from '../matches/p09';
+import { toolBar as p09Tools } from './games/p09';
+import { MirrorBoard } from './mirrorboard';
 import type { CharId } from '../data/characters';
 import { DiffQuiz, diffFigure, diffReview, figEl, FIG_NAME } from './diffquiz';
 import { rotated, type Cell } from '../matches/poly';
@@ -763,7 +769,112 @@ function p08Guide(): Guide {
   };
 }
 
-const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide, m07: m07Guide, p07: p07Guide, m08: m08Guide, p08: p08Guide };
+// ---- M09 四王の戦場・改 ----
+
+function m09Guide(): Guide {
+  const at = (x: number, y: number) => y * 7 + x;
+  const toBoard = (ps: M09Piece[]) => ps.map((p) => ({ pos: p.pos, seat: p.seat, kind: p.king ? 'king' as const : 'soldier' as const }));
+  const fig = (ps: M09Piece[], cell: number, marks: Record<number, string> = {}) => pieceBoard({ n: 7, cell, pieces: toBoard(ps), colors: M09_COLORS, me: 0, marks: { [M09_CENTER]: 'center', ...marks } });
+  const cap = (el: HTMLElement, text: string) => h('div', { class: 'tg-fig' }, el, h('div', { class: 'tg-cap' }, text));
+  const mid: M09Piece[] = [{ seat: 0, king: true, pos: at(0, 0) }, { seat: 0, king: false, pos: at(2, 3) }, { seat: 1, king: false, pos: at(3, 3) }, { seat: 1, king: true, pos: at(6, 0) }];
+  return {
+    name: '四王の戦場・改',
+    pages: [
+      { title: t('tut.m09.t1'), text: t('tut.m09.p1'), figure: () => fig(m09Start([0, 1, 2, 3]), 54) },
+      {
+        title: t('tut.m09.t2'), text: t('tut.m09.p2'),
+        figure: () => h('div', { class: 'tg-row' }, cap(fig(mid, 40, { [at(2, 3)]: 'sel', [at(3, 3)]: 'center can cap' }), t('tut.m09.before')), h('span', { class: 'dq-arrow' }, '▶'),
+          cap(fig([mid[0], { seat: 0, king: false, pos: at(3, 3) }, mid[3]], 40, { [at(2, 3)]: 'from', [at(3, 3)]: 'center to hit' }), t('tut.m09.after'))),
+      },
+      { title: t('tut.m09.t3'), text: t('tut.m09.p3'), figure: () => facts([['+1', t('tut.m09.f1')], ['+5', t('tut.m09.f2')], ['+2', t('tut.m09.f3')], ['+5', t('tut.m09.f4')]]) },
+      { title: t('tut.m09.t4'), text: t('tut.m09.p4'), figure: () => facts([['16', t('tut.m09.g1')], ['4', t('tut.m09.g2')]]) },
+    ],
+    practice: {
+      text: t('tut.m09.practice'),
+      build: (onDone) => {
+        const box = h('div', { class: 'hx7 pz7 prac' });
+        let pieces: M09Piece[] = [{ seat: 0, king: true, pos: at(1, 5) }, { seat: 0, king: false, pos: at(2, 4) }, { seat: 0, king: false, pos: at(3, 5) }, { seat: 2, king: false, pos: at(3, 4) }, { seat: 2, king: true, pos: at(5, 1) }, { seat: 2, king: false, pos: at(4, 2) }];
+        let from: number | undefined;
+        let to: number | undefined;
+        let done = false;
+        const draw = () => {
+          clear(box);
+          const mine = pieces.filter((p) => p.seat === 0);
+          const sel = from !== undefined ? mine.find((p) => p.pos === from) : undefined;
+          const dests = sel ? m09Moves(pieces, sel) : [];
+          const marks: Record<number, string> = { [M09_CENTER]: 'center' };
+          const add = (c: number, cls: string) => { marks[c] = `${marks[c] ?? ''} ${cls}`; };
+          if (!done) {
+            if (sel) { add(sel.pos, 'sel'); for (const c of dests) add(c, pieces.some((p) => p.pos === c) ? 'can cap' : 'can'); } else for (const p of mine) if (m09Moves(pieces, p).length) add(p.pos, 'movable');
+            if (to !== undefined) add(to, 'chosen');
+          }
+          const confirm = () => {
+            if (from === undefined || to === undefined || !sel) return;
+            const victim = pieces.find((p) => p.pos === to && p.seat !== 0);
+            if (!victim) { from = to = undefined; Sound.se('error'); draw(); return; }
+            pieces = pieces.filter((p) => p !== victim).map((p) => (p === sel ? { ...p, pos: to! } : p));
+            from = to = undefined;
+            done = true;
+            Sound.se('chipsHit');
+            draw();
+            onDone();
+          };
+          const board = pieceBoard({ n: 7, cell: 66, pieces: toBoard(pieces), colors: M09_COLORS, me: 0, marks, onCell: done ? undefined : (c) => {
+            const own = mine.find((p) => p.pos === c);
+            if (own) { from = c; to = undefined; Sound.se('select'); draw(); return; }
+            if (!sel || !dests.includes(c)) return;
+            if (to === c) { confirm(); return; }
+            to = c; Sound.se('select'); draw();
+          } });
+          const victim = to !== undefined && pieces.some((p) => p.pos === to && p.seat !== 0);
+          box.append(h('div', { class: 'hx7-left' }, board), h('div', { class: 'hx7-panel' },
+            h('div', { class: `small fb-note${done || victim ? ' gold' : ''}` }, done ? t('tut.m09.pracDone') : !sel ? t('m09.howPick') : to === undefined ? t('m09.howSoldier') : victim ? t('m09.gainSoldier', { n: 1 }) : t('tut.m09.practice')),
+            h('div', { class: 'hx7-foot' }, done ? null : button(t('m09.doMove'), confirm, { kind: 'primary', disabled: to === undefined }))));
+        };
+        draw();
+        return box;
+      },
+    },
+  };
+}
+
+// ---- P09 鏡の決闘 ----
+
+function p09Guide(): Guide {
+  const d1: Mirror = { n: 5, axis: 'v', src: { 1: 'b', 5: 'b', 6: 'b', 16: 'b' } };
+  const d2: Mirror = { n: 5, axis: 'v', src: { 5: 'r', 11: 'u', 16: 'l' } };
+  const d3: Mirror = { n: 5, axis: 'd', src: { 5: 'b', 10: 'u', 16: 'b', 22: 'r' } };
+  const fig = (m: Mirror, cell = 62) => new MirrorBoard(m, { readonly: true, grid: p09Expected(m), cell }).el;
+  return {
+    name: '鏡の決闘',
+    pages: [
+      { title: t('tut.p09.t1'), text: t('tut.p09.p1'), figure: () => fig(d1) },
+      { title: t('tut.p09.t2'), text: t('tut.p09.p2'), figure: () => fig(d2) },
+      { title: t('tut.p09.t3'), text: t('tut.p09.p3'), figure: () => fig(d3) },
+      { title: t('tut.p09.t4'), text: t('tut.p09.p4'), figure: () => facts([['6', t('tut.p09.f1')], ['90', t('tut.p09.f2')], ['20', t('tut.p09.f3')], ['+5', t('tut.p09.f4')]]) },
+    ],
+    practice: {
+      text: t('tut.p09.practice'),
+      build: (onDone) => {
+        const box = h('div', { class: 'p09-play prac' });
+        const left = h('div', { class: 'mb-left' });
+        let done = false;
+        const upd = () => {
+          const ok = p09Score(P09_PRACTICE, board.grid, 0).perfect;
+          clear(left);
+          left.append(h('h4', null, t('p09.toolTitle')), p09Tools(board, true), h('div', { class: `small${ok ? ' gold' : ' dim'}` }, ok ? t('tut.p09.pracDone') : t(board.tool === 'a' ? 'p09.howArrow' : board.tool === 'x' ? 'p09.howErase' : 'p09.howBlock')));
+          if (ok && !done) { done = true; Sound.se('result'); onDone(); }
+        };
+        const board = new MirrorBoard(P09_PRACTICE, { cell: 84, onChange: upd });
+        upd();
+        box.append(left, board.el);
+        return box;
+      },
+    },
+  };
+}
+
+const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide, m07: m07Guide, p07: p07Guide, m08: m08Guide, p08: p08Guide, m09: m09Guide, p09: p09Guide };
 
 export const hasGuide = (id: string) => id in GUIDES;
 
