@@ -1,0 +1,542 @@
+[
+  {
+    "id": "ACH_001",
+    "title": "最初の一歩",
+    "metric": "runs_started",
+    "operator": "gte",
+    "threshold": 1,
+    "scope": "profile",
+    "hidden": false
+  },
+  {
+    "id": "ACH_002",
+    "title": "再挑戦",
+    "metric": "runs_finished",
+    "operator": "gte",
+    "threshold": 2,
+    "scope": "profile",
+    "hidden": false
+  },
+  {
+    "id": "ACH_003",
+    "title": "経験者",
+    "metric": "runs_finished",
+    "operator": "gte",
+    "threshold": 5,
+    "scope": "profile",
+    "hidden": false
+  },
+  {
+    "id": "ACH_004",
+    "title": "百戦錬磨",
+    "metric": "runs_finished",
+    "operator": "gte",
+    "threshold": 10,
+    "scope": "profile",
+    "hidden": false
+  },
+  {
+    "id": "ACH_005",
+    "title": "初代王者",
+    "metric": "championships",
+    "operator": "gte",
+    "threshold": 1,
+    "scope": "profile",
+    "hidden": false
+  },
+  {
+    "id": "ACH_006",
+    "title": "連なる王冠",
+    "metric": "championships",
+    "operator": "gte",
+    "threshold": 3,
+    "scope": "profile",
+    "hidden": false
+  },
+  {
+    "id": "ACH_007",
+    "title": "歴戦の王",
+    "metric": "championships",
+    "operator": "gte",
+    "threshold": 5,
+    "scope": "profile",
+    "hidden": false
+  },
+  {
+    "id": "ACH_008",
+    "title": "孤高の天才",
+    "metric": "champion_no_alliance",
+    "operator": "eq",
+    "threshold": 1,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_009",
+    "title": "完全支配",
+    "metric": "champion_all_main_first",
+    "operator": "eq",
+    "threshold": 1,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_010",
+    "title": "不死鳥",
+    "metric": "prison_survived",
+    "operator": "gte",
+    "threshold": 5,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_011",
+    "title": "無一文の王",
+    "metric": "champion_zero_pieces",
+    "operator": "eq",
+    "threshold": 1,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_012",
+    "title": "大富豪",
+    "metric": "peak_pieces",
+    "operator": "gte",
+    "threshold": 30,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_013",
+    "title": "裏切り者",
+    "metric": "distinct_betrayed_partners",
+    "operator": "gte",
+    "threshold": 5,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_014",
+    "title": "交渉の達人",
+    "metric": "unique_deals_accepted",
+    "operator": "gte",
+    "threshold": 10,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_015",
+    "title": "約束の守護者",
+    "metric": "champion_kept_four_no_breach",
+    "operator": "eq",
+    "threshold": 1,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_016",
+    "title": "地下の支配者",
+    "metric": "hidden_cleared_count",
+    "operator": "eq",
+    "threshold": 8,
+    "scope": "run",
+    "hidden": true
+  },
+  {
+    "id": "ACH_017",
+    "title": "名探偵",
+    "metric": "npc_secrets_verified_count",
+    "operator": "eq",
+    "threshold": 11,
+    "scope": "run",
+    "hidden": true
+  },
+  {
+    "id": "ACH_018",
+    "title": "初勝利",
+    "metric": "main_first_count",
+    "operator": "gte",
+    "threshold": 1,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_019",
+    "title": "連勝街道",
+    "metric": "main_first_streak",
+    "operator": "gte",
+    "threshold": 3,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_020",
+    "title": "上位常連",
+    "metric": "living_assignments",
+    "operator": "gte",
+    "threshold": 5,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_021",
+    "title": "生還者",
+    "metric": "prison_survived",
+    "operator": "gte",
+    "threshold": 1,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_022",
+    "title": "鉄の意志",
+    "metric": "prison_survived",
+    "operator": "gte",
+    "threshold": 3,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_023",
+    "title": "決勝進出",
+    "metric": "final_entered",
+    "operator": "eq",
+    "threshold": 1,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_024",
+    "title": "無傷の道",
+    "metric": "champion_no_prison",
+    "operator": "eq",
+    "threshold": 1,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_025",
+    "title": "最後の一手",
+    "metric": "final_stage_wins",
+    "operator": "gte",
+    "threshold": 1,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_026",
+    "title": "小さな資産",
+    "metric": "peak_pieces",
+    "operator": "gte",
+    "threshold": 10,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_027",
+    "title": "資産家",
+    "metric": "peak_pieces",
+    "operator": "gte",
+    "threshold": 20,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_028",
+    "title": "惜しみない手",
+    "metric": "gifted_pieces",
+    "operator": "gte",
+    "threshold": 10,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_029",
+    "title": "情報商人",
+    "metric": "unique_information_sales",
+    "operator": "gte",
+    "threshold": 3,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_030",
+    "title": "情報収集家",
+    "metric": "unique_information_purchases",
+    "operator": "gte",
+    "threshold": 3,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_031",
+    "title": "初めての契約",
+    "metric": "unique_deals_accepted",
+    "operator": "gte",
+    "threshold": 1,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_032",
+    "title": "交渉人",
+    "metric": "unique_deals_accepted",
+    "operator": "gte",
+    "threshold": 5,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_033",
+    "title": "広い人脈",
+    "metric": "distinct_deal_partners",
+    "operator": "gte",
+    "threshold": 5,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_034",
+    "title": "信用の証",
+    "metric": "unique_promises_fulfilled",
+    "operator": "gte",
+    "threshold": 4,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_035",
+    "title": "信頼の輪",
+    "metric": "distinct_trusted_npcs",
+    "operator": "gte",
+    "threshold": 3,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_036",
+    "title": "探検者",
+    "metric": "unique_rooms_visited",
+    "operator": "gte",
+    "threshold": 10,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_037",
+    "title": "施設通",
+    "metric": "unique_rooms_visited",
+    "operator": "gte",
+    "threshold": 20,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_038",
+    "title": "秘密の入口",
+    "metric": "hidden_discovered_count",
+    "operator": "gte",
+    "threshold": 1,
+    "scope": "run",
+    "hidden": true
+  },
+  {
+    "id": "ACH_039",
+    "title": "迷宮の住人",
+    "metric": "hidden_discovered_count",
+    "operator": "gte",
+    "threshold": 4,
+    "scope": "run",
+    "hidden": true
+  },
+  {
+    "id": "ACH_040",
+    "title": "八つの扉",
+    "metric": "hidden_discovered_count",
+    "operator": "eq",
+    "threshold": 8,
+    "scope": "run",
+    "hidden": true
+  },
+  {
+    "id": "ACH_041",
+    "title": "謎解きの第一歩",
+    "metric": "hidden_cleared_count",
+    "operator": "gte",
+    "threshold": 1,
+    "scope": "run",
+    "hidden": true
+  },
+  {
+    "id": "ACH_042",
+    "title": "深層への鍵",
+    "metric": "hidden_cleared_count",
+    "operator": "gte",
+    "threshold": 4,
+    "scope": "run",
+    "hidden": true
+  },
+  {
+    "id": "ACH_043",
+    "title": "証言の収集家",
+    "metric": "npc_secrets_verified_count",
+    "operator": "gte",
+    "threshold": 3,
+    "scope": "run",
+    "hidden": true
+  },
+  {
+    "id": "ACH_044",
+    "title": "真相への接近",
+    "metric": "npc_secrets_verified_count",
+    "operator": "gte",
+    "threshold": 6,
+    "scope": "run",
+    "hidden": true
+  },
+  {
+    "id": "ACH_045",
+    "title": "余暇の達人",
+    "metric": "distinct_subgame_wins",
+    "operator": "eq",
+    "threshold": 6,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_046",
+    "title": "小さな勝利",
+    "metric": "distinct_subgame_wins",
+    "operator": "gte",
+    "threshold": 1,
+    "scope": "run",
+    "hidden": false
+  },
+  {
+    "id": "ACH_047",
+    "title": "結末：敗者",
+    "metric": "ending:E_BAD",
+    "operator": "eq",
+    "threshold": 1,
+    "scope": "profile",
+    "hidden": true
+  },
+  {
+    "id": "ACH_048",
+    "title": "結末：王者",
+    "metric": "ending:E_WIN",
+    "operator": "eq",
+    "threshold": 1,
+    "scope": "profile",
+    "hidden": true
+  },
+  {
+    "id": "ACH_049",
+    "title": "結末：孤独な王",
+    "metric": "ending:E_LONE",
+    "operator": "eq",
+    "threshold": 1,
+    "scope": "profile",
+    "hidden": true
+  },
+  {
+    "id": "ACH_050",
+    "title": "結末：信頼の証",
+    "metric": "ending:E_BOND",
+    "operator": "eq",
+    "threshold": 1,
+    "scope": "profile",
+    "hidden": true
+  },
+  {
+    "id": "ACH_051",
+    "title": "結末：脱出者",
+    "metric": "ending:E_ESCAPE",
+    "operator": "eq",
+    "threshold": 1,
+    "scope": "profile",
+    "hidden": true
+  },
+  {
+    "id": "ACH_052",
+    "title": "結末：救済者",
+    "metric": "ending:E_RESCUE",
+    "operator": "eq",
+    "threshold": 1,
+    "scope": "profile",
+    "hidden": true
+  },
+  {
+    "id": "ACH_053",
+    "title": "結末：告発者",
+    "metric": "ending:E_REPORT",
+    "operator": "eq",
+    "threshold": 1,
+    "scope": "profile",
+    "hidden": true
+  },
+  {
+    "id": "ACH_054",
+    "title": "結末：偽りの王冠",
+    "metric": "ending:E_TRUE",
+    "operator": "eq",
+    "threshold": 1,
+    "scope": "profile",
+    "hidden": true
+  },
+  {
+    "id": "ACH_055",
+    "title": "完全攻略",
+    "metric": "endings_count",
+    "operator": "gte",
+    "threshold": 8,
+    "scope": "profile",
+    "hidden": true
+  },
+  {
+    "id": "ACH_056",
+    "title": "競技収集家",
+    "metric": "games_unlocked_count",
+    "operator": "gte",
+    "threshold": 35,
+    "scope": "profile",
+    "hidden": false
+  },
+  {
+    "id": "ACH_057",
+    "title": "遊戯の達人",
+    "metric": "free_games_won_count",
+    "operator": "gte",
+    "threshold": 10,
+    "scope": "profile",
+    "hidden": false
+  },
+  {
+    "id": "ACH_058",
+    "title": "遊戯の王",
+    "metric": "free_games_won_count",
+    "operator": "gte",
+    "threshold": 35,
+    "scope": "profile",
+    "hidden": false
+  },
+  {
+    "id": "ACH_059",
+    "title": "記録の管理人",
+    "metric": "history_count",
+    "operator": "gte",
+    "threshold": 5,
+    "scope": "profile",
+    "hidden": false
+  },
+  {
+    "id": "ACH_060",
+    "title": "挑戦者",
+    "metric": "hard_or_expert_championships",
+    "operator": "gte",
+    "threshold": 1,
+    "scope": "profile",
+    "hidden": false
+  }
+]

@@ -5,9 +5,8 @@
 
 グラフィックは現代的な高解像度描画が前提です（低解像度・レトロ調にはしません）。詳細は [docs/graphics-direction.md](docs/graphics-direction.md) を参照してください。
 
-> **現在は開発基盤のみです。** ゲームの詳細仕様・キャラクター・背景・UI・各種デザイン素材は、
-> 別途 ChatGPT で制作したものを順次受け取って組み込みます。それまでゲーム内容・デザインは確定させません。
-> 画面に表示されているのは動作確認用の仮画面です。
+> **開発中です。** 現在は DAY 1 を最後まで遊べます。完成・未完成の一覧は [docs/status.md](docs/status.md)、暫定仕様は [docs/decisions.md](docs/decisions.md)、
+> 検証結果は [docs/balance-report.md](docs/balance-report.md)、素材のクレジットは [CREDITS.md](CREDITS.md) を参照してください。
 
 - 試遊URL（GitHub Pages）: https://shunyamita0804-source.github.io/FALSE-CROWN/
 
@@ -39,6 +38,8 @@ npm install
 npm run dev        # 開発サーバー（同一LANのスマホからもアクセス可）
 npm run build      # 型チェック＋本番ビルド（dist/）
 npm run preview    # ビルド結果の確認
+npm test           # 自動テスト（vitest）
+VITE_CHANNEL=product npm run build   # 製品版（開発者メニューなし、2日目以降は購入判定）
 ```
 
 ## フォルダ構成

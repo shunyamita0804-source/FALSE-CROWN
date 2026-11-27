@@ -1,0 +1,687 @@
+{
+  "H01": {
+    "clues": [
+      "1〜6を一度ずつ使用。",
+      "2桁目は3桁目の2倍。",
+      "1桁目は2桁目より2大きい。",
+      "4桁目は1。",
+      "5桁目は4桁目より2大きい。",
+      "6桁目は5桁目より2大きい。"
+    ],
+    "answer": "642135",
+    "seconds": 180,
+    "maxAttempts": 5
+  },
+  "H03": [
+    {
+      "boards": [
+        [
+          "##...#.",
+          "#.#....",
+          ".......",
+          ".#...#.",
+          "......#",
+          "....#.#",
+          ".....##"
+        ],
+        [
+          ".#....#",
+          "...#.##",
+          ".......",
+          ".......",
+          "...#.#.",
+          "#..#..#",
+          "##....."
+        ]
+      ],
+      "start": [
+        [
+          0,
+          6
+        ],
+        [
+          6,
+          6
+        ]
+      ],
+      "goal": [
+        [
+          6,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "maxMoves": 30,
+      "qaShortestMoves": 12,
+      "qaSolution": "RURUUURRURRU"
+    },
+    {
+      "boards": [
+        [
+          ".#.....",
+          "......#",
+          "#..#.#.",
+          "#.#...#",
+          "..#...#",
+          ".......",
+          "....#.#"
+        ],
+        [
+          "...#.#.",
+          "...#..#",
+          "..##..#",
+          "..#....",
+          "#....##",
+          ".......",
+          "...#..."
+        ]
+      ],
+      "start": [
+        [
+          0,
+          6
+        ],
+        [
+          6,
+          6
+        ]
+      ],
+      "goal": [
+        [
+          6,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "maxMoves": 30,
+      "qaShortestMoves": 14,
+      "qaSolution": "URRRURRULUUURR"
+    },
+    {
+      "boards": [
+        [
+          ".##..#.",
+          ".#.....",
+          "..#....",
+          ".##....",
+          "#..#...",
+          ".....#.",
+          "..#...#"
+        ],
+        [
+          ".......",
+          "..#..#.",
+          "....#..",
+          "...#...",
+          ".###..#",
+          "..#...#",
+          "...##.."
+        ]
+      ],
+      "start": [
+        [
+          0,
+          6
+        ],
+        [
+          6,
+          6
+        ]
+      ],
+      "goal": [
+        [
+          6,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "maxMoves": 30,
+      "qaShortestMoves": 20,
+      "qaSolution": "URRRUURULULUURRRURRR"
+    }
+  ],
+  "H04": {
+    "letters": [
+      {
+        "id": "L01",
+        "title": "第零牢・配膳控え",
+        "text": "第3回試験の終了後、21:10に12人分の食事を隔離区画へ搬入した。"
+      },
+      {
+        "id": "L02",
+        "title": "旧書庫・移送控え",
+        "text": "同日21:00、参加者番号07を競技区画から隔離区画へ移送。移送先コードはB2-I。"
+      },
+      {
+        "id": "L03",
+        "title": "第零牢・私信",
+        "text": "私は07だ。21:15、隔離区画で食事を受け取った。ここには外へ通じる扉がない。"
+      },
+      {
+        "id": "L04",
+        "title": "旧書庫・公告写し",
+        "text": "同日20:55の公告：「07は競技から除外されました。以降、施設外へ退出したものとして扱います。」"
+      },
+      {
+        "id": "L05",
+        "title": "地下通路・保守メモ",
+        "text": "B2-Iは隔離区画。搬入口はB2の保管庫と連絡している。搬入記録は消去しないこと。"
+      }
+    ],
+    "questions": [
+      {
+        "id": "H04Q1",
+        "prompt": "07の移送先は？",
+        "options": [
+          "玄関",
+          "隔離区画",
+          "競技場"
+        ],
+        "answerIndex": 1,
+        "evidence": [
+          "L02",
+          "L05"
+        ],
+        "explanation": "B2-Iは隔離区画。"
+      },
+      {
+        "id": "H04Q2",
+        "prompt": "公告と矛盾する資料は？",
+        "options": [
+          "07本人の食事記録",
+          "大会の順位",
+          "図書室の貸出表"
+        ],
+        "answerIndex": 0,
+        "evidence": [
+          "L03",
+          "L04"
+        ],
+        "explanation": "退出扱いの後に本人が施設内にいた。"
+      },
+      {
+        "id": "H04Q3",
+        "prompt": "食事の搬入時刻は？",
+        "options": [
+          "20:55",
+          "21:00",
+          "21:10"
+        ],
+        "answerIndex": 2,
+        "evidence": [
+          "L01"
+        ],
+        "explanation": "配膳控えの時刻。"
+      },
+      {
+        "id": "H04Q4",
+        "prompt": "搬入口が連絡する場所は？",
+        "options": [
+          "展望室",
+          "保管庫",
+          "食堂"
+        ],
+        "answerIndex": 1,
+        "evidence": [
+          "L05"
+        ],
+        "explanation": "保守メモに明記。"
+      },
+      {
+        "id": "H04Q5",
+        "prompt": "資料だけで確定できることは？",
+        "options": [
+          "07は施設外に出た",
+          "全参加者が死亡した",
+          "少なくとも07は公告後も生存し施設内にいた"
+        ],
+        "answerIndex": 2,
+        "evidence": [
+          "L01",
+          "L02",
+          "L03",
+          "L04"
+        ],
+        "explanation": "全員の生死までは証明できない。"
+      }
+    ],
+    "passCount": 4
+  },
+  "H05": {
+    "seconds": 300,
+    "attemptsPerRun": 1,
+    "puzzles": [
+      {
+        "type": "sequence",
+        "prompt": "差が毎回2ずつ増える数列：2, 5, 10, 17, 26, ?",
+        "answer": 37
+      },
+      {
+        "type": "slide",
+        "width": 3,
+        "start": [
+          1,
+          2,
+          3,
+          4,
+          0,
+          6,
+          7,
+          5,
+          8
+        ],
+        "goal": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          0
+        ],
+        "qaSolution": [
+          "D",
+          "R"
+        ]
+      },
+      {
+        "type": "order",
+        "glyphs": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "clues": [
+          "BはAの直後",
+          "Dは先頭",
+          "CはBより後"
+        ],
+        "answer": [
+          "D",
+          "A",
+          "B",
+          "C"
+        ]
+      }
+    ]
+  },
+  "H07": {
+    "evidence": [
+      {
+        "id": "E01",
+        "personId": "hero",
+        "subject": "主人公",
+        "text": "黒い招待状の受領記録。本人が研究の関係者であるという記載はない。",
+        "backupRoom": "maps/b2/records_vault.png",
+        "backupDay": 8,
+        "backupInteraction": "index_E01",
+        "primary": "招待状",
+        "primaryDay": 1
+      },
+      {
+        "id": "E02",
+        "personId": "npc_02_kanzaki",
+        "subject": "神崎",
+        "text": "意思決定モデルの旧版に神崎怜の署名。",
+        "backupRoom": "maps/b2/records_vault.png",
+        "backupDay": 8,
+        "backupInteraction": "index_E02",
+        "primary": "本人の告白＋対応する原本の照合",
+        "primaryDay": 4
+      },
+      {
+        "id": "E03",
+        "personId": "npc_03_kurose",
+        "subject": "黒瀬",
+        "text": "実験被害者から黒瀬美琴への調査委任状。",
+        "backupRoom": "maps/b2/records_vault.png",
+        "backupDay": 8,
+        "backupInteraction": "index_E03",
+        "primary": "本人の告白＋対応する原本の照合",
+        "primaryDay": 4
+      },
+      {
+        "id": "E04",
+        "personId": "npc_04_mido",
+        "subject": "御堂",
+        "text": "研究施設への出資契約書に御堂隆臣の署名。",
+        "backupRoom": "maps/b2/records_vault.png",
+        "backupDay": 8,
+        "backupInteraction": "index_E04",
+        "primary": "本人の告白＋対応する原本の照合",
+        "primaryDay": 4
+      },
+      {
+        "id": "E05",
+        "personId": "npc_05_shiraishi",
+        "subject": "白石",
+        "text": "白石紗夜の研究計画書：集団内の裏切り行動。",
+        "backupRoom": "maps/b2/records_vault.png",
+        "backupDay": 8,
+        "backupInteraction": "index_E05",
+        "primary": "本人の告白＋対応する原本の照合",
+        "primaryDay": 4
+      },
+      {
+        "id": "E06",
+        "personId": "npc_06_kiryu",
+        "subject": "桐生",
+        "text": "桐生颯が旧競技データを受領した記録。",
+        "backupRoom": "maps/b2/records_vault.png",
+        "backupDay": 8,
+        "backupInteraction": "index_E06",
+        "primary": "本人の告白＋対応する原本の照合",
+        "primaryDay": 4
+      },
+      {
+        "id": "E07",
+        "personId": "npc_07_tachibana",
+        "subject": "橘",
+        "text": "匿名化された診療引継ぎ書に橘香織の担当記録。",
+        "backupRoom": "maps/b2/records_vault.png",
+        "backupDay": 8,
+        "backupInteraction": "index_E07",
+        "primary": "本人の告白＋対応する原本の照合",
+        "primaryDay": 4
+      },
+      {
+        "id": "E08",
+        "personId": "npc_08_dojima",
+        "subject": "堂島",
+        "text": "堂島誠司の失踪事件調査メモ。",
+        "backupRoom": "maps/b2/records_vault.png",
+        "backupDay": 8,
+        "backupInteraction": "index_E08",
+        "primary": "本人の告白＋対応する原本の照合",
+        "primaryDay": 4
+      },
+      {
+        "id": "E09",
+        "personId": "npc_09_asahina",
+        "subject": "朝比奈",
+        "text": "旧参加名簿と朝比奈ひまりの家族照合資料。",
+        "backupRoom": "maps/b2/records_vault.png",
+        "backupDay": 8,
+        "backupInteraction": "index_E09",
+        "primary": "本人の告白＋対応する原本の照合",
+        "primaryDay": 4
+      },
+      {
+        "id": "E10",
+        "personId": "npc_10_kujo",
+        "subject": "九条",
+        "text": "旧参加者カードに九条蓮司の名。",
+        "backupRoom": "maps/b2/records_vault.png",
+        "backupDay": 8,
+        "backupInteraction": "index_E10",
+        "primary": "本人の告白＋対応する原本の照合",
+        "primaryDay": 4
+      },
+      {
+        "id": "E11",
+        "personId": "npc_11_kisaragi",
+        "subject": "如月",
+        "text": "オブザーバーから如月麗華への非公開依頼書。依頼内容の詳細は別記録。",
+        "backupRoom": "maps/b2/records_vault.png",
+        "backupDay": 8,
+        "backupInteraction": "index_E11",
+        "primary": "本人の告白＋対応する原本の照合",
+        "primaryDay": 4
+      },
+      {
+        "id": "E12",
+        "personId": "npc_12_kuze",
+        "subject": "久世",
+        "text": "CROWN計画の発足文書に久世宗一郎の署名。",
+        "backupRoom": "maps/b2/records_vault.png",
+        "backupDay": 8,
+        "backupInteraction": "index_E12",
+        "primary": "本人の告白＋対応する原本の照合",
+        "primaryDay": 4
+      }
+    ],
+    "questions": [
+      {
+        "id": "H07Q01",
+        "prompt": "主人公とCROWN計画の関係として資料から確認できるものは？",
+        "options": [
+          "失踪事件調査",
+          "招待状の照合対象",
+          "研究出資"
+        ],
+        "answerIndex": 1,
+        "evidence": [
+          "E01"
+        ],
+        "explanation": "黒い招待状の受領記録。本人が研究の関係者であるという記載はない。"
+      },
+      {
+        "id": "H07Q02",
+        "prompt": "神崎とCROWN計画の関係として資料から確認できるものは？",
+        "options": [
+          "過去参加者の妹",
+          "数理モデル開発",
+          "裏切り行動研究"
+        ],
+        "answerIndex": 1,
+        "evidence": [
+          "E02"
+        ],
+        "explanation": "意思決定モデルの旧版に神崎怜の署名。"
+      },
+      {
+        "id": "H07Q03",
+        "prompt": "黒瀬とCROWN計画の関係として資料から確認できるものは？",
+        "options": [
+          "被害者代理",
+          "旧競技データ保有",
+          "元参加者"
+        ],
+        "answerIndex": 0,
+        "evidence": [
+          "E03"
+        ],
+        "explanation": "実験被害者から黒瀬美琴への調査委任状。"
+      },
+      {
+        "id": "H07Q04",
+        "prompt": "御堂とCROWN計画の関係として資料から確認できるものは？",
+        "options": [
+          "主催者の依頼",
+          "被害患者の担当",
+          "研究出資"
+        ],
+        "answerIndex": 2,
+        "evidence": [
+          "E04"
+        ],
+        "explanation": "研究施設への出資契約書に御堂隆臣の署名。"
+      },
+      {
+        "id": "H07Q05",
+        "prompt": "白石とCROWN計画の関係として資料から確認できるものは？",
+        "options": [
+          "裏切り行動研究",
+          "失踪事件調査",
+          "計画創設者"
+        ],
+        "answerIndex": 0,
+        "evidence": [
+          "E05"
+        ],
+        "explanation": "白石紗夜の研究計画書：集団内の裏切り行動。"
+      },
+      {
+        "id": "H07Q06",
+        "prompt": "桐生とCROWN計画の関係として資料から確認できるものは？",
+        "options": [
+          "旧競技データ保有",
+          "過去参加者の妹",
+          "招待状の照合対象"
+        ],
+        "answerIndex": 0,
+        "evidence": [
+          "E06"
+        ],
+        "explanation": "桐生颯が旧競技データを受領した記録。"
+      },
+      {
+        "id": "H07Q07",
+        "prompt": "橘とCROWN計画の関係として資料から確認できるものは？",
+        "options": [
+          "元参加者",
+          "被害患者の担当",
+          "数理モデル開発"
+        ],
+        "answerIndex": 1,
+        "evidence": [
+          "E07"
+        ],
+        "explanation": "匿名化された診療引継ぎ書に橘香織の担当記録。"
+      },
+      {
+        "id": "H07Q08",
+        "prompt": "堂島とCROWN計画の関係として資料から確認できるものは？",
+        "options": [
+          "失踪事件調査",
+          "主催者の依頼",
+          "被害者代理"
+        ],
+        "answerIndex": 0,
+        "evidence": [
+          "E08"
+        ],
+        "explanation": "堂島誠司の失踪事件調査メモ。"
+      },
+      {
+        "id": "H07Q09",
+        "prompt": "朝比奈とCROWN計画の関係として資料から確認できるものは？",
+        "options": [
+          "過去参加者の妹",
+          "研究出資",
+          "計画創設者"
+        ],
+        "answerIndex": 0,
+        "evidence": [
+          "E09"
+        ],
+        "explanation": "旧参加名簿と朝比奈ひまりの家族照合資料。"
+      },
+      {
+        "id": "H07Q10",
+        "prompt": "九条とCROWN計画の関係として資料から確認できるものは？",
+        "options": [
+          "元参加者",
+          "裏切り行動研究",
+          "招待状の照合対象"
+        ],
+        "answerIndex": 0,
+        "evidence": [
+          "E10"
+        ],
+        "explanation": "旧参加者カードに九条蓮司の名。"
+      },
+      {
+        "id": "H07Q11",
+        "prompt": "如月とCROWN計画の関係として資料から確認できるものは？",
+        "options": [
+          "数理モデル開発",
+          "旧競技データ保有",
+          "主催者の依頼"
+        ],
+        "answerIndex": 2,
+        "evidence": [
+          "E11"
+        ],
+        "explanation": "オブザーバーから如月麗華への非公開依頼書。依頼内容の詳細は別記録。"
+      },
+      {
+        "id": "H07Q12",
+        "prompt": "久世とCROWN計画の関係として資料から確認できるものは？",
+        "options": [
+          "被害者代理",
+          "被害患者の担当",
+          "計画創設者"
+        ],
+        "answerIndex": 2,
+        "evidence": [
+          "E12"
+        ],
+        "explanation": "CROWN計画の発足文書に久世宗一郎の署名。"
+      }
+    ],
+    "passCount": 12
+  },
+  "H08": {
+    "stages": [
+      {
+        "type": "cipher",
+        "prompt": "記録端末の変換表 A=1,B=2,…,Z=26 を使い 3-18-15-23-14 を英大文字5文字に変換。",
+        "answer": "CROWN"
+      },
+      {
+        "type": "sequence",
+        "prompt": "前の項に順に2,4,8,16,32を加える：3,5,9,17,33,?",
+        "answer": 65
+      },
+      {
+        "type": "logic",
+        "prompt": "3つの記録 A,B,C のうち1つだけ真。A「資料はCの箱ではない」、B「資料はAまたはBの箱」、C「資料はCの箱」。資料の箱はどれ？",
+        "options": [
+          "A",
+          "B",
+          "C"
+        ],
+        "answerIndex": 2
+      },
+      {
+        "type": "lights",
+        "width": 3,
+        "initial": [
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          1
+        ],
+        "maxMoves": 12,
+        "rule": "タップしたマスと縦横隣接を反転。全消灯で成功。",
+        "qaSolution": [
+          0,
+          4,
+          8
+        ]
+      },
+      {
+        "id": "H08Q5",
+        "prompt": "CROWN計画の最終実験で観測しているものは？",
+        "options": [
+          "賞金の支払い速度",
+          "極限状態での人間の意思決定",
+          "参加者の身体能力"
+        ],
+        "answerIndex": 1,
+        "evidence": [
+          "CORE01"
+        ],
+        "explanation": "計画の目的を記録した機密文書。"
+      }
+    ]
+  }
+}

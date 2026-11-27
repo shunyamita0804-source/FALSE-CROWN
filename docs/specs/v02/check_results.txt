@@ -1,0 +1,9 @@
+P08 example swapped vs all 40320 fixed opponent permutations:  {1: 40320}
+S05 example (5,4,3) vs (1,2,3), outcomes against 60 fixed sequences: {1: 60}
+P03 random-only fixed mean points [-3.5, -3.193, -2.78, -3.339] fractional last share [0.2768, 0.2433, 0.2101, 0.2698] last tie 0.2873
+P03 random-only rotate mean points [-3.108, -3.302, -3.082, -3.407] fractional last share [0.2341, 0.2556, 0.2403, 0.27] last tie 0.3384
+P01 doubt 0 original truth/lie 1 2 proposal truth/lie 0 2
+P01 doubt 0.25 original truth/lie 1 1.0 proposal truth/lie 0.5 1.0
+P01 doubt 0.333 original truth/lie 1 0.667 proposal truth/lie 0.667 0.667
+P01 doubt 0.5 original truth/lie 1 0.0 proposal truth/lie 1.0 0.0
+P01 doubt 1 original truth/lie 1 -2 proposal truth/lie 2 -2

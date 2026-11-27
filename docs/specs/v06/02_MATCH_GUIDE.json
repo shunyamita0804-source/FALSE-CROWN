@@ -1,0 +1,352 @@
+[
+  {
+    "id": "M01",
+    "title": "三国の盟約",
+    "goal": "自国と個人の得点を両立",
+    "practice": "資源を確認し生産→侵攻を試す",
+    "attention": "蓄財制限と防衛成功条件を表示",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "M02",
+    "title": "黄金の競売",
+    "goal": "資金内で商品とセット得点を獲得",
+    "practice": "予算内の入札と交換を試す",
+    "attention": "残金換算と重複セット不可",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "M03",
+    "title": "仮面の議会",
+    "goal": "秘密目標と役職推理で得点",
+    "practice": "自分の役職目標を見て投票",
+    "attention": "個票と秘密役職を漏らさない",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "M04",
+    "title": "鉄道王国",
+    "goal": "輸送任務を達成",
+    "practice": "線路を建設し公共辺を使って輸送",
+    "attention": "費用と通行許可を確認",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "M05",
+    "title": "運命の契約",
+    "goal": "協力と裏切りの得点を比較",
+    "practice": "同一相手と2回協力する練習",
+    "attention": "継続信頼ボーナスを説明",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "M06",
+    "title": "七つの塔",
+    "goal": "駒を配分して塔を支配",
+    "practice": "配置と既存駒移動を試す",
+    "attention": "首位同数は得点なし",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "M07",
+    "title": "均衡の崩壊",
+    "goal": "共同金庫と個人利益を調整",
+    "practice": "成立時と不成立時の得点を比較",
+    "attention": "個別提供数は秘密",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "M08",
+    "title": "五人の暗号",
+    "goal": "手掛かりから暗号を推理",
+    "practice": "例題の候補を絞り回答",
+    "attention": "証拠提示と口頭情報を区別",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "M09",
+    "title": "四王の戦場",
+    "goal": "駒の捕獲と中央支配",
+    "practice": "兵と王を移動し捕獲",
+    "attention": "王喪失後も残兵を操作",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "M10",
+    "title": "裏切りの三角形",
+    "goal": "協力・攻撃・防御を使い分ける",
+    "practice": "相互協力と防御を比較",
+    "attention": "同時処理・連続防御の扱い",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "M11",
+    "title": "最後の王座",
+    "goal": "複数種の競技で先に3勝",
+    "practice": "各ステージの練習を選択",
+    "attention": "ピース補助不可",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "P01",
+    "title": "偽りの数字",
+    "goal": "宣言と虚偽指摘で得点",
+    "practice": "真実・嘘の宣言を1回ずつ試す",
+    "attention": "使用済み宣言と出札を区別",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "P02",
+    "title": "四つの金庫",
+    "goal": "公開履歴から暗証番号を推理",
+    "practice": "位置一致を利用して候補を絞る",
+    "attention": "開錠点と新記録点を区別",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "P03",
+    "title": "禁断の合計",
+    "goal": "21を狙い超過を避ける",
+    "practice": "合計18に3または4を出す結果比較",
+    "attention": "21以上で合計リセット",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "P04",
+    "title": "真実の証言",
+    "goal": "証拠を照合し事件を推理",
+    "practice": "架空の証拠から候補を消す",
+    "attention": "証拠と証言の真偽区別",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "P05",
+    "title": "毒杯の選択",
+    "goal": "秘密目標を推理し杯を選ぶ",
+    "practice": "管理役と選択者を体験",
+    "attention": "架空の記号ゲーム、目標は秘密",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "P06",
+    "title": "記憶回廊",
+    "goal": "盤面の記号・色を記憶",
+    "practice": "小盤面で提示後に回答",
+    "attention": "本番の提示時間と回答期限",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "P07",
+    "title": "最後の硬貨",
+    "goal": "限られた硬貨を配分",
+    "practice": "3回の賭けに資源を配る",
+    "attention": "全員0の場合と同額処理",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "P08",
+    "title": "双対の天秤",
+    "goal": "比較条件に応じカードを選ぶ",
+    "practice": "大・小・目標値条件を体験",
+    "attention": "残条件と使用済み札",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "P09",
+    "title": "鏡の決闘",
+    "goal": "方向制約下で駒を捕獲",
+    "practice": "相手の直前方向を避ける",
+    "attention": "合法手なしのパス",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "P10",
+    "title": "黒と白",
+    "goal": "一致・不一致を読み合う",
+    "practice": "両条件で先後の得点を比較",
+    "attention": "残札と役割交代",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "H01",
+    "title": "賢者の金庫",
+    "goal": "手掛かりから暗証番号を解く",
+    "practice": "本番と無関係な桁合わせ例",
+    "attention": "入力回数と期限",
+    "visibility": "after_discovery",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "H02",
+    "title": "月下の賭場",
+    "goal": "カード対決で勝ち越す",
+    "practice": "架空の賭け金で大小比較",
+    "attention": "大会内通貨のみ、報酬と純利益",
+    "visibility": "after_discovery",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "H03",
+    "title": "鏡の迷宮",
+    "goal": "両者を同時に出口へ導く",
+    "practice": "小盤面で反転移動",
+    "attention": "壁と手数の扱い",
+    "visibility": "after_discovery",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "H04",
+    "title": "囚人の遺言",
+    "goal": "手紙を照合し推理",
+    "practice": "別の短文から根拠を選ぶ",
+    "attention": "正解の根拠を示す",
+    "visibility": "after_discovery",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "H05",
+    "title": "時の牢獄",
+    "goal": "制限時間内に3問解く",
+    "practice": "独立したスライド例題",
+    "attention": "本番は一度限りと警告",
+    "visibility": "after_discovery",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "H06",
+    "title": "影の対戦者",
+    "goal": "反転権を利用しカード勝負",
+    "practice": "反転1回と相殺を試す",
+    "attention": "参加費と報酬",
+    "visibility": "after_discovery",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "H07",
+    "title": "十二の証明",
+    "goal": "資料の矛盾を特定",
+    "practice": "架空資料2件を照合",
+    "attention": "本番資料や正解を先出ししない",
+    "visibility": "after_discovery",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "H08",
+    "title": "神の方程式",
+    "goal": "複数段階の謎を解く",
+    "practice": "無関係な論理例題",
+    "attention": "解放前は存在も非表示",
+    "visibility": "after_discovery",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "S01",
+    "title": "数字当て",
+    "goal": "一致情報で数字を特定",
+    "practice": "3桁の別問題を試す",
+    "attention": "重複なし、先頭0可",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "S02",
+    "title": "五目並べ",
+    "goal": "5連を作る",
+    "practice": "4連から勝利する合法手",
+    "attention": "先後交換と満盤",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "S03",
+    "title": "ミニリバーシ",
+    "goal": "終局の駒数を競う",
+    "practice": "複数方向の反転を試す",
+    "attention": "合法手なしパス",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "S04",
+    "title": "記憶カード",
+    "goal": "同じ絵柄を揃える",
+    "practice": "4枚の練習",
+    "attention": "成功時続行",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "S05",
+    "title": "金貨の読み合い",
+    "goal": "3回の資源配分で勝つ",
+    "practice": "9枚を3回へ配分",
+    "attention": "残金は得点なし",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  },
+  {
+    "id": "S06",
+    "title": "暗号書庫",
+    "goal": "日替わり問題を解く",
+    "practice": "本番と別の数列例題",
+    "attention": "別解処理と報酬制限",
+    "visibility": "when_available",
+    "practice_rewards": false,
+    "rule_source": "runtime_current_rules"
+  }
+]

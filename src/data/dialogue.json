@@ -1,0 +1,3736 @@
+{
+  "version": 3,
+  "language": "ja",
+  "notes": "eventは判断後に指定。secretは追加の解放条件必須。eliminatedは脱落演出時のみ。accept等を先に台詞抽選で決めない。",
+  "entries": [
+    {
+      "id": "npc_02_kanzaki.greeting.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "greeting",
+      "text": "まずは規則を読もう。感情で動くのはその後だ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.greeting.02",
+      "npcId": "npc_02_kanzaki",
+      "event": "greeting",
+      "text": "君はどこまでルールを理解している？",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.alliance_offer.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "alliance_offer",
+      "text": "互いの得点期待値を上げられるなら組もう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.alliance_offer.02",
+      "npcId": "npc_02_kanzaki",
+      "event": "alliance_offer",
+      "text": "役割を分ければ無駄な手が減る。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.accept.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "accept",
+      "text": "その案なら成立する。実行条件を確認しよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.accept.02",
+      "npcId": "npc_02_kanzaki",
+      "event": "accept",
+      "text": "矛盾はない。協力する。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.reject_price.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "reject_price",
+      "text": "その対価では危険を補えない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.reject_price.02",
+      "npcId": "npc_02_kanzaki",
+      "event": "reject_price",
+      "text": "もう少し条件を詰めたい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.reject_principle.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "reject_principle",
+      "text": "ピースは理由にならない。勝算を示してくれ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.reject_principle.02",
+      "npcId": "npc_02_kanzaki",
+      "event": "reject_principle",
+      "text": "不合理な手を取るつもりはない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.counter.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "counter",
+      "text": "報酬よりも作戦の変更を提案したい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.counter.02",
+      "npcId": "npc_02_kanzaki",
+      "event": "counter",
+      "text": "対象とラウンドを限定してはどうだ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.info_offer.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "info_offer",
+      "text": "確認済みの情報がある。必要なら交換しよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.info_offer.02",
+      "npcId": "npc_02_kanzaki",
+      "event": "info_offer",
+      "text": "推論に使える手掛かりを持っている。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.trust_high.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "trust_high",
+      "text": "君の判断は信用している。根拠も一緒に確認しよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.trust_high.02",
+      "npcId": "npc_02_kanzaki",
+      "event": "trust_high",
+      "text": "君となら仮説を共有できる。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.trust_low.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "trust_low",
+      "text": "発言と行動が一致するか、まだ判断できない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.trust_low.02",
+      "npcId": "npc_02_kanzaki",
+      "event": "trust_low",
+      "text": "今は独立して動く。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.betrayal_observed.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "betrayal_observed",
+      "text": "約束と観測結果が矛盾している。説明してくれ。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_02_kanzaki.betrayal_observed.02",
+      "npcId": "npc_02_kanzaki",
+      "event": "betrayal_observed",
+      "text": "今後は君の申告を前提に計算しない。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_02_kanzaki.main_win.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "main_win",
+      "text": "想定した範囲内の結果だ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.main_win.02",
+      "npcId": "npc_02_kanzaki",
+      "event": "main_win",
+      "text": "改善すべき点はまだある。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.main_low.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "main_low",
+      "text": "計算の前提が誤っていたようだ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.main_low.02",
+      "npcId": "npc_02_kanzaki",
+      "event": "main_low",
+      "text": "次の試合で修正する。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.prison_before.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "prison_before",
+      "text": "ここでは生存確率を最大化する。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.prison_before.02",
+      "npcId": "npc_02_kanzaki",
+      "event": "prison_before",
+      "text": "焦っても候補は増えない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.prison_survive.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "prison_survive",
+      "text": "まだ仮説を検証できる。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.prison_survive.02",
+      "npcId": "npc_02_kanzaki",
+      "event": "prison_survive",
+      "text": "次は同じ誤りを繰り返さない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.eliminated.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "eliminated",
+      "text": "……最後の判断を誤った。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.eliminated.02",
+      "npcId": "npc_02_kanzaki",
+      "event": "eliminated",
+      "text": "君は最後まで根拠を疑ってくれ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.secret.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "secret",
+      "text": "この大会の数理モデルに、僕は関わったことがある。目的のすべてを知っていたわけではない。",
+      "condition": {
+        "secretUnlocked": true
+      }
+    },
+    {
+      "id": "npc_02_kanzaki.npc_trade.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "npc_trade",
+      "text": "条件が一致するなら、あなたとも取引できる。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.investigate.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "investigate",
+      "text": "この配置には意図がある。記録を探してみよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.loan_request.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "loan_request",
+      "text": "資金があれば選択肢は増える。返済条件を決めたい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.repay_refused.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "repay_refused",
+      "text": "支払いの約束が履行されていない。理由を聞こう。",
+      "condition": {
+        "paymentOverdueObserved": true
+      }
+    },
+    {
+      "id": "npc_02_kanzaki.gift_received.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "gift_received",
+      "text": "助かった。次に協力できることがあれば提案する。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.promise_fulfilled.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "promise_fulfilled",
+      "text": "約束どおりだった。次もその前提で考えられる。",
+      "condition": {
+        "observedFulfillment": true
+      }
+    },
+    {
+      "id": "npc_02_kanzaki.report_received.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "report_received",
+      "text": "証言と事実を分けて整理しよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.plan_request.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "plan_request",
+      "text": "どういう手順で得点を確保するつもりだ？",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.success_payment.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "success_payment",
+      "text": "条件達成を確認した。取り決めどおり支払う。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.day_end.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "day_end",
+      "text": "今日はここまでだ。明日の仮説を整理する。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.final_before.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "final_before",
+      "text": "最後は他者の助けに頼れない。論理で決めよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.subgame_invite.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "subgame_invite",
+      "text": "短いパズルで思考の癖を確かめないか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.hidden_invite.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "hidden_invite",
+      "text": "この仕掛け、解く価値はありそうだ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.info_uncertain.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "info_uncertain",
+      "text": "現段階では推測に過ぎない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.exit.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "exit",
+      "text": "では、また。",
+      "condition": {}
+    },
+    {
+      "id": "npc_02_kanzaki.timeout.01",
+      "npcId": "npc_02_kanzaki",
+      "event": "timeout",
+      "text": "時間切れだ。続きは次の機会に。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.greeting.01",
+      "npcId": "npc_03_kurose",
+      "event": "greeting",
+      "text": "まず条件を確認しましょう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.greeting.02",
+      "npcId": "npc_03_kurose",
+      "event": "greeting",
+      "text": "不明点はそのままにしない方がいいわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.alliance_offer.01",
+      "npcId": "npc_03_kurose",
+      "event": "alliance_offer",
+      "text": "互いに守る範囲を明確にした同盟なら歓迎よ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.alliance_offer.02",
+      "npcId": "npc_03_kurose",
+      "event": "alliance_offer",
+      "text": "期間を決めて協力しませんか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.accept.01",
+      "npcId": "npc_03_kurose",
+      "event": "accept",
+      "text": "その条件で合意します。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.accept.02",
+      "npcId": "npc_03_kurose",
+      "event": "accept",
+      "text": "確認したわ。約束は守る。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.reject_price.01",
+      "npcId": "npc_03_kurose",
+      "event": "reject_price",
+      "text": "対価と責任が釣り合っていないわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.reject_price.02",
+      "npcId": "npc_03_kurose",
+      "event": "reject_price",
+      "text": "この条件では署名できないわね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.reject_principle.01",
+      "npcId": "npc_03_kurose",
+      "event": "reject_principle",
+      "text": "先約があるの。曖昧な条件も受けられない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.reject_principle.02",
+      "npcId": "npc_03_kurose",
+      "event": "reject_principle",
+      "text": "その依頼は私の原則に反するわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.counter.01",
+      "npcId": "npc_03_kurose",
+      "event": "counter",
+      "text": "成功の定義を具体的にしましょう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.counter.02",
+      "npcId": "npc_03_kurose",
+      "event": "counter",
+      "text": "期限と支払い条件を明記して。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.info_offer.01",
+      "npcId": "npc_03_kurose",
+      "event": "info_offer",
+      "text": "証言の出所まで含めて伝えられるわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.info_offer.02",
+      "npcId": "npc_03_kurose",
+      "event": "info_offer",
+      "text": "情報にも責任が伴うのよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.trust_high.01",
+      "npcId": "npc_03_kurose",
+      "event": "trust_high",
+      "text": "あなたなら条件を守ると期待しているわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.trust_high.02",
+      "npcId": "npc_03_kurose",
+      "event": "trust_high",
+      "text": "ここだけの話をしてもよさそうね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.trust_low.01",
+      "npcId": "npc_03_kurose",
+      "event": "trust_low",
+      "text": "まずは行動で信用を示して。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.trust_low.02",
+      "npcId": "npc_03_kurose",
+      "event": "trust_low",
+      "text": "口頭の保証だけでは足りないわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.betrayal_observed.01",
+      "npcId": "npc_03_kurose",
+      "event": "betrayal_observed",
+      "text": "約束違反を確認しました。釈明を聞くわ。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_03_kurose.betrayal_observed.02",
+      "npcId": "npc_03_kurose",
+      "event": "betrayal_observed",
+      "text": "次の交渉では条件を見直させてもらう。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_03_kurose.main_win.01",
+      "npcId": "npc_03_kurose",
+      "event": "main_win",
+      "text": "合意を守った結果ね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.main_win.02",
+      "npcId": "npc_03_kurose",
+      "event": "main_win",
+      "text": "結果には納得しているわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.main_low.01",
+      "npcId": "npc_03_kurose",
+      "event": "main_low",
+      "text": "不利な立場でも、選択肢は残っている。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.main_low.02",
+      "npcId": "npc_03_kurose",
+      "event": "main_low",
+      "text": "次の規則を確認しましょう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.prison_before.01",
+      "npcId": "npc_03_kurose",
+      "event": "prison_before",
+      "text": "監獄でもルールはルールよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.prison_before.02",
+      "npcId": "npc_03_kurose",
+      "event": "prison_before",
+      "text": "例外の有無をまず確認するわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.prison_survive.01",
+      "npcId": "npc_03_kurose",
+      "event": "prison_survive",
+      "text": "まだ終わりじゃない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.prison_survive.02",
+      "npcId": "npc_03_kurose",
+      "event": "prison_survive",
+      "text": "生き残った以上、責任も果たすわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.eliminated.01",
+      "npcId": "npc_03_kurose",
+      "event": "eliminated",
+      "text": "ここで終わるのね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.eliminated.02",
+      "npcId": "npc_03_kurose",
+      "event": "eliminated",
+      "text": "残された記録を見捨てないで。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.secret.01",
+      "npcId": "npc_03_kurose",
+      "event": "secret",
+      "text": "私は過去の実験の被害者から依頼を受けているの。ここへ来たのは賞金だけが理由ではないわ。",
+      "condition": {
+        "secretUnlocked": true
+      }
+    },
+    {
+      "id": "npc_03_kurose.npc_trade.01",
+      "npcId": "npc_03_kurose",
+      "event": "npc_trade",
+      "text": "条件を言葉にしましょう。認識の違いを防ぎたい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.investigate.01",
+      "npcId": "npc_03_kurose",
+      "event": "investigate",
+      "text": "記録と証言の食い違いを調べたいの。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.loan_request.01",
+      "npcId": "npc_03_kurose",
+      "event": "loan_request",
+      "text": "返済期限を明示するなら借りたいわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.repay_refused.01",
+      "npcId": "npc_03_kurose",
+      "event": "repay_refused",
+      "text": "期日を過ぎたわ。約束をどうするつもり？",
+      "condition": {
+        "paymentOverdueObserved": true
+      }
+    },
+    {
+      "id": "npc_03_kurose.gift_received.01",
+      "npcId": "npc_03_kurose",
+      "event": "gift_received",
+      "text": "ありがとう。好意として受け取るわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.promise_fulfilled.01",
+      "npcId": "npc_03_kurose",
+      "event": "promise_fulfilled",
+      "text": "履行を確認したわ。信用に値する行動ね。",
+      "condition": {
+        "observedFulfillment": true
+      }
+    },
+    {
+      "id": "npc_03_kurose.report_received.01",
+      "npcId": "npc_03_kurose",
+      "event": "report_received",
+      "text": "その資料、出所はどこ？",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.plan_request.01",
+      "npcId": "npc_03_kurose",
+      "event": "plan_request",
+      "text": "協力の内容を一つずつ確認させて。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.success_payment.01",
+      "npcId": "npc_03_kurose",
+      "event": "success_payment",
+      "text": "条件が満たされたわ。こちらの義務を果たします。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.day_end.01",
+      "npcId": "npc_03_kurose",
+      "event": "day_end",
+      "text": "今日は契約を整理してから休むわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.final_before.01",
+      "npcId": "npc_03_kurose",
+      "event": "final_before",
+      "text": "公平な決着を期待するわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.subgame_invite.01",
+      "npcId": "npc_03_kurose",
+      "event": "subgame_invite",
+      "text": "短い勝負で気分を変えましょうか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.hidden_invite.01",
+      "npcId": "npc_03_kurose",
+      "event": "hidden_invite",
+      "text": "入場条件を確認してから進みましょう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.info_uncertain.01",
+      "npcId": "npc_03_kurose",
+      "event": "info_uncertain",
+      "text": "裏付けが取れるまでは断定できないわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.exit.01",
+      "npcId": "npc_03_kurose",
+      "event": "exit",
+      "text": "失礼するわね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_03_kurose.timeout.01",
+      "npcId": "npc_03_kurose",
+      "event": "timeout",
+      "text": "時間ね。未合意の条件は取り下げましょう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.greeting.01",
+      "npcId": "npc_04_mido",
+      "event": "greeting",
+      "text": "勝つ人間は時間の使い方が違う。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.greeting.02",
+      "npcId": "npc_04_mido",
+      "event": "greeting",
+      "text": "君にはどんな強みがある？",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.alliance_offer.01",
+      "npcId": "npc_04_mido",
+      "event": "alliance_offer",
+      "text": "私の陣営に来ないか。悪い条件は出さない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.alliance_offer.02",
+      "npcId": "npc_04_mido",
+      "event": "alliance_offer",
+      "text": "強い者同士で組むのが賢明だ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.accept.01",
+      "npcId": "npc_04_mido",
+      "event": "accept",
+      "text": "よし、成立だ。結果を期待している。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.accept.02",
+      "npcId": "npc_04_mido",
+      "event": "accept",
+      "text": "その条件なら投資する価値がある。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.reject_price.01",
+      "npcId": "npc_04_mido",
+      "event": "reject_price",
+      "text": "その程度では私を動かせないな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.reject_price.02",
+      "npcId": "npc_04_mido",
+      "event": "reject_price",
+      "text": "見返りをもう少し上乗せしたまえ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.reject_principle.01",
+      "npcId": "npc_04_mido",
+      "event": "reject_principle",
+      "text": "利益のない提案に割く時間はない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.reject_principle.02",
+      "npcId": "npc_04_mido",
+      "event": "reject_principle",
+      "text": "勝つ見込みを示せない相手とは組まん。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.counter.01",
+      "npcId": "npc_04_mido",
+      "event": "counter",
+      "text": "前払いなら話が早い。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.counter.02",
+      "npcId": "npc_04_mido",
+      "event": "counter",
+      "text": "条件をこちらに寄せてくれないか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.info_offer.01",
+      "npcId": "npc_04_mido",
+      "event": "info_offer",
+      "text": "価値のある情報なら相応の値がつく。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.info_offer.02",
+      "npcId": "npc_04_mido",
+      "event": "info_offer",
+      "text": "必要な情報を指定したまえ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.trust_high.01",
+      "npcId": "npc_04_mido",
+      "event": "trust_high",
+      "text": "君は成果を出してきた。次も期待している。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.trust_high.02",
+      "npcId": "npc_04_mido",
+      "event": "trust_high",
+      "text": "信用できる取引相手は貴重だ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.trust_low.01",
+      "npcId": "npc_04_mido",
+      "event": "trust_low",
+      "text": "実績がないな。条件は厳しくなるぞ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.trust_low.02",
+      "npcId": "npc_04_mido",
+      "event": "trust_low",
+      "text": "君の約束にはまだ価値がない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.betrayal_observed.01",
+      "npcId": "npc_04_mido",
+      "event": "betrayal_observed",
+      "text": "私との約束を破ったことは覚えておく。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_04_mido.betrayal_observed.02",
+      "npcId": "npc_04_mido",
+      "event": "betrayal_observed",
+      "text": "今後は君を取引相手として見直す。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_04_mido.main_win.01",
+      "npcId": "npc_04_mido",
+      "event": "main_win",
+      "text": "これが投資の成果だ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.main_win.02",
+      "npcId": "npc_04_mido",
+      "event": "main_win",
+      "text": "勝ち続ければ人は集まる。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.main_low.01",
+      "npcId": "npc_04_mido",
+      "event": "main_low",
+      "text": "損失は次で取り戻す。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.main_low.02",
+      "npcId": "npc_04_mido",
+      "event": "main_low",
+      "text": "監獄も商機になり得る。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.prison_before.01",
+      "npcId": "npc_04_mido",
+      "event": "prison_before",
+      "text": "ここで脱落するつもりはない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.prison_before.02",
+      "npcId": "npc_04_mido",
+      "event": "prison_before",
+      "text": "使える資源をすべて洗い出す。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.prison_survive.01",
+      "npcId": "npc_04_mido",
+      "event": "prison_survive",
+      "text": "まだ席は残っている。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.prison_survive.02",
+      "npcId": "npc_04_mido",
+      "event": "prison_survive",
+      "text": "次は私が主導権を握る。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.eliminated.01",
+      "npcId": "npc_04_mido",
+      "event": "eliminated",
+      "text": "……ここまでか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.eliminated.02",
+      "npcId": "npc_04_mido",
+      "event": "eliminated",
+      "text": "随分と高い授業料だったな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.secret.01",
+      "npcId": "npc_04_mido",
+      "event": "secret",
+      "text": "かつて私はこの研究施設に資金を出した。だが当時の運営のすべてを知っているわけではない。",
+      "condition": {
+        "secretUnlocked": true
+      }
+    },
+    {
+      "id": "npc_04_mido.npc_trade.01",
+      "npcId": "npc_04_mido",
+      "event": "npc_trade",
+      "text": "君の取り分と私の取り分を決めよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.investigate.01",
+      "npcId": "npc_04_mido",
+      "event": "investigate",
+      "text": "目先の順位に関係する情報なら探す価値がある。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.loan_request.01",
+      "npcId": "npc_04_mido",
+      "event": "loan_request",
+      "text": "一時的に資金を融通してくれないか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.repay_refused.01",
+      "npcId": "npc_04_mido",
+      "event": "repay_refused",
+      "text": "支払いが遅れている。信用を失うぞ。",
+      "condition": {
+        "paymentOverdueObserved": true
+      }
+    },
+    {
+      "id": "npc_04_mido.gift_received.01",
+      "npcId": "npc_04_mido",
+      "event": "gift_received",
+      "text": "受け取ろう。借りは覚えておく。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.promise_fulfilled.01",
+      "npcId": "npc_04_mido",
+      "event": "promise_fulfilled",
+      "text": "成果を出したな。次の話もしよう。",
+      "condition": {
+        "observedFulfillment": true
+      }
+    },
+    {
+      "id": "npc_04_mido.report_received.01",
+      "npcId": "npc_04_mido",
+      "event": "report_received",
+      "text": "その情報が競争相手にどう影響する？",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.plan_request.01",
+      "npcId": "npc_04_mido",
+      "event": "plan_request",
+      "text": "私に利益をもたらす作戦を提示したまえ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.success_payment.01",
+      "npcId": "npc_04_mido",
+      "event": "success_payment",
+      "text": "投資の条件は満たされた。支払おう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.day_end.01",
+      "npcId": "npc_04_mido",
+      "event": "day_end",
+      "text": "明日に向けて人脈を整理する。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.final_before.01",
+      "npcId": "npc_04_mido",
+      "event": "final_before",
+      "text": "最後は交渉の余地もないか。面白い。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.subgame_invite.01",
+      "npcId": "npc_04_mido",
+      "event": "subgame_invite",
+      "text": "軽い勝負なら付き合おう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.hidden_invite.01",
+      "npcId": "npc_04_mido",
+      "event": "hidden_invite",
+      "text": "報酬が見合うなら同行してもいい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.info_uncertain.01",
+      "npcId": "npc_04_mido",
+      "event": "info_uncertain",
+      "text": "噂だけに資産を投入する気はない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.exit.01",
+      "npcId": "npc_04_mido",
+      "event": "exit",
+      "text": "次の予定がある。",
+      "condition": {}
+    },
+    {
+      "id": "npc_04_mido.timeout.01",
+      "npcId": "npc_04_mido",
+      "event": "timeout",
+      "text": "時間が金だ。今日はここまで。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.greeting.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "greeting",
+      "text": "ねえ、今どんなことを考えているの？",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.greeting.02",
+      "npcId": "npc_05_shiraishi",
+      "event": "greeting",
+      "text": "面白い人が集まったわね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.alliance_offer.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "alliance_offer",
+      "text": "一緒にいると、お互い得しそうじゃない？",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.alliance_offer.02",
+      "npcId": "npc_05_shiraishi",
+      "event": "alliance_offer",
+      "text": "私と組んでみる？",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.accept.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "accept",
+      "text": "うん、その条件ならいいわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.accept.02",
+      "npcId": "npc_05_shiraishi",
+      "event": "accept",
+      "text": "楽しみね。よろしく。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.reject_price.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "reject_price",
+      "text": "もう少し私のことも考えてくれない？",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.reject_price.02",
+      "npcId": "npc_05_shiraishi",
+      "event": "reject_price",
+      "text": "それだけじゃ、ちょっとね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.reject_principle.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "reject_principle",
+      "text": "今は別の考えがあるの。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.reject_principle.02",
+      "npcId": "npc_05_shiraishi",
+      "event": "reject_principle",
+      "text": "ごめんね、その話には乗れないわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.counter.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "counter",
+      "text": "条件を変えたら考えてあげる。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.counter.02",
+      "npcId": "npc_05_shiraishi",
+      "event": "counter",
+      "text": "今回は少しだけ、協力するのはどう？",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.info_offer.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "info_offer",
+      "text": "気になる話を聞いたの。知りたい？",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.info_offer.02",
+      "npcId": "npc_05_shiraishi",
+      "event": "info_offer",
+      "text": "情報の交換って、面白いと思わない？",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.trust_high.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "trust_high",
+      "text": "あなたには少し本音を話してもいいかも。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.trust_high.02",
+      "npcId": "npc_05_shiraishi",
+      "event": "trust_high",
+      "text": "意外と気が合うのね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.trust_low.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "trust_low",
+      "text": "言葉だけでは分からないこともあるのよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.trust_low.02",
+      "npcId": "npc_05_shiraishi",
+      "event": "trust_low",
+      "text": "もう少しあなたを観察したいな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.betrayal_observed.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "betrayal_observed",
+      "text": "そういう選択をするんだね。覚えておくわ。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_05_shiraishi.betrayal_observed.02",
+      "npcId": "npc_05_shiraishi",
+      "event": "betrayal_observed",
+      "text": "約束とは違ったみたいね。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_05_shiraishi.main_win.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "main_win",
+      "text": "ふふ、予想よりうまくいった。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.main_win.02",
+      "npcId": "npc_05_shiraishi",
+      "event": "main_win",
+      "text": "みんなの反応が興味深いわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.main_low.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "main_low",
+      "text": "ちょっと読み違えたみたい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.main_low.02",
+      "npcId": "npc_05_shiraishi",
+      "event": "main_low",
+      "text": "追い込まれた人間って、どう動くのかしら。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.prison_before.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "prison_before",
+      "text": "ここだと本音が出やすそうね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.prison_before.02",
+      "npcId": "npc_05_shiraishi",
+      "event": "prison_before",
+      "text": "さて、誰がどんな選択をするかな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.prison_survive.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "prison_survive",
+      "text": "まだ観察を続けられるわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.prison_survive.02",
+      "npcId": "npc_05_shiraishi",
+      "event": "prison_survive",
+      "text": "私の予想も更新しなくちゃ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.eliminated.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "eliminated",
+      "text": "あら、私の番だったのね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.eliminated.02",
+      "npcId": "npc_05_shiraishi",
+      "event": "eliminated",
+      "text": "最後に見た表情、忘れないわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.secret.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "secret",
+      "text": "私の研究テーマは、人がどんな条件で他人を裏切るかということなの。ここで起きていることは、無関係とは思えない。",
+      "condition": {
+        "secretUnlocked": true
+      }
+    },
+    {
+      "id": "npc_05_shiraishi.npc_trade.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "npc_trade",
+      "text": "あなたはどんな条件なら考えを変えるの？",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.investigate.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "investigate",
+      "text": "この場所、誰かが隠したものがありそうね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.loan_request.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "loan_request",
+      "text": "少し貸してくれたら、助かるんだけどな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.repay_refused.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "repay_refused",
+      "text": "約束を忘れたの？ それともわざと？",
+      "condition": {
+        "paymentOverdueObserved": true
+      }
+    },
+    {
+      "id": "npc_05_shiraishi.gift_received.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "gift_received",
+      "text": "ありがとう。優しいのね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.promise_fulfilled.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "promise_fulfilled",
+      "text": "ちゃんと守ってくれたんだ。嬉しいな。",
+      "condition": {
+        "observedFulfillment": true
+      }
+    },
+    {
+      "id": "npc_05_shiraishi.report_received.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "report_received",
+      "text": "その話、誰から聞いたのか気になるわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.plan_request.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "plan_request",
+      "text": "どんな作戦を考えてるの？",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.success_payment.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "success_payment",
+      "text": "約束した分、渡すね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.day_end.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "day_end",
+      "text": "今日は面白いことがたくさんあったわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.final_before.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "final_before",
+      "text": "最後にどんな顔を見せてくれるのかな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.subgame_invite.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "subgame_invite",
+      "text": "簡単なゲームで遊んでみない？",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.hidden_invite.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "hidden_invite",
+      "text": "秘密の場所って、気にならない？",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.info_uncertain.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "info_uncertain",
+      "text": "本当かどうかは、まだ分からないけどね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.exit.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "exit",
+      "text": "じゃあ、またね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_05_shiraishi.timeout.01",
+      "npcId": "npc_05_shiraishi",
+      "event": "timeout",
+      "text": "もう時間なの？ 続きは今度。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.greeting.01",
+      "npcId": "npc_06_kiryu",
+      "event": "greeting",
+      "text": "よっ、次のゲーム楽しみだな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.greeting.02",
+      "npcId": "npc_06_kiryu",
+      "event": "greeting",
+      "text": "ルールが分かったら教えてくれよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.alliance_offer.01",
+      "npcId": "npc_06_kiryu",
+      "event": "alliance_offer",
+      "text": "俺が盤面を読む。そっちは交渉、どうだ？",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.alliance_offer.02",
+      "npcId": "npc_06_kiryu",
+      "event": "alliance_offer",
+      "text": "一緒に勝ち筋を作ろうぜ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.accept.01",
+      "npcId": "npc_06_kiryu",
+      "event": "accept",
+      "text": "いいぜ、やってみよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.accept.02",
+      "npcId": "npc_06_kiryu",
+      "event": "accept",
+      "text": "その作戦なら乗れる。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.reject_price.01",
+      "npcId": "npc_06_kiryu",
+      "event": "reject_price",
+      "text": "リスクのわりに得るものが少ないな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.reject_price.02",
+      "npcId": "npc_06_kiryu",
+      "event": "reject_price",
+      "text": "もう一声ほしいところだ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.reject_principle.01",
+      "npcId": "npc_06_kiryu",
+      "event": "reject_principle",
+      "text": "わざと負けろって？ それは無理だ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.reject_principle.02",
+      "npcId": "npc_06_kiryu",
+      "event": "reject_principle",
+      "text": "勝つための作戦じゃないなら断る。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.counter.01",
+      "npcId": "npc_06_kiryu",
+      "event": "counter",
+      "text": "ここは攻めるより守る方がよくないか？",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.counter.02",
+      "npcId": "npc_06_kiryu",
+      "event": "counter",
+      "text": "一回だけ共闘するならどうだ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.info_offer.01",
+      "npcId": "npc_06_kiryu",
+      "event": "info_offer",
+      "text": "この手順、使えると思うぜ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.info_offer.02",
+      "npcId": "npc_06_kiryu",
+      "event": "info_offer",
+      "text": "気づいたことを交換しよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.trust_high.01",
+      "npcId": "npc_06_kiryu",
+      "event": "trust_high",
+      "text": "お前なら背中を任せられる。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.trust_high.02",
+      "npcId": "npc_06_kiryu",
+      "event": "trust_high",
+      "text": "次も一緒に勝ちたいな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.trust_low.01",
+      "npcId": "npc_06_kiryu",
+      "event": "trust_low",
+      "text": "まだお前のプレイが読めない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.trust_low.02",
+      "npcId": "npc_06_kiryu",
+      "event": "trust_low",
+      "text": "ちょっと様子を見させてくれ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.betrayal_observed.01",
+      "npcId": "npc_06_kiryu",
+      "event": "betrayal_observed",
+      "text": "約束と違うだろ！ 次は信用しないぞ。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_06_kiryu.betrayal_observed.02",
+      "npcId": "npc_06_kiryu",
+      "event": "betrayal_observed",
+      "text": "そう来たか。次は読んでやる。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_06_kiryu.main_win.01",
+      "npcId": "npc_06_kiryu",
+      "event": "main_win",
+      "text": "よし！ 次もこの調子だ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.main_win.02",
+      "npcId": "npc_06_kiryu",
+      "event": "main_win",
+      "text": "いい勝負だったな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.main_low.01",
+      "npcId": "npc_06_kiryu",
+      "event": "main_low",
+      "text": "くそ、あそこで別の手を選べば……。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.main_low.02",
+      "npcId": "npc_06_kiryu",
+      "event": "main_low",
+      "text": "次で取り返す。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.prison_before.01",
+      "npcId": "npc_06_kiryu",
+      "event": "prison_before",
+      "text": "負けて終わるなんてごめんだ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.prison_before.02",
+      "npcId": "npc_06_kiryu",
+      "event": "prison_before",
+      "text": "一手ずつ集中しよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.prison_survive.01",
+      "npcId": "npc_06_kiryu",
+      "event": "prison_survive",
+      "text": "まだ戦えるぞ！",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.prison_survive.02",
+      "npcId": "npc_06_kiryu",
+      "event": "prison_survive",
+      "text": "次はもっといい手を打つ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.eliminated.01",
+      "npcId": "npc_06_kiryu",
+      "event": "eliminated",
+      "text": "負けは負けだ。悔しいけどな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.eliminated.02",
+      "npcId": "npc_06_kiryu",
+      "event": "eliminated",
+      "text": "最後まで勝ち切れよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.secret.01",
+      "npcId": "npc_06_kiryu",
+      "event": "secret",
+      "text": "前に、ここで使われたらしいゲームのデータを手に入れた。今ならその意味が分かる気がする。",
+      "condition": {
+        "secretUnlocked": true
+      }
+    },
+    {
+      "id": "npc_06_kiryu.npc_trade.01",
+      "npcId": "npc_06_kiryu",
+      "event": "npc_trade",
+      "text": "その作戦、盤面で実際に成立するか試そう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.investigate.01",
+      "npcId": "npc_06_kiryu",
+      "event": "investigate",
+      "text": "隠しゲームがあるなら攻略したいよな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.loan_request.01",
+      "npcId": "npc_06_kiryu",
+      "event": "loan_request",
+      "text": "ちょっとピースが足りない。借りられるか？",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.repay_refused.01",
+      "npcId": "npc_06_kiryu",
+      "event": "repay_refused",
+      "text": "返すって言ったよな？ 約束は守ってくれよ。",
+      "condition": {
+        "paymentOverdueObserved": true
+      }
+    },
+    {
+      "id": "npc_06_kiryu.gift_received.01",
+      "npcId": "npc_06_kiryu",
+      "event": "gift_received",
+      "text": "助かった！ 次は俺が力になる。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.promise_fulfilled.01",
+      "npcId": "npc_06_kiryu",
+      "event": "promise_fulfilled",
+      "text": "いい連携だった。約束どおりだな。",
+      "condition": {
+        "observedFulfillment": true
+      }
+    },
+    {
+      "id": "npc_06_kiryu.report_received.01",
+      "npcId": "npc_06_kiryu",
+      "event": "report_received",
+      "text": "その話、次の手に使えそうか？",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.plan_request.01",
+      "npcId": "npc_06_kiryu",
+      "event": "plan_request",
+      "text": "まず勝ち筋を見せてくれ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.success_payment.01",
+      "npcId": "npc_06_kiryu",
+      "event": "success_payment",
+      "text": "約束の報酬だ。受け取ってくれ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.day_end.01",
+      "npcId": "npc_06_kiryu",
+      "event": "day_end",
+      "text": "明日までに作戦を練り直すよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.final_before.01",
+      "npcId": "npc_06_kiryu",
+      "event": "final_before",
+      "text": "決勝か。最高の勝負にしようぜ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.subgame_invite.01",
+      "npcId": "npc_06_kiryu",
+      "event": "subgame_invite",
+      "text": "一局やらないか？ 手加減なしで。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.hidden_invite.01",
+      "npcId": "npc_06_kiryu",
+      "event": "hidden_invite",
+      "text": "見つけたなら挑戦するしかないだろ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.info_uncertain.01",
+      "npcId": "npc_06_kiryu",
+      "event": "info_uncertain",
+      "text": "まだ確定情報じゃないんだな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.exit.01",
+      "npcId": "npc_06_kiryu",
+      "event": "exit",
+      "text": "じゃ、またな！",
+      "condition": {}
+    },
+    {
+      "id": "npc_06_kiryu.timeout.01",
+      "npcId": "npc_06_kiryu",
+      "event": "timeout",
+      "text": "時間だ！ 会場に行こう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.greeting.01",
+      "npcId": "npc_07_tachibana",
+      "event": "greeting",
+      "text": "具合は大丈夫ですか？",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.greeting.02",
+      "npcId": "npc_07_tachibana",
+      "event": "greeting",
+      "text": "無理はしないでくださいね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.alliance_offer.01",
+      "npcId": "npc_07_tachibana",
+      "event": "alliance_offer",
+      "text": "誰かを犠牲にせず協力できるなら、ぜひ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.alliance_offer.02",
+      "npcId": "npc_07_tachibana",
+      "event": "alliance_offer",
+      "text": "助け合える方法を考えませんか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.accept.01",
+      "npcId": "npc_07_tachibana",
+      "event": "accept",
+      "text": "分かりました。協力しますね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.accept.02",
+      "npcId": "npc_07_tachibana",
+      "event": "accept",
+      "text": "その条件なら安心して引き受けられます。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.reject_price.01",
+      "npcId": "npc_07_tachibana",
+      "event": "reject_price",
+      "text": "私には少し負担が大きいようです。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.reject_price.02",
+      "npcId": "npc_07_tachibana",
+      "event": "reject_price",
+      "text": "もう少し無理のない条件にできませんか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.reject_principle.01",
+      "npcId": "npc_07_tachibana",
+      "event": "reject_principle",
+      "text": "仲間を裏切るつもりはありません。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.reject_principle.02",
+      "npcId": "npc_07_tachibana",
+      "event": "reject_principle",
+      "text": "いくら積まれても、誰かを陥れることはしません。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.counter.01",
+      "npcId": "npc_07_tachibana",
+      "event": "counter",
+      "text": "困っている方も守れる条件にしましょう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.counter.02",
+      "npcId": "npc_07_tachibana",
+      "event": "counter",
+      "text": "報酬より、協力の方法を相談したいです。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.info_offer.01",
+      "npcId": "npc_07_tachibana",
+      "event": "info_offer",
+      "text": "知っていることならお話しできます。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.info_offer.02",
+      "npcId": "npc_07_tachibana",
+      "event": "info_offer",
+      "text": "役に立つ情報があれば共有しますね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.trust_high.01",
+      "npcId": "npc_07_tachibana",
+      "event": "trust_high",
+      "text": "あなたとなら安心して話せます。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.trust_high.02",
+      "npcId": "npc_07_tachibana",
+      "event": "trust_high",
+      "text": "いつも助けてくださってありがとう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.trust_low.01",
+      "npcId": "npc_07_tachibana",
+      "event": "trust_low",
+      "text": "まだ判断するには早いと思います。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.trust_low.02",
+      "npcId": "npc_07_tachibana",
+      "event": "trust_low",
+      "text": "もう少しお話を聞かせてください。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.betrayal_observed.01",
+      "npcId": "npc_07_tachibana",
+      "event": "betrayal_observed",
+      "text": "信じていたのですが……残念です。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_07_tachibana.betrayal_observed.02",
+      "npcId": "npc_07_tachibana",
+      "event": "betrayal_observed",
+      "text": "約束を破った理由を教えてください。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_07_tachibana.main_win.01",
+      "npcId": "npc_07_tachibana",
+      "event": "main_win",
+      "text": "みんな無事だといいのですが。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.main_win.02",
+      "npcId": "npc_07_tachibana",
+      "event": "main_win",
+      "text": "協力してくださった方のおかげです。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.main_low.01",
+      "npcId": "npc_07_tachibana",
+      "event": "main_low",
+      "text": "まだ諦める必要はありません。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.main_low.02",
+      "npcId": "npc_07_tachibana",
+      "event": "main_low",
+      "text": "誰も傷つかずに済めばいいのに。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.prison_before.01",
+      "npcId": "npc_07_tachibana",
+      "event": "prison_before",
+      "text": "落ち着いて。目の前の問題に集中しましょう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.prison_before.02",
+      "npcId": "npc_07_tachibana",
+      "event": "prison_before",
+      "text": "できることを一つずつ考えます。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.prison_survive.01",
+      "npcId": "npc_07_tachibana",
+      "event": "prison_survive",
+      "text": "生き残れたことに感謝します。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.prison_survive.02",
+      "npcId": "npc_07_tachibana",
+      "event": "prison_survive",
+      "text": "他の方のことが心配です。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.eliminated.01",
+      "npcId": "npc_07_tachibana",
+      "event": "eliminated",
+      "text": "どうか、自分を責めないでください。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.eliminated.02",
+      "npcId": "npc_07_tachibana",
+      "event": "eliminated",
+      "text": "最後まで、あなたらしくいてください。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.secret.01",
+      "npcId": "npc_07_tachibana",
+      "event": "secret",
+      "text": "以前、この施設の実験に関係する患者さんを担当しました。あの方が経験したことを忘れられません。",
+      "condition": {
+        "secretUnlocked": true
+      }
+    },
+    {
+      "id": "npc_07_tachibana.npc_trade.01",
+      "npcId": "npc_07_tachibana",
+      "event": "npc_trade",
+      "text": "お互いに無理のない取り決めをしましょう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.investigate.01",
+      "npcId": "npc_07_tachibana",
+      "event": "investigate",
+      "text": "誰かが残した記録なら、確かめたいですね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.loan_request.01",
+      "npcId": "npc_07_tachibana",
+      "event": "loan_request",
+      "text": "少し力を貸していただけませんか。期限までにお返しします。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.repay_refused.01",
+      "npcId": "npc_07_tachibana",
+      "event": "repay_refused",
+      "text": "お返しいただく約束でしたね。何か事情があるのですか？",
+      "condition": {
+        "paymentOverdueObserved": true
+      }
+    },
+    {
+      "id": "npc_07_tachibana.gift_received.01",
+      "npcId": "npc_07_tachibana",
+      "event": "gift_received",
+      "text": "ありがとうございます。大切に使います。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.promise_fulfilled.01",
+      "npcId": "npc_07_tachibana",
+      "event": "promise_fulfilled",
+      "text": "約束を守ってくださって、安心しました。",
+      "condition": {
+        "observedFulfillment": true
+      }
+    },
+    {
+      "id": "npc_07_tachibana.report_received.01",
+      "npcId": "npc_07_tachibana",
+      "event": "report_received",
+      "text": "本人の話も聞いてから考えたいです。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.plan_request.01",
+      "npcId": "npc_07_tachibana",
+      "event": "plan_request",
+      "text": "どなたも危険にさらさない方法はありますか？",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.success_payment.01",
+      "npcId": "npc_07_tachibana",
+      "event": "success_payment",
+      "text": "約束していたお礼です。受け取ってください。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.day_end.01",
+      "npcId": "npc_07_tachibana",
+      "event": "day_end",
+      "text": "今夜はゆっくり休みましょう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.final_before.01",
+      "npcId": "npc_07_tachibana",
+      "event": "final_before",
+      "text": "お互い、悔いのない勝負にしましょうね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.subgame_invite.01",
+      "npcId": "npc_07_tachibana",
+      "event": "subgame_invite",
+      "text": "少し息抜きしませんか？",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.hidden_invite.01",
+      "npcId": "npc_07_tachibana",
+      "event": "hidden_invite",
+      "text": "安全を確認できるなら同行します。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.info_uncertain.01",
+      "npcId": "npc_07_tachibana",
+      "event": "info_uncertain",
+      "text": "まだ確かなことではないのですね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.exit.01",
+      "npcId": "npc_07_tachibana",
+      "event": "exit",
+      "text": "またお話ししましょう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_07_tachibana.timeout.01",
+      "npcId": "npc_07_tachibana",
+      "event": "timeout",
+      "text": "時間ですね。行きましょう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.greeting.01",
+      "npcId": "npc_08_dojima",
+      "event": "greeting",
+      "text": "何か変わったことはなかったか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.greeting.02",
+      "npcId": "npc_08_dojima",
+      "event": "greeting",
+      "text": "この施設、妙な点が多いな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.alliance_offer.01",
+      "npcId": "npc_08_dojima",
+      "event": "alliance_offer",
+      "text": "一人より二人の目だ。協力しないか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.alliance_offer.02",
+      "npcId": "npc_08_dojima",
+      "event": "alliance_offer",
+      "text": "互いに見落としを補おう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.accept.01",
+      "npcId": "npc_08_dojima",
+      "event": "accept",
+      "text": "了解した。その線で動く。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.accept.02",
+      "npcId": "npc_08_dojima",
+      "event": "accept",
+      "text": "条件は分かった。任せてくれ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.reject_price.01",
+      "npcId": "npc_08_dojima",
+      "event": "reject_price",
+      "text": "それでは引き受けられん。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.reject_price.02",
+      "npcId": "npc_08_dojima",
+      "event": "reject_price",
+      "text": "条件が少し足りないな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.reject_principle.01",
+      "npcId": "npc_08_dojima",
+      "event": "reject_principle",
+      "text": "証拠もなく人を陥れる気はない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.reject_principle.02",
+      "npcId": "npc_08_dojima",
+      "event": "reject_principle",
+      "text": "確かめられない話には乗らん。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.counter.01",
+      "npcId": "npc_08_dojima",
+      "event": "counter",
+      "text": "その前に、情報の裏を取らせてくれ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.counter.02",
+      "npcId": "npc_08_dojima",
+      "event": "counter",
+      "text": "対象を絞った方がいい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.info_offer.01",
+      "npcId": "npc_08_dojima",
+      "event": "info_offer",
+      "text": "目撃したことなら話せる。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.info_offer.02",
+      "npcId": "npc_08_dojima",
+      "event": "info_offer",
+      "text": "噂と確認した事実は分けて聞いてくれ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.trust_high.01",
+      "npcId": "npc_08_dojima",
+      "event": "trust_high",
+      "text": "君の話なら一度は信じてみよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.trust_high.02",
+      "npcId": "npc_08_dojima",
+      "event": "trust_high",
+      "text": "これまでの行動を見てきたからな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.trust_low.01",
+      "npcId": "npc_08_dojima",
+      "event": "trust_low",
+      "text": "まだ判断を下す段階じゃない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.trust_low.02",
+      "npcId": "npc_08_dojima",
+      "event": "trust_low",
+      "text": "悪いが、慎重にいかせてもらう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.betrayal_observed.01",
+      "npcId": "npc_08_dojima",
+      "event": "betrayal_observed",
+      "text": "約束を破ったのは確認した。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_08_dojima.betrayal_observed.02",
+      "npcId": "npc_08_dojima",
+      "event": "betrayal_observed",
+      "text": "今後は証拠なしに信用できんな。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_08_dojima.main_win.01",
+      "npcId": "npc_08_dojima",
+      "event": "main_win",
+      "text": "ひとまず生き残ったな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.main_win.02",
+      "npcId": "npc_08_dojima",
+      "event": "main_win",
+      "text": "勝敗とは別に、気になることがある。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.main_low.01",
+      "npcId": "npc_08_dojima",
+      "event": "main_low",
+      "text": "読みが甘かった。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.main_low.02",
+      "npcId": "npc_08_dojima",
+      "event": "main_low",
+      "text": "地下を調べる機会になるかもしれんな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.prison_before.01",
+      "npcId": "npc_08_dojima",
+      "event": "prison_before",
+      "text": "焦るな。事実を一つずつ拾え。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.prison_before.02",
+      "npcId": "npc_08_dojima",
+      "event": "prison_before",
+      "text": "ここに来た以上、手掛かりも探す。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.prison_survive.01",
+      "npcId": "npc_08_dojima",
+      "event": "prison_survive",
+      "text": "まだ調査を続けられる。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.prison_survive.02",
+      "npcId": "npc_08_dojima",
+      "event": "prison_survive",
+      "text": "次はもっとよく観察しよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.eliminated.01",
+      "npcId": "npc_08_dojima",
+      "event": "eliminated",
+      "text": "俺がいなくても、記録を追ってくれ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.eliminated.02",
+      "npcId": "npc_08_dojima",
+      "event": "eliminated",
+      "text": "見たものを忘れるなよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.secret.01",
+      "npcId": "npc_08_dojima",
+      "event": "secret",
+      "text": "ある失踪事件を追っている。この施設とのつながりを示す記録が残っていた。",
+      "condition": {
+        "secretUnlocked": true
+      }
+    },
+    {
+      "id": "npc_08_dojima.npc_trade.01",
+      "npcId": "npc_08_dojima",
+      "event": "npc_trade",
+      "text": "条件を確認しておこう。後で揉めたくない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.investigate.01",
+      "npcId": "npc_08_dojima",
+      "event": "investigate",
+      "text": "壁や扉の位置を確認しに行く。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.loan_request.01",
+      "npcId": "npc_08_dojima",
+      "event": "loan_request",
+      "text": "調査に必要な分だけ借りられないか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.repay_refused.01",
+      "npcId": "npc_08_dojima",
+      "event": "repay_refused",
+      "text": "約束の期日だ。事情を聞かせてもらおう。",
+      "condition": {
+        "paymentOverdueObserved": true
+      }
+    },
+    {
+      "id": "npc_08_dojima.gift_received.01",
+      "npcId": "npc_08_dojima",
+      "event": "gift_received",
+      "text": "助かった。無駄にはしない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.promise_fulfilled.01",
+      "npcId": "npc_08_dojima",
+      "event": "promise_fulfilled",
+      "text": "約束どおりだったな。感謝する。",
+      "condition": {
+        "observedFulfillment": true
+      }
+    },
+    {
+      "id": "npc_08_dojima.report_received.01",
+      "npcId": "npc_08_dojima",
+      "event": "report_received",
+      "text": "その証言の裏を取れるものはあるか？",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.plan_request.01",
+      "npcId": "npc_08_dojima",
+      "event": "plan_request",
+      "text": "作戦の根拠を聞かせてくれ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.success_payment.01",
+      "npcId": "npc_08_dojima",
+      "event": "success_payment",
+      "text": "約束の分だ。確認してくれ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.day_end.01",
+      "npcId": "npc_08_dojima",
+      "event": "day_end",
+      "text": "今日は記録を整理する。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.final_before.01",
+      "npcId": "npc_08_dojima",
+      "event": "final_before",
+      "text": "最後まで冷静にいこう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.subgame_invite.01",
+      "npcId": "npc_08_dojima",
+      "event": "subgame_invite",
+      "text": "軽く頭を働かせる勝負でもするか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.hidden_invite.01",
+      "npcId": "npc_08_dojima",
+      "event": "hidden_invite",
+      "text": "そこに入るなら、まず出口を確認しよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.info_uncertain.01",
+      "npcId": "npc_08_dojima",
+      "event": "info_uncertain",
+      "text": "伝聞だけなら結論は保留だな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.exit.01",
+      "npcId": "npc_08_dojima",
+      "event": "exit",
+      "text": "また会おう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_08_dojima.timeout.01",
+      "npcId": "npc_08_dojima",
+      "event": "timeout",
+      "text": "時間か。ここまでにしよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.greeting.01",
+      "npcId": "npc_09_asahina",
+      "event": "greeting",
+      "text": "こんにちは！ 今日もよろしくね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.greeting.02",
+      "npcId": "npc_09_asahina",
+      "event": "greeting",
+      "text": "ねえ、もう施設を見て回った？",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.alliance_offer.01",
+      "npcId": "npc_09_asahina",
+      "event": "alliance_offer",
+      "text": "一緒に頑張らない？ 私も力になりたい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.alliance_offer.02",
+      "npcId": "npc_09_asahina",
+      "event": "alliance_offer",
+      "text": "一人だと心細いから、組めたら嬉しいな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.accept.01",
+      "npcId": "npc_09_asahina",
+      "event": "accept",
+      "text": "うん、やってみよう！",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.accept.02",
+      "npcId": "npc_09_asahina",
+      "event": "accept",
+      "text": "分かった、約束ね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.reject_price.01",
+      "npcId": "npc_09_asahina",
+      "event": "reject_price",
+      "text": "うーん、ちょっと難しいかも。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.reject_price.02",
+      "npcId": "npc_09_asahina",
+      "event": "reject_price",
+      "text": "それだと私、困っちゃうな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.reject_principle.01",
+      "npcId": "npc_09_asahina",
+      "event": "reject_principle",
+      "text": "ごめん、今は約束してる人がいるの。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.reject_principle.02",
+      "npcId": "npc_09_asahina",
+      "event": "reject_principle",
+      "text": "誰かが嫌な思いをするのは嫌だな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.counter.01",
+      "npcId": "npc_09_asahina",
+      "event": "counter",
+      "text": "こっちの条件なら大丈夫かも。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.counter.02",
+      "npcId": "npc_09_asahina",
+      "event": "counter",
+      "text": "まずは一回だけ一緒にやらない？",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.info_offer.01",
+      "npcId": "npc_09_asahina",
+      "event": "info_offer",
+      "text": "覚えてることなら教えられるよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.info_offer.02",
+      "npcId": "npc_09_asahina",
+      "event": "info_offer",
+      "text": "さっき気づいたことがあるんだ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.trust_high.01",
+      "npcId": "npc_09_asahina",
+      "event": "trust_high",
+      "text": "あなたなら信じられると思う。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.trust_high.02",
+      "npcId": "npc_09_asahina",
+      "event": "trust_high",
+      "text": "一緒だと落ち着くな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.trust_low.01",
+      "npcId": "npc_09_asahina",
+      "event": "trust_low",
+      "text": "もうちょっと話してから決めたいな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.trust_low.02",
+      "npcId": "npc_09_asahina",
+      "event": "trust_low",
+      "text": "まだよく分からないんだ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.betrayal_observed.01",
+      "npcId": "npc_09_asahina",
+      "event": "betrayal_observed",
+      "text": "え……約束してたよね？",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_09_asahina.betrayal_observed.02",
+      "npcId": "npc_09_asahina",
+      "event": "betrayal_observed",
+      "text": "そうだったんだ。ちょっと悲しいな。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_09_asahina.main_win.01",
+      "npcId": "npc_09_asahina",
+      "event": "main_win",
+      "text": "やった！ なんとか勝てたね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.main_win.02",
+      "npcId": "npc_09_asahina",
+      "event": "main_win",
+      "text": "みんなのおかげだよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.main_low.01",
+      "npcId": "npc_09_asahina",
+      "event": "main_low",
+      "text": "どうしよう……でも頑張らなきゃ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.main_low.02",
+      "npcId": "npc_09_asahina",
+      "event": "main_low",
+      "text": "次は絶対に諦めない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.prison_before.01",
+      "npcId": "npc_09_asahina",
+      "event": "prison_before",
+      "text": "怖いけど、できることからやる。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.prison_before.02",
+      "npcId": "npc_09_asahina",
+      "event": "prison_before",
+      "text": "覚えたことを思い出そう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.prison_survive.01",
+      "npcId": "npc_09_asahina",
+      "event": "prison_survive",
+      "text": "よかった……！ まだ続けられる。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.prison_survive.02",
+      "npcId": "npc_09_asahina",
+      "event": "prison_survive",
+      "text": "ほっとしたらお腹が空いちゃった。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.eliminated.01",
+      "npcId": "npc_09_asahina",
+      "event": "eliminated",
+      "text": "ごめん、先に行くね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.eliminated.02",
+      "npcId": "npc_09_asahina",
+      "event": "eliminated",
+      "text": "お願い、あのことを覚えていて。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.secret.01",
+      "npcId": "npc_09_asahina",
+      "event": "secret",
+      "text": "実は、お兄ちゃんが前の大会に参加してたみたいなの。私はそれを確かめたくて来たんだ。",
+      "condition": {
+        "secretUnlocked": true
+      }
+    },
+    {
+      "id": "npc_09_asahina.npc_trade.01",
+      "npcId": "npc_09_asahina",
+      "event": "npc_trade",
+      "text": "じゃあ、私の担当はこれだね？",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.investigate.01",
+      "npcId": "npc_09_asahina",
+      "event": "investigate",
+      "text": "あの部屋、何か気になるんだよね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.loan_request.01",
+      "npcId": "npc_09_asahina",
+      "event": "loan_request",
+      "text": "少しだけ借りてもいい？ ちゃんと返すよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.repay_refused.01",
+      "npcId": "npc_09_asahina",
+      "event": "repay_refused",
+      "text": "返すって言ってたの、覚えてるよ。",
+      "condition": {
+        "paymentOverdueObserved": true
+      }
+    },
+    {
+      "id": "npc_09_asahina.gift_received.01",
+      "npcId": "npc_09_asahina",
+      "event": "gift_received",
+      "text": "ありがとう！ 本当に助かったよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.promise_fulfilled.01",
+      "npcId": "npc_09_asahina",
+      "event": "promise_fulfilled",
+      "text": "約束守ってくれてありがとう！",
+      "condition": {
+        "observedFulfillment": true
+      }
+    },
+    {
+      "id": "npc_09_asahina.report_received.01",
+      "npcId": "npc_09_asahina",
+      "event": "report_received",
+      "text": "それ、私も覚えておくね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.plan_request.01",
+      "npcId": "npc_09_asahina",
+      "event": "plan_request",
+      "text": "どうしたらいいか、一緒に考えてくれる？",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.success_payment.01",
+      "npcId": "npc_09_asahina",
+      "event": "success_payment",
+      "text": "約束してた分だよ。はい！",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.day_end.01",
+      "npcId": "npc_09_asahina",
+      "event": "day_end",
+      "text": "今日はいっぱい覚えることがあったなあ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.final_before.01",
+      "npcId": "npc_09_asahina",
+      "event": "final_before",
+      "text": "最後まで応援……じゃなくて、私も全力で戦うね！",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.subgame_invite.01",
+      "npcId": "npc_09_asahina",
+      "event": "subgame_invite",
+      "text": "ちょっとゲームしよ？ 記憶なら得意かも。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.hidden_invite.01",
+      "npcId": "npc_09_asahina",
+      "event": "hidden_invite",
+      "text": "一緒なら、秘密の部屋も怖くないかも。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.info_uncertain.01",
+      "npcId": "npc_09_asahina",
+      "event": "info_uncertain",
+      "text": "聞いた話だから、間違ってるかもしれないよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.exit.01",
+      "npcId": "npc_09_asahina",
+      "event": "exit",
+      "text": "またね！",
+      "condition": {}
+    },
+    {
+      "id": "npc_09_asahina.timeout.01",
+      "npcId": "npc_09_asahina",
+      "event": "timeout",
+      "text": "あっ、もう時間だ！",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.greeting.01",
+      "npcId": "npc_10_kujo",
+      "event": "greeting",
+      "text": "おう、調子はどうだ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.greeting.02",
+      "npcId": "npc_10_kujo",
+      "event": "greeting",
+      "text": "勝負の匂いがしてきたな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.alliance_offer.01",
+      "npcId": "npc_10_kujo",
+      "event": "alliance_offer",
+      "text": "一緒に賭けてみるか？ 悪い話じゃない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.alliance_offer.02",
+      "npcId": "npc_10_kujo",
+      "event": "alliance_offer",
+      "text": "今なら組む価値がありそうだ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.accept.01",
+      "npcId": "npc_10_kujo",
+      "event": "accept",
+      "text": "乗った。面白くなりそうだな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.accept.02",
+      "npcId": "npc_10_kujo",
+      "event": "accept",
+      "text": "その条件なら勝負してやる。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.reject_price.01",
+      "npcId": "npc_10_kujo",
+      "event": "reject_price",
+      "text": "もう少し見返りがないとな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.reject_price.02",
+      "npcId": "npc_10_kujo",
+      "event": "reject_price",
+      "text": "その賭けは割に合わねえ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.reject_principle.01",
+      "npcId": "npc_10_kujo",
+      "event": "reject_principle",
+      "text": "負けるだけの勝負はしない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.reject_principle.02",
+      "npcId": "npc_10_kujo",
+      "event": "reject_principle",
+      "text": "今はそっちに乗る気分じゃないな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.counter.01",
+      "npcId": "npc_10_kujo",
+      "event": "counter",
+      "text": "成功報酬を増やすなら考える。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.counter.02",
+      "npcId": "npc_10_kujo",
+      "event": "counter",
+      "text": "先払いを少し混ぜてくれ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.info_offer.01",
+      "npcId": "npc_10_kujo",
+      "event": "info_offer",
+      "text": "いいネタを握ってるぜ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.info_offer.02",
+      "npcId": "npc_10_kujo",
+      "event": "info_offer",
+      "text": "情報も立派な勝負道具だ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.trust_high.01",
+      "npcId": "npc_10_kujo",
+      "event": "trust_high",
+      "text": "お前との勝負は信用できる。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.trust_high.02",
+      "npcId": "npc_10_kujo",
+      "event": "trust_high",
+      "text": "悪くない相棒だな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.trust_low.01",
+      "npcId": "npc_10_kujo",
+      "event": "trust_low",
+      "text": "その顔じゃ手の内が読めねえな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.trust_low.02",
+      "npcId": "npc_10_kujo",
+      "event": "trust_low",
+      "text": "信用はまだ賭けられない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.betrayal_observed.01",
+      "npcId": "npc_10_kujo",
+      "event": "betrayal_observed",
+      "text": "やってくれたな。次はこっちも考えるぜ。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_10_kujo.betrayal_observed.02",
+      "npcId": "npc_10_kujo",
+      "event": "betrayal_observed",
+      "text": "裏切りも勝負のうちだが、忘れはしねえ。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_10_kujo.main_win.01",
+      "npcId": "npc_10_kujo",
+      "event": "main_win",
+      "text": "いい流れだ。次も狙うか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.main_win.02",
+      "npcId": "npc_10_kujo",
+      "event": "main_win",
+      "text": "勝負勘は鈍ってないらしい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.main_low.01",
+      "npcId": "npc_10_kujo",
+      "event": "main_low",
+      "text": "ツキがない？ いや、読みが悪かった。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.main_low.02",
+      "npcId": "npc_10_kujo",
+      "event": "main_low",
+      "text": "次で取り返すだけだ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.prison_before.01",
+      "npcId": "npc_10_kujo",
+      "event": "prison_before",
+      "text": "背水の陣ってやつだな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.prison_before.02",
+      "npcId": "npc_10_kujo",
+      "event": "prison_before",
+      "text": "こういう勝負の方が燃える。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.prison_survive.01",
+      "npcId": "npc_10_kujo",
+      "event": "prison_survive",
+      "text": "まだ俺の席は空いてねえ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.prison_survive.02",
+      "npcId": "npc_10_kujo",
+      "event": "prison_survive",
+      "text": "次はもっと大きく狙うぜ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.eliminated.01",
+      "npcId": "npc_10_kujo",
+      "event": "eliminated",
+      "text": "ここで降りることになるとはな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.eliminated.02",
+      "npcId": "npc_10_kujo",
+      "event": "eliminated",
+      "text": "お前は最後まで打ち切れよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.secret.01",
+      "npcId": "npc_10_kujo",
+      "event": "secret",
+      "text": "俺は前にもこの大会に出ている。前回がどう終わったか、いまだに確かめたいことがある。",
+      "condition": {
+        "secretUnlocked": true
+      }
+    },
+    {
+      "id": "npc_10_kujo.npc_trade.01",
+      "npcId": "npc_10_kujo",
+      "event": "npc_trade",
+      "text": "お互いの取り分を決めてからだ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.investigate.01",
+      "npcId": "npc_10_kujo",
+      "event": "investigate",
+      "text": "裏に勝負場があるなら見逃せねえな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.loan_request.01",
+      "npcId": "npc_10_kujo",
+      "event": "loan_request",
+      "text": "勝負の種銭が足りねえ。貸してくれないか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.repay_refused.01",
+      "npcId": "npc_10_kujo",
+      "event": "repay_refused",
+      "text": "借りたもんは返す、それが筋だろ？",
+      "condition": {
+        "paymentOverdueObserved": true
+      }
+    },
+    {
+      "id": "npc_10_kujo.gift_received.01",
+      "npcId": "npc_10_kujo",
+      "event": "gift_received",
+      "text": "借りは覚えておくぜ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.promise_fulfilled.01",
+      "npcId": "npc_10_kujo",
+      "event": "promise_fulfilled",
+      "text": "約束どおりだな。次も組めそうだ。",
+      "condition": {
+        "observedFulfillment": true
+      }
+    },
+    {
+      "id": "npc_10_kujo.report_received.01",
+      "npcId": "npc_10_kujo",
+      "event": "report_received",
+      "text": "その噂、どこまで賭けられる情報だ？",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.plan_request.01",
+      "npcId": "npc_10_kujo",
+      "event": "plan_request",
+      "text": "勝負どころを教えてくれよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.success_payment.01",
+      "npcId": "npc_10_kujo",
+      "event": "success_payment",
+      "text": "約束の報酬だ。文句ねえだろ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.day_end.01",
+      "npcId": "npc_10_kujo",
+      "event": "day_end",
+      "text": "今日は店じまいだな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.final_before.01",
+      "npcId": "npc_10_kujo",
+      "event": "final_before",
+      "text": "最後の勝負、楽しませてくれよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.subgame_invite.01",
+      "npcId": "npc_10_kujo",
+      "event": "subgame_invite",
+      "text": "一勝負どうだ？ ちょっとした腕試しだ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.hidden_invite.01",
+      "npcId": "npc_10_kujo",
+      "event": "hidden_invite",
+      "text": "危険と報酬、どっちも気になるな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.info_uncertain.01",
+      "npcId": "npc_10_kujo",
+      "event": "info_uncertain",
+      "text": "話半分で聞いておくぜ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.exit.01",
+      "npcId": "npc_10_kujo",
+      "event": "exit",
+      "text": "じゃあな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_10_kujo.timeout.01",
+      "npcId": "npc_10_kujo",
+      "event": "timeout",
+      "text": "時間切れか。続きはまただ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.greeting.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "greeting",
+      "text": "ごきげんよう。楽しんでいる？",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.greeting.02",
+      "npcId": "npc_11_kisaragi",
+      "event": "greeting",
+      "text": "今日は誰が主役になるのかしら。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.alliance_offer.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "alliance_offer",
+      "text": "私たち、案外いいコンビになると思わない？",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.alliance_offer.02",
+      "npcId": "npc_11_kisaragi",
+      "event": "alliance_offer",
+      "text": "共演者が欲しいの。どうかしら。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.accept.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "accept",
+      "text": "いいわ、あなたの提案を受けましょう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.accept.02",
+      "npcId": "npc_11_kisaragi",
+      "event": "accept",
+      "text": "素敵な条件ね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.reject_price.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "reject_price",
+      "text": "もう少し魅力的な条件が欲しいわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.reject_price.02",
+      "npcId": "npc_11_kisaragi",
+      "event": "reject_price",
+      "text": "それだけでは役不足ね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.reject_principle.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "reject_principle",
+      "text": "その役は私には似合わないわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.reject_principle.02",
+      "npcId": "npc_11_kisaragi",
+      "event": "reject_principle",
+      "text": "今は別の話を優先させて。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.counter.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "counter",
+      "text": "報酬を見直してくださる？",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.counter.02",
+      "npcId": "npc_11_kisaragi",
+      "event": "counter",
+      "text": "期間を短くするなら考えるわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.info_offer.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "info_offer",
+      "text": "面白い話を聞いたのよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.info_offer.02",
+      "npcId": "npc_11_kisaragi",
+      "event": "info_offer",
+      "text": "舞台裏のこと、知りたくない？",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.trust_high.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "trust_high",
+      "text": "あなたには飾らない言葉で話せそう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.trust_high.02",
+      "npcId": "npc_11_kisaragi",
+      "event": "trust_high",
+      "text": "信頼できる相手は貴重ね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.trust_low.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "trust_low",
+      "text": "まだ台本のない場面みたい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.trust_low.02",
+      "npcId": "npc_11_kisaragi",
+      "event": "trust_low",
+      "text": "あなたの本心が分からないわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.betrayal_observed.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "betrayal_observed",
+      "text": "見事な演技ね。でも約束違反は覚えておく。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_11_kisaragi.betrayal_observed.02",
+      "npcId": "npc_11_kisaragi",
+      "event": "betrayal_observed",
+      "text": "その選択、忘れないわ。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_11_kisaragi.main_win.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "main_win",
+      "text": "拍手が欲しいくらいね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.main_win.02",
+      "npcId": "npc_11_kisaragi",
+      "event": "main_win",
+      "text": "思いどおりの幕引きだったわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.main_low.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "main_low",
+      "text": "今日は脇役だったみたい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.main_low.02",
+      "npcId": "npc_11_kisaragi",
+      "event": "main_low",
+      "text": "次の舞台で挽回するわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.prison_before.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "prison_before",
+      "text": "観客のいない舞台ほど怖いものね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.prison_before.02",
+      "npcId": "npc_11_kisaragi",
+      "event": "prison_before",
+      "text": "ここでも自分を見失わないようにするわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.prison_survive.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "prison_survive",
+      "text": "まだ幕は下りていなかったわね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.prison_survive.02",
+      "npcId": "npc_11_kisaragi",
+      "event": "prison_survive",
+      "text": "次の出番があるみたい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.eliminated.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "eliminated",
+      "text": "これが私の退場シーンなのね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.eliminated.02",
+      "npcId": "npc_11_kisaragi",
+      "event": "eliminated",
+      "text": "最後まで見届けてちょうだい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.secret.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "secret",
+      "text": "主催者から個人的な依頼を受けているの。詳しい目的は私にも知らされていなかったわ。",
+      "condition": {
+        "secretUnlocked": true
+      }
+    },
+    {
+      "id": "npc_11_kisaragi.npc_trade.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "npc_trade",
+      "text": "双方が納得できる役割なら問題ないわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.investigate.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "investigate",
+      "text": "舞台裏を少し覗いてみようかしら。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.loan_request.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "loan_request",
+      "text": "少しだけ融通していただけない？",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.repay_refused.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "repay_refused",
+      "text": "約束は台本じゃないのよ。履行してほしいわ。",
+      "condition": {
+        "paymentOverdueObserved": true
+      }
+    },
+    {
+      "id": "npc_11_kisaragi.gift_received.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "gift_received",
+      "text": "気前がいいのね。ありがとう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.promise_fulfilled.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "promise_fulfilled",
+      "text": "約束を守る人は好ましいわ。",
+      "condition": {
+        "observedFulfillment": true
+      }
+    },
+    {
+      "id": "npc_11_kisaragi.report_received.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "report_received",
+      "text": "その証言、どこまで本当かしら。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.plan_request.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "plan_request",
+      "text": "私が演じるべき役割は何？",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.success_payment.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "success_payment",
+      "text": "取り決めどおり、お支払いするわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.day_end.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "day_end",
+      "text": "今日は幕を閉じましょう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.final_before.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "final_before",
+      "text": "最後の舞台、ふさわしい演技を見せるわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.subgame_invite.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "subgame_invite",
+      "text": "息抜きに小さな勝負をしない？",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.hidden_invite.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "hidden_invite",
+      "text": "秘密の舞台があるなんて、興味深いわ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.info_uncertain.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "info_uncertain",
+      "text": "噂を事実と取り違えないようにね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.exit.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "exit",
+      "text": "またお会いしましょう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_11_kisaragi.timeout.01",
+      "npcId": "npc_11_kisaragi",
+      "event": "timeout",
+      "text": "残念、時間切れね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.greeting.01",
+      "npcId": "npc_12_kuze",
+      "event": "greeting",
+      "text": "若い人の発想には学ぶことが多い。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.greeting.02",
+      "npcId": "npc_12_kuze",
+      "event": "greeting",
+      "text": "今日は何を考えておるのかな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.alliance_offer.01",
+      "npcId": "npc_12_kuze",
+      "event": "alliance_offer",
+      "text": "互いの知恵を持ち寄るというのはどうだろう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.alliance_offer.02",
+      "npcId": "npc_12_kuze",
+      "event": "alliance_offer",
+      "text": "協力で新しい解が見つかるかもしれん。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.accept.01",
+      "npcId": "npc_12_kuze",
+      "event": "accept",
+      "text": "よいだろう。その条件で進めよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.accept.02",
+      "npcId": "npc_12_kuze",
+      "event": "accept",
+      "text": "興味深い提案じゃ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.reject_price.01",
+      "npcId": "npc_12_kuze",
+      "event": "reject_price",
+      "text": "見返りだけで決めるのは難しいな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.reject_price.02",
+      "npcId": "npc_12_kuze",
+      "event": "reject_price",
+      "text": "もう少し条件を考えてみよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.reject_principle.01",
+      "npcId": "npc_12_kuze",
+      "event": "reject_principle",
+      "text": "その提案には納得できる理由がない。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.reject_principle.02",
+      "npcId": "npc_12_kuze",
+      "event": "reject_principle",
+      "text": "知識を曲げるようなことはできん。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.counter.01",
+      "npcId": "npc_12_kuze",
+      "event": "counter",
+      "text": "交換すべきはピースより知識ではないかな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.counter.02",
+      "npcId": "npc_12_kuze",
+      "event": "counter",
+      "text": "別の条件なら検討しよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.info_offer.01",
+      "npcId": "npc_12_kuze",
+      "event": "info_offer",
+      "text": "少し古い知識だが、役に立つかもしれん。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.info_offer.02",
+      "npcId": "npc_12_kuze",
+      "event": "info_offer",
+      "text": "記録を照合してみないか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.trust_high.01",
+      "npcId": "npc_12_kuze",
+      "event": "trust_high",
+      "text": "君には知っておいてほしいことがある。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.trust_high.02",
+      "npcId": "npc_12_kuze",
+      "event": "trust_high",
+      "text": "これまでの振る舞いを見ておったよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.trust_low.01",
+      "npcId": "npc_12_kuze",
+      "event": "trust_low",
+      "text": "判断を急ぐ必要はあるまい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.trust_low.02",
+      "npcId": "npc_12_kuze",
+      "event": "trust_low",
+      "text": "まだ君をよく知らんのでね。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.betrayal_observed.01",
+      "npcId": "npc_12_kuze",
+      "event": "betrayal_observed",
+      "text": "約束が破られる瞬間にも意味はある。だが信用は別じゃ。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_12_kuze.betrayal_observed.02",
+      "npcId": "npc_12_kuze",
+      "event": "betrayal_observed",
+      "text": "今後の判断材料にしよう。",
+      "condition": {
+        "observedBreach": true
+      }
+    },
+    {
+      "id": "npc_12_kuze.main_win.01",
+      "npcId": "npc_12_kuze",
+      "event": "main_win",
+      "text": "結果よりも選択の過程が気になるな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.main_win.02",
+      "npcId": "npc_12_kuze",
+      "event": "main_win",
+      "text": "知恵はまだ錆びついておらんらしい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.main_low.01",
+      "npcId": "npc_12_kuze",
+      "event": "main_low",
+      "text": "わしも見誤ることはある。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.main_low.02",
+      "npcId": "npc_12_kuze",
+      "event": "main_low",
+      "text": "地下に何があるのか、気になるところじゃ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.prison_before.01",
+      "npcId": "npc_12_kuze",
+      "event": "prison_before",
+      "text": "静かに考えよう。答えは急がずとも見つかる。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.prison_before.02",
+      "npcId": "npc_12_kuze",
+      "event": "prison_before",
+      "text": "この場所にも記憶が残っているはずじゃ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.prison_survive.01",
+      "npcId": "npc_12_kuze",
+      "event": "prison_survive",
+      "text": "まだ問いを追う時間があるようじゃ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.prison_survive.02",
+      "npcId": "npc_12_kuze",
+      "event": "prison_survive",
+      "text": "次へ進もうか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.eliminated.01",
+      "npcId": "npc_12_kuze",
+      "event": "eliminated",
+      "text": "わしの役目はここまでかもしれん。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.eliminated.02",
+      "npcId": "npc_12_kuze",
+      "event": "eliminated",
+      "text": "答えを見つけたなら、どうか正しく使ってほしい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.secret.01",
+      "npcId": "npc_12_kuze",
+      "event": "secret",
+      "text": "CROWN計画の立ち上げには、わしも携わった。今の形が当初の目的と同じとは限らん。",
+      "condition": {
+        "secretUnlocked": true
+      }
+    },
+    {
+      "id": "npc_12_kuze.npc_trade.01",
+      "npcId": "npc_12_kuze",
+      "event": "npc_trade",
+      "text": "条件を一つずつ整理するとしよう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.investigate.01",
+      "npcId": "npc_12_kuze",
+      "event": "investigate",
+      "text": "古い資料が残っておらんか、探してみたい。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.loan_request.01",
+      "npcId": "npc_12_kuze",
+      "event": "loan_request",
+      "text": "知識を求めるために、少しだけ借りられるかな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.repay_refused.01",
+      "npcId": "npc_12_kuze",
+      "event": "repay_refused",
+      "text": "約束の意味をもう一度考えてほしいな。",
+      "condition": {
+        "paymentOverdueObserved": true
+      }
+    },
+    {
+      "id": "npc_12_kuze.gift_received.01",
+      "npcId": "npc_12_kuze",
+      "event": "gift_received",
+      "text": "ありがたい。恩は忘れんよ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.promise_fulfilled.01",
+      "npcId": "npc_12_kuze",
+      "event": "promise_fulfilled",
+      "text": "言葉と行動が一致する。よいことじゃ。",
+      "condition": {
+        "observedFulfillment": true
+      }
+    },
+    {
+      "id": "npc_12_kuze.report_received.01",
+      "npcId": "npc_12_kuze",
+      "event": "report_received",
+      "text": "複数の記録から検証する必要があるな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.plan_request.01",
+      "npcId": "npc_12_kuze",
+      "event": "plan_request",
+      "text": "その作戦の前提を説明してくれんか。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.success_payment.01",
+      "npcId": "npc_12_kuze",
+      "event": "success_payment",
+      "text": "約束は果たすものじゃ。受け取ってくれ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.day_end.01",
+      "npcId": "npc_12_kuze",
+      "event": "day_end",
+      "text": "今日は考えを整理して休もう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.final_before.01",
+      "npcId": "npc_12_kuze",
+      "event": "final_before",
+      "text": "知性とは何か、最後の答えを見せてくれ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.subgame_invite.01",
+      "npcId": "npc_12_kuze",
+      "event": "subgame_invite",
+      "text": "頭の体操を一つ、どうかな。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.hidden_invite.01",
+      "npcId": "npc_12_kuze",
+      "event": "hidden_invite",
+      "text": "隠された問いには、隠された意図があるものじゃ。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.info_uncertain.01",
+      "npcId": "npc_12_kuze",
+      "event": "info_uncertain",
+      "text": "まだ仮説として扱うべきじゃろう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.exit.01",
+      "npcId": "npc_12_kuze",
+      "event": "exit",
+      "text": "では、また会おう。",
+      "condition": {}
+    },
+    {
+      "id": "npc_12_kuze.timeout.01",
+      "npcId": "npc_12_kuze",
+      "event": "timeout",
+      "text": "時間は有限じゃ。続きは後で。",
+      "condition": {}
+    }
+  ]
+}

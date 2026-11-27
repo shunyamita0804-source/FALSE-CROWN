@@ -1,0 +1,6 @@
+{
+  "common.back": "Back", "common.cancel": "Cancel", "common.close": "Close", "common.confirm": "Confirm", "common.next": "Next", "common.ok": "OK", "common.skip": "Skip", "common.toTitle": "Title",
+  "title.sub": "A SURVIVAL GAME OF WITS", "title.continue": "Continue", "title.new": "New Game", "title.settings": "Settings", "title.howto": "How to Play", "title.credits": "Credits",
+  "title.purchase": "Full Version", "title.restore": "Restore Purchase", "title.language": "Language", "title.dev": "Developer Menu",
+  "title.devBuild": "Development build (all days unlocked)", "title.productBuild": "Release"
+}
