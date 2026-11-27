@@ -83,6 +83,7 @@ export const UI_ASSETS: Record<string, AssetDef> = {
   'v11/m02/flash_frame': { path: 'ui/v11/m02/flash_frame', slice: S(60) },
   'v11/m03/pair_plate': { path: 'ui/v11/m03/pair_plate' },
   'v11/m04/rail_resource': { path: 'ui/v11/m04/rail_resource' },
+  'v11/m05/relay_plate': { path: 'ui/v11/m05/relay_plate', slice: S(40) },
   'v11/m06/card_back': { path: 'ui/v11/m06/card_back' },
   'v11/prison/compact_frame': { path: 'ui/v11/prison/compact_frame', slice: S(96) },
   'v11/hidden/challenge_frame': { path: 'ui/v11/hidden/challenge_frame', slice: S(96) },

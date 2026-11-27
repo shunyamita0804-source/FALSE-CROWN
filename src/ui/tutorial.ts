@@ -18,6 +18,10 @@ import { COLORS, P02_PRACTICE, SHAPES } from '../matches/p02';
 import { P04_PRACTICE, SHAPES as P04_SHAPES } from '../matches/p04';
 import { M05_PRACTICE, type Tok } from '../matches/m05';
 import { ExprPad, exprEl } from './exprpad';
+import { matchesIn } from '../matches/m06';
+import { cardBack, cardEl } from './cards';
+import { P06_PRACTICE, P06_PRACTICE_SOL } from '../matches/p06';
+import { PathBoard } from './pathboard';
 import { DiffQuiz, diffFigure, diffReview, figEl, FIG_NAME } from './diffquiz';
 import { rotated, type Cell } from '../matches/poly';
 import { ChainBoard } from './chainboard';
@@ -432,7 +436,93 @@ function p05Guide(): Guide {
   };
 }
 
-const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide };
+// ---- M06 クロス・カード ----
+
+function m06Guide(): Guide {
+  const cd = (rank: number, suit: number) => suit * 13 + rank - 1;
+  const hand0 = [cd(4, 0), cd(9, 3), cd(2, 1), cd(12, 2), cd(6, 0)];
+  const field0 = [cd(9, 2), cd(3, 3), cd(13, 0), cd(5, 1), cd(7, 2)];
+  const row = (cards: number[], cls = 'small', mark: number[] = []) => h('div', { class: 'xc-row mini' }, cards.map((c) => cardEl(c, { cls: `${cls}${mark.includes(c) ? ' sel' : ''}` })));
+  return {
+    name: 'クロス・カード',
+    pages: [
+      { title: t('tut.m06.t1'), text: t('tut.m06.p1'), figure: () => h('div', { class: 'col', style: 'gap:14px;align-items:center' }, h('div', { class: 'row', style: 'gap:10px;align-items:center' }, h('span', { class: 'xc-lbl' }, t('m06.field')), row(field0), cardBack('small')), h('div', { class: 'row', style: 'gap:10px;align-items:center' }, h('span', { class: 'xc-lbl' }, t('m06.hand')), row(hand0))) },
+      { title: t('tut.m06.t2'), text: t('tut.m06.p2'), figure: () => h('div', { class: 'col', style: 'gap:22px;align-items:center' }, row(field0, 'small', [cd(9, 2)]), row(hand0, 'small', [cd(4, 0)])) },
+      {
+        title: t('tut.m06.t3'), text: t('tut.m06.p3'),
+        figure: () => h('div', { class: 'tg-row' },
+          h('div', { class: 'tg-fig ok' }, row([cd(9, 3), cd(9, 2)]), h('div', { class: 'tg-mark ok' }, '○'), h('div', { class: 'tg-cap' }, t('tut.m06.ok'))),
+          h('div', { class: 'tg-fig ng' }, row([cd(9, 3), cd(6, 0)]), h('div', { class: 'tg-mark ng' }, '✕'), h('div', { class: 'tg-cap' }, t('tut.m06.ng')))),
+      },
+      { title: t('tut.m06.t4'), text: t('tut.m06.p4'), figure: () => facts([['6', t('tut.m06.f1')], ['+6', t('tut.m06.f2')], ['+8', t('tut.m06.f3')], ['+6', t('tut.m06.f4')]]) },
+    ],
+    practice: {
+      text: t('tut.m06.practice'),
+      build: (onDone) => {
+        const box = h('div', { class: 'xc prac' });
+        let hand = [...hand0];
+        let field = [...field0];
+        let sh: number | undefined;
+        let sf: number | undefined;
+        let msg = t('m06.swapHow');
+        let done = false;
+        const draw = () => {
+          const mk = (c: number, sel: boolean, on: () => void) => { const el = cardEl(c, { button: true, disabled: done, cls: `small${sel ? ' sel' : ''}` }); el.addEventListener('click', on); return el; };
+          const swap = button(t('m06.swap'), () => {
+            const nh = hand.map((c) => (c === sh ? sf! : c));
+            if (!matchesIn('pair', nh).length) { msg = t('tut.m06.pracNg'); sh = sf = undefined; draw(); return; }
+            field = field.map((c) => (c === sf ? sh! : c));
+            hand = nh;
+            sh = sf = undefined;
+            done = true;
+            msg = t('tut.m06.pracDone');
+            draw();
+            onDone();
+          }, { kind: 'primary', disabled: done || sh === undefined || sf === undefined });
+          box.replaceChildren(
+            h('div', { class: 'xc-head' }, h('span', { class: 'small dim' }, t('m06.targetIs')), h('span', { class: 'xc-target big' }, t('m06.tg.pair'))),
+            h('div', { class: 'xc-row' }, h('span', { class: 'xc-lbl' }, t('m06.field')), field.map((c) => mk(c, sf === c, () => { sf = sf === c ? undefined : c; draw(); }))),
+            h('div', { class: 'xc-row hand' }, h('span', { class: 'xc-lbl' }, t('m06.hand')), hand.map((c) => mk(c, sh === c, () => { sh = sh === c ? undefined : c; draw(); }))),
+            h('div', { class: 'xc-foot' }, h('span', { class: 'small xc-note' }, msg), swap));
+        };
+        draw();
+        return box;
+      },
+    },
+  };
+}
+
+// ---- P06 一筆の迷宮 ----
+
+function p06Guide(): Guide {
+  const fig = (path: number[], cell = 62) => new PathBoard(P06_PRACTICE, { readonly: true, cell, path }).el;
+  return {
+    name: '一筆の迷宮',
+    pages: [
+      { title: t('tut.p06.t1'), text: t('tut.p06.p1'), figure: () => fig(P06_PRACTICE_SOL) },
+      { title: t('tut.p06.t2'), text: t('tut.p06.p2'), figure: () => fig([0, 1, 2, 6]) },
+      {
+        title: t('tut.p06.t3'), text: t('tut.p06.p3'),
+        figure: () => h('div', { class: 'tg-row' },
+          h('div', { class: 'tg-fig ok' }, fig(P06_PRACTICE_SOL, 46), h('div', { class: 'tg-mark ok' }, '○'), h('div', { class: 'tg-cap' }, t('tut.p06.ok'))),
+          h('div', { class: 'tg-fig ng' }, fig([0, 4, 8, 12], 46), h('div', { class: 'tg-mark ng' }, '✕'), h('div', { class: 'tg-cap' }, t('tut.p06.ng')))),
+      },
+      {
+        title: t('tut.p06.t4'), text: t('tut.p06.p4'),
+        figure: () => h('div', { class: 'tg-row' }, chips([{ label: t('tut.p06.c1'), value: '30' }, { label: t('tut.p06.c2'), value: '0〜10' }], ['+']), facts([['6', t('tut.p06.f1')], ['90', t('tut.p06.f2')], ['2', t('tut.p06.f3')]])),
+      },
+    ],
+    practice: {
+      text: t('tut.p06.practice'),
+      build: (onDone) => {
+        const board = new PathBoard(P06_PRACTICE, { cell: 64, onComplete: () => onDone() });
+        return h('div', { class: 'p06-play' }, h('div', { class: 'p06-tools' }, button(t('p06.undo'), () => board.undo(), { small: true }), button(t('p06.reset'), () => board.reset(), { small: true, kind: 'ghost' })), board.el);
+      },
+    },
+  };
+}
+
+const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide };
 
 export const hasGuide = (id: string) => id in GUIDES;
 
