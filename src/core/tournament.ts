@@ -159,7 +159,9 @@ export const ENDING_RULE = { loneBetrayals: 4, bondDeals: 4, bondPeople: 3, bond
  * そうでなく、果たした約束が 4 つ以上で、3 人以上から信頼 70 以上を得ていれば「信頼の証」。それ以外は「王者」。
  * 脱落した人との関係は、脱落したときの値をそのまま使う。
  */
-export function championEnding(state: GameState): 'E_WIN' | 'E_LONE' | 'E_BOND' {
+export function championEnding(state: GameState): 'E_TRUE' | 'E_WIN' | 'E_LONE' | 'E_BOND' {
+  // 裏ルートで解放の準備まで済ませていれば、どの優勝の結末よりも「偽りの王冠」が先（v05）
+  if (state.flags.h08_cleared && state.flags.RESCUE_READY) return 'E_TRUE';
   const broken = Number(state.flags.betrayals_hero ?? 0);
   if (broken >= ENDING_RULE.loneBetrayals) return 'E_LONE';
   const kept = state.deals.filter((d) => d.status === 'fulfilled' && (d.from === 'hero' || d.to === 'hero')).length;

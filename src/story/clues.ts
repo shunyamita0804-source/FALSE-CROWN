@@ -20,10 +20,10 @@ export interface ClueDef {
 export const CLUES: ClueDef[] = [
   { id: 'clue_h01_shelf', event: 'h01_shelf', text: '図書室の奥の書棚は、背表紙の番号が不揃いだ。謎かけになっているのかもしれない。', value: 2, tags: ['h01', 'hidden'] },
   { id: 'clue_h01_diary', event: 'h01_diary', text: '図書室の詩集に「王は六つの数を愛した」とある。六桁の数字を指す謎かけらしい。', value: 2, tags: ['h01', 'hidden'] },
-  { id: 'clue_h02_clock', event: 'h02_clock', text: '展望室の大時計は、夜になると文字盤の奥で仕掛けが動く。', value: 2, tags: ['h02', 'hidden'], nightOnly: true },
+  { id: 'clue_h02_clock', event: 'h02_clock', text: '展望室の大時計は、夜になると文字盤の奥で仕掛けが動く。', value: 2, tags: ['h02', 'hidden'], nightOnly: true, fromDay: 2 },
   { id: 'clue_h03_mirror', event: 'h03_mirror', text: '浴室の右の鏡に、湯気でだけ浮かぶ左右反転の記号がある。', value: 2, tags: ['h03', 'hidden'] },
   { id: 'clue_h04_wall', event: 'h04_wall', text: '共同牢の壁に、数字の列の落書きがある。隣の壁の向こうは空洞らしい。', value: 2, tags: ['h04', 'hidden'] },
-  { id: 'clue_h04_letters', event: 'h04_letters', text: '旧書庫に「次の参加者へ」と書かれた古い手紙が五通ある。', value: 2, tags: ['h04', 'hidden'] },
+  { id: 'clue_h04_letters', event: 'h04_letters', text: '旧書庫に「次の参加者へ」と書かれた古い手紙の束がある。', value: 2, tags: ['h04', 'hidden'] },
   { id: 'clue_h05_mech', event: 'h05_mech', text: '地下通路の奥に、数字盤・スライド板・記号歯車の仕掛け扉がある。', value: 2, tags: ['h05', 'hidden'] },
   { id: 'clue_floor_guide', event: 'floor_guide', text: '館内案内図によると、交換所と医務室は 1 階、遊戯室と展望室は 3 階にある。', value: 1, tags: ['facility'] },
   { id: 'clue_entrance', event: 'entrance_lock', text: '玄関の表示板には、大会の残り日数が表示されている。', value: 1, tags: ['facility'] },

@@ -3,6 +3,7 @@
  * ここは表示と入力だけを担当し、勝敗や関係の計算はしない。
  * 手帳には「プレイヤーが知っていること」だけを表示する（NPC の内部値や未発見の情報は出さない）。
  */
+import { CORE01, EVIDENCE, LETTERS } from '../story/hiddendata';
 import { isPrivateRoom, knockable, roomTitle } from '../world/rooms';
 import { CHANNEL, fullUnlocked, Purchase } from '../app/entitlement';
 import { ENDINGS, G, phaseName, type RankingView, type StoryLine } from '../app/game';
@@ -282,9 +283,9 @@ export function hudLog(text: string): void {
 
 // ---------------- 手帳（メニュー） ----------------
 
-type Tab = 'status' | 'people' | 'deals' | 'info' | 'history' | 'rules' | 'map' | 'system';
+type Tab = 'status' | 'people' | 'deals' | 'info' | 'files' | 'history' | 'rules' | 'map' | 'system';
 
-const TAB_ICONS: Record<Tab, string> = { status: 'rank', people: 'participant_list', deals: 'contract', info: 'evidence', history: 'document', rules: 'help', map: 'map', system: 'settings' };
+const TAB_ICONS: Record<Tab, string> = { status: 'rank', people: 'participant_list', deals: 'contract', info: 'evidence', files: 'document', history: 'document', rules: 'help', map: 'map', system: 'settings' };
 
 export function openMenu(initial: Tab = 'status'): void {
   const s = G.state;
@@ -300,7 +301,9 @@ export function openMenu(initial: Tab = 'status'): void {
   };
   const render = () => {
     clear(tabs);
-    for (const k of ['status', 'people', 'deals', 'info', 'history', 'rules', 'map', 'system'] as Tab[]) {
+    // 「資料」の欄は、裏ルートで何か手に入れてから出す（序盤から匂わせない）
+    const hasFiles = Object.values(s.actors.hero.items).some((n) => n > 0);
+    for (const k of ['status', 'people', 'deals', 'info', ...(hasFiles ? ['files'] : []), 'history', 'rules', 'map', 'system'] as Tab[]) {
       tabs.append(h('button', { class: `tab${tab === k ? ' on' : ''}`, type: 'button', onclick: () => { tab = k; Sound.se('page'); render(); } }, icon(TAB_ICONS[k]), t(`menu.${k}`)));
     }
     clear(body);
@@ -393,6 +396,17 @@ function renderTab(s: GameState, tab: Tab, close: () => void, rerender: () => vo
       const ids = ([sch.main, sch.prisonGame] as (string | null)[]).filter((x): x is string => !!x && isImplemented(x));
       return [button([icon('help'), t('rules.ceremony')], () => void ceremonyScreen({ review: true }), { small: true }), h('div', { class: 'text' }, t('rules.core')), ...ids.map((id) => h('div', { class: 'entry' }, h('b', { class: 'gold' }, `${id.toUpperCase()}　${MATCHES[id].name}`), ...MATCHES[id].rules.map((r) => h('div', { class: 'small', style: 'margin-top:4px' }, `・${r}`)))),
         h('div', { class: 'entry' }, h('b', { class: 'gold' }, TIEBREAK.name), ...TIEBREAK.rules.map((r) => h('div', { class: 'small', style: 'margin-top:4px' }, `・${r}`)))];
+    }
+    case 'files': {
+      // 裏ルートで手に入れた持ち物、手紙、資料。持っているものだけ、文を読み返せる
+      const has = (id: string) => (hero.items[id] ?? 0) > 0;
+      const sec = (title: string, rows: Child[]) => (rows.length ? h('div', { class: 'entry' }, h('b', { class: 'gold' }, title), ...rows) : null);
+      const keys = ['KEY_MIRROR', 'KEY_SERVICE', 'RELEASE_AUTH', 'DOC_CROWN'].filter(has).map((id) => h('div', { class: 'small', style: 'margin-top:4px' }, `・${t(`item.${id}`)}`));
+      const letters = LETTERS.filter((l) => has(l.id)).map((l) => h('div', { class: 'small', style: 'margin-top:6px' }, h('b', null, l.title), '　', l.text));
+      const ev = EVIDENCE.filter((e) => has(e.id)).map((e) => h('div', { class: 'small', style: 'margin-top:6px' }, h('b', null, e.subject), '　', e.text));
+      const docs = has('CORE01') ? [h('div', { class: 'small', style: 'margin-top:6px' }, h('b', null, t('item.CORE01')), '　', CORE01)] : [];
+      const out = [sec(t('files.sec.keys'), keys), sec(t('files.sec.letters'), letters), sec(t('files.sec.evidence'), ev), sec(t('files.sec.docs'), docs)].filter(Boolean) as Child[];
+      return out.length ? out : [h('div', { class: 'dim' }, t('files.empty'))];
     }
     case 'map': {
       // 立ち入ったことのある部屋と、通常の案内図にある部屋だけを表示する（隠し区画は発見するまで載せない）

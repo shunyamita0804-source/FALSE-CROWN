@@ -86,7 +86,7 @@ export function devMenu(): Promise<GameState | null> {
       done(s);
     };
     /** 決勝の結末の検証。DAY11 の順位発表から始め、順位と約束の記録を検証用に置き換える */
-    const finalCase = async (kind: 'win' | 'lone' | 'bond' | 'lose') => {
+    const finalCase = async (kind: 'win' | 'lone' | 'bond' | 'lose' | 'true' | 'loseReady') => {
       let s = fresh();
       for (let i = 0; i < 80; i++) {
         s = fresh();
@@ -95,7 +95,8 @@ export function devMenu(): Promise<GameState | null> {
       }
       if (s.day !== 11 || s.phase !== 'reward') { await alertDialog('開始できません', '主人公が決勝まで残る大会を作れませんでした。もう一度試してください。'); return; }
       const other = (s.today.mainRanking ?? []).find((p) => p !== 'hero')!;
-      s.today.mainRanking = kind === 'lose' ? [other, 'hero'] : ['hero', other];
+      s.today.mainRanking = kind === 'lose' || kind === 'loseReady' ? [other, 'hero'] : ['hero', other];
+      if (kind === 'true' || kind === 'loseReady') { s.flags.h08_cleared = true; s.flags.RESCUE_READY = true; s.actors.hero.items.RELEASE_AUTH = 1; }
       s.deals = s.deals.filter((d) => d.from !== 'hero' && d.to !== 'hero');
       s.flags.betrayals_hero = kind === 'lone' ? ENDING_RULE.loneBetrayals : 0;
       for (const id of NPC_IDS) rel(s, id, 'hero').trust = kind === 'bond' ? 80 : 40;
@@ -135,6 +136,24 @@ export function devMenu(): Promise<GameState | null> {
       placeIn(s, 'hero', roomId);
       done(s);
     };
+    /** 裏ルートの検証：指定の日の朝、指定の部屋から始める（日付と持ち物は検証用に作る。そこまでの競技は行わない） */
+    const hiddenCase = (day: number, roomId: string, setup: (s: GameState) => void, phase: Phase = 'morning') => {
+      const s = fresh();
+      s.day = day;
+      s.phase = phase;
+      s.flags.phaseKey = `${day}:${phase}`;
+      s.seen.push('S00', 'S01A', `S${String(day).padStart(2, '0')}A`);
+      startMorning(s);
+      s.phase = phase;
+      s.phaseLeft = phaseDuration(phase);
+      for (const a of Object.values(s.actors)) a.house = null;
+      // 終盤の日は、脱落した参加者がいる状態にする（人数は日程のとおりではない。検証用）
+      if (day >= 8) NPC_IDS.slice(-4).forEach((id) => { s.actors[id].alive = false; });
+      setup(s);
+      s.flags.devSwap = true;
+      placeIn(s, 'hero', roomId);
+      done(s);
+    };
     const render = () => {
       clear(body);
       const groups: [string, string][] = [['main', 'メインマッチ'], ['prison', '監獄マッチ'], ['hidden', '裏ゲーム'], ['sub', 'サブゲーム']];
@@ -169,6 +188,17 @@ export function devMenu(): Promise<GameState | null> {
           button('主人公が優勝（孤独な王）', () => void finalCase('lone'), { small: true }),
           button('主人公が優勝（信頼の証）', () => void finalCase('bond'), { small: true }),
           button('主人公が決勝で敗北（敗者）', () => void finalCase('lose'), { small: true }),
+        ),
+        h('h4', { class: 'gold' }, '裏ルートの検証（日付と持ち物は検証用に作る）'),
+        h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' },
+          button('DAY1 朝・図書室（入口から）', () => hiddenCase(1, 'library', () => {}), { small: true }),
+          button('DAY3 夜・展望室（ピース 6）', () => hiddenCase(3, 'observatory', (s) => { s.actors.hero.pieces = 6; }, 'night'), { small: true }),
+          button('DAY4 朝・旧書庫（H04、H05）', () => hiddenCase(4, 'old_archive', (s) => { s.flags.h04_open = true; }), { small: true }),
+          button('DAY8 朝・共用廊下（閲覧の許可あり）', () => hiddenCase(8, 'common_hall', (s) => { s.flags.v04_maintenance_notice = true; s.flags.svc_permit = true; }), { small: true }),
+          button('DAY9 朝・最深部（H08 の条件あり）', () => hiddenCase(9, 'core', (s) => { for (const k of ['KEY_SERVICE', 'DOC_CROWN', 'CORE01']) s.actors.hero.items[k] = 1; s.flags.ISOLATION_CONFIRMED = true; s.flags.h07_cleared = true; s.flags.svc_permit = true; }), { small: true }),
+          button('DAY10 朝・隔離区域（H08 済み）', () => hiddenCase(10, 'isolation', (s) => { for (const k of ['KEY_SERVICE', 'DOC_CROWN', 'CORE01', 'RELEASE_AUTH']) s.actors.hero.items[k] = 1; s.flags.ISOLATION_CONFIRMED = true; s.flags.h07_cleared = true; s.flags.h08_cleared = true; s.flags.h08_stage = 5; s.flags.svc_permit = true; }), { small: true }),
+          button('主人公が優勝（偽りの王冠）', () => void finalCase('true'), { small: true }),
+          button('決勝で敗北（解放の準備あり）', () => void finalCase('loseReady'), { small: true }),
         ),
         h('h4', { class: 'gold' }, '救いのメダルの検証（DAY1 の順位発表から。順位と関係は検証用に並べ替え）'),
         h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' },
