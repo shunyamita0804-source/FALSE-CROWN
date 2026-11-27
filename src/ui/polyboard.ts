@@ -14,6 +14,8 @@ const LETTERS = 'ABCDEFGH';
 export interface PolyBoardOpts {
   /** 盤面 1 マスの大きさ（論理ピクセル） */
   cell?: number;
+  /** 置き場のピースの 1 マスの大きさ（省略時は盤面から決める） */
+  trayCell?: number;
   onChange?: (placed: Placement[]) => void;
   onComplete?: (placed: Placement[]) => void;
   /** 操作できない表示（説明用の図） */
@@ -148,7 +150,7 @@ export class PolyBoard {
       this.boardEl.append(el);
     }
     clear(this.trayEl);
-    const ts = this.opts.readonly ? Math.min(34, Math.floor(S * 0.5)) : Math.min(38, Math.floor(S * 0.46));
+    const ts = this.opts.trayCell ?? (this.opts.readonly ? Math.min(34, Math.floor(S * 0.5)) : Math.min(38, Math.floor(S * 0.46)));
     this.puzzle.pieces.forEach((_, i) => {
       const used = !!this.isPlaced(i);
       this.trayEl.append(h('div', { class: `pb-slot${used ? ' used' : ''}${this.selected === i ? ' sel' : ''}`, 'data-piece': String(i) }, used ? null : this.pieceEl(i, ts)));

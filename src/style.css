@@ -1653,3 +1653,35 @@ body .btn.hd-reset, body .btn.hd-pause { min-height: 76px; }
 .hd-qs .hd-q .pr { width: 250px; flex: none; margin: 0; line-height: 1.3; }
 .hd-qs .hd-q .ops { flex: 1; }
 .hd-qs { max-width: none; }
+
+/* 会話の立ち絵（2026-11-28 実機の指摘で調整）：横を切らずに肩まで見せ、左右と下はぼかして消す。
+   上は「所持」の札の下から始め、札と頭が重ならないようにする。画像は加工せず、表示の範囲だけを決める */
+.bust.dlg-portrait { height: auto; top: calc(104px + var(--safe-top)); bottom: calc(150px + var(--safe-bottom)); background-size: 116% auto; background-position: 50% 2%;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%), linear-gradient(#000 80%, transparent);
+  -webkit-mask-composite: source-in; mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%), linear-gradient(#000 80%, transparent); mask-composite: intersect; }
+.bust.dlg-portrait.left { left: calc(1% + var(--safe-left)); } .bust.dlg-portrait.right { right: calc(1% + var(--safe-right)); }
+
+/* M01：遊んでいる間は盤面を大きく、右に細い帯（ピースを使う補助と、同じ組の顔）だけ。順位はステージの区切りで大きく出す（2026-11-28 実機の指摘） */
+.m01-play { gap: 26px; }
+.m01-strip { display: flex; flex-direction: column; gap: 12px; align-items: stretch; width: 230px; flex: none; }
+.m01-strip > .btn { min-height: 76px; font-size: 1.05em; }
+.m01-strip .m01-mates { gap: 8px; }
+.m01-strip .m01-mate { min-height: 60px; padding: 4px 10px; background: rgba(10,14,28,0.6); border: 1.5px solid rgba(255,255,255,0.12); font-size: 1.1em; }
+.m01-strip .m01-mate .face { width: 48px; height: 48px; }
+.m01-strip .m01-mate .nm { min-width: 0; flex: 1; }
+.m01-strip .m01-mate.done { border-color: #7ed48a; background: rgba(60,140,80,0.22); }
+.m01-break.wide { flex-direction: row; gap: 40px; align-items: center; }
+.m01-rankbox { padding: 12px 18px; border-radius: 12px; border: 1.5px solid var(--gold-dim); background: rgba(10,14,28,0.78); min-width: 420px; }
+.m01-rankbox h4 { margin: 0 0 8px; color: var(--gold2); font-family: var(--serif); font-size: 1.3em; letter-spacing: 0.1em; }
+.m01-rank.big { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; }
+.m01-rank.big .m01-rankrow { min-height: 52px; font-size: 1.2em; }
+.m01-rank.big .m01-rankrow .face { width: 42px; height: 42px; }
+.m01-rank.big .m01-rankrow b { margin-left: auto; font-size: 1.2em; }
+.m01-rank.big .m01-rankrow.me { background: rgba(216,178,90,0.2); }
+
+/* M01：置き場を広げ、ピースが隣にはみ出さないようにする */
+.m01-play .pb-right { width: 600px; }
+.m01-play .pb-tray { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.m01-play .pb-slot { min-height: 120px; overflow: hidden; }
+.m01-play .pb-ctl .btn { min-height: 76px; min-width: 150px; }
+.m01-strip > .btn { white-space: nowrap; font-size: 0.98em; }
