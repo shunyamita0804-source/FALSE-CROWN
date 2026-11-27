@@ -52,6 +52,22 @@ Kenney（https://kenney.nl/）— Casino Audio / Interface Sounds / RPG Audio
 - ライセンス：CC0 1.0（https://creativecommons.org/publicdomain/zero/1.0/）
 - ライセンス文：`public/assets/audio/licenses/`
 
+## ボイス
+
+キャラクターの汎用ボイス（短い音声。全文の読み上げではありません）。
+
+- 制作：FALSE CROWN 制作者が ElevenLabs（音声生成サービス、モデル名の表記は eleven_v4）で生成した音声。納品物の管理表に、元ファイル名（`ElevenLabs_<生成日時>_<キャラクター名>_eleven_v4.mp3`）が記録されています。
+- 加工：なし（納品された MP3 のまま。キャラクター間の音量差は、再生時の倍率で揃えています。ファイルは変更していません）
+- ライセンス：納品物には、ライセンス文や契約プランの情報は含まれていません。商用利用と公開再配布の可否は、制作者の ElevenLabs 契約プランと生成時点の規約によります。制作者が条件を確認し、2026-11-27 に公開リポジトリと GitHub Pages への収録を承認しました。
+- 台詞と音声の照合：納品物の説明に「生成時刻順に台本へ対応付けたため、実装前に照合すること」とあります。開発環境では音声を聞いて確かめる手段が無いため、収録時間が台詞の長さと矛盾しないことだけを確認しました。耳での照合は未実施です。
+
+| キャラクター | 納品物 | 件数 | 収録状況 |
+|---|---|---|---|
+| 神崎 怜（npc_02_kanzaki） | FALSE_CROWN_voice_01_kanzaki.zip | 10 | 収録済み（`public/assets/audio/voice/`） |
+| 黒瀬 美琴（npc_03_kurose） | FALSE_CROWN_voice_02_kurose.zip | 10 | 収録済み（`public/assets/audio/voice/`） |
+| 御堂 隆臣（npc_04_mido） | FALSE_CROWN_voice_03_mido.zip | 10 | 収録済み（`public/assets/audio/voice/`） |
+| 白石 紗夜（npc_05_shiraishi） | FALSE_CROWN_voice_04_shiraishi.zip | 10 | 収録済み（`public/assets/audio/voice/`） |
+
 ## キャラクター・アイコン
 
 FALSE CROWN 制作者による提供素材（`public/assets/characters/`、`public/icons/`）。無断転載・再配布はご遠慮ください。

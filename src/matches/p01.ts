@@ -1,238 +1,319 @@
 /**
- * P01 偽りの数字（4人）
- * 全員10点、1〜9各1枚。順番に1枚伏せて1〜9を宣言、他の全員が信用/虚偽を同時選択。
+ * P01 数字の鎖（v11、4 人）
+ * 4×4 の数字盤（1〜9）で、縦横に隣り合うマスを 3〜6 個なぞり、合計を目標値に合わせる。
+ * 6 ラウンド、各ラウンド 2 問、1 問 25 秒。正解 10 点＋なぞった長さ（最大 6）＋残り時間の加点（最大 3）。
+ * 全員が同じ盤面、同じ目標値で同時に解く。2 ラウンドごとに 15 秒の休憩。ピースの補助はない。
  */
 import type { CharId } from '../data/characters';
 import type { Rng } from '../core/rng';
 import { skill, sortGroups, type AiCtx, type MatchEngine } from './types';
 
-/** 各自の手番数（v02 改訂：6手ずつ） */
-export const TURNS_EACH = 6;
+export const ROUNDS = 6;
+export const QUESTIONS = 2;
+export const Q_MS = 25_000;
+export const BREAK_MS = 15_000;
+export const SIZE = 4;
+export const MIN_LEN = 3;
+export const MAX_LEN = 6;
 
-export type P01Move = { t: 'play'; card: number; claim: number } | { t: 'judge'; trust: boolean };
+export type P01Move = { t: 'chain'; path: number[]; ms: number } | { t: 'pass' } | { t: 'ready' };
 
-export interface P01Turn {
-  declarer: CharId;
-  claim: number;
-  card: number;
-  judges: Record<string, boolean>;
-  delta: Record<string, number>;
+export interface P01Answer {
+  ok: boolean;
+  len: number;
+  ms: number;
+  points: number;
+  path: number[];
 }
 
 export interface P01State {
   players: CharId[];
-  hands: Record<string, number[]>;
-  score: Record<string, number>;
-  turn: number; // 0..(9*n-1)
-  stage: 'play' | 'judge' | 'done';
-  current: { declarer: CharId; card: number; claim: number } | null;
-  judges: Record<string, boolean>;
-  history: P01Turn[];
-  /** 副得点：看破に成功した回数 */
-  catches: Record<string, number>;
+  round: number;
+  q: number;
+  phase: 'solve' | 'break' | 'done';
+  boards: number[][];
+  targets: number[][];
+  current: Record<string, P01Answer | undefined>;
+  answers: Record<string, P01Answer[]>;
+  ready: Record<string, boolean>;
 }
 
 export interface P01View {
   self: CharId | 'spectator';
   players: CharId[];
-  myHand: number[];
-  score: Record<string, number>;
-  turn: number;
-  totalTurns: number;
-  stage: P01State['stage'];
-  declarer: CharId | null;
-  claim: number | null;
-  /** 各自が宣言済みの数字（再宣言不可） */
-  claimed: Record<string, number[]>;
-  /** 各自の公開済み使用カード */
-  used: Record<string, number[]>;
-  history: P01Turn[];
-  judged: boolean;
+  round: number;
+  rounds: number;
+  q: number;
+  questions: number;
+  phase: P01State['phase'];
+  board: number[];
+  target: number;
+  submitted: boolean;
+  answers: Record<string, P01Answer[]>;
+  totals: Record<string, number>;
+  ready: Record<string, boolean>;
+  /** 直前の問題の結果（全員ぶん。公開情報） */
+  last: { board: number[]; target: number; answers: Record<string, P01Answer> } | null;
 }
 
-function declarerOf(s: P01State): CharId {
-  return s.players[s.turn % s.players.length];
+export const adjacent = (a: number, b: number) => Math.abs((a % SIZE) - (b % SIZE)) + Math.abs(Math.floor(a / SIZE) - Math.floor(b / SIZE)) === 1;
+
+/** 経路が規則どおりか（隣接、重複なし、長さ 3〜6） */
+export function legalPath(path: unknown): path is number[] {
+  if (!Array.isArray(path) || path.length < MIN_LEN || path.length > MAX_LEN) return false;
+  if (path.some((c) => !Number.isInteger(c) || c < 0 || c >= SIZE * SIZE)) return false;
+  if (new Set(path).size !== path.length) return false;
+  for (let i = 1; i < path.length; i++) if (!adjacent(path[i - 1], path[i])) return false;
+  return true;
 }
 
-function claimedBy(s: P01State, p: CharId): number[] {
-  return s.history.filter((h) => h.declarer === p).map((h) => h.claim);
+export const sumOf = (board: number[], path: number[]) => path.reduce((n, c) => n + board[c], 0);
+
+export function pointsOf(len: number, ms: number): number {
+  return 10 + Math.min(MAX_LEN, len) + Math.floor((Math.max(0, Q_MS - ms) / Q_MS) * 3);
 }
+
+function neighbors(c: number): number[] {
+  const out: number[] = [];
+  const x = c % SIZE;
+  const y = Math.floor(c / SIZE);
+  if (x > 0) out.push(c - 1);
+  if (x < SIZE - 1) out.push(c + 1);
+  if (y > 0) out.push(c - SIZE);
+  if (y < SIZE - 1) out.push(c + SIZE);
+  return out;
+}
+
+/** 目標値に合う経路をすべて数える（問題の検査用） */
+export function allSolutions(board: number[], target: number, limit = 100000): number[][] {
+  const out: number[][] = [];
+  const path: number[] = [];
+  const used = new Array<boolean>(SIZE * SIZE).fill(false);
+  const rec = (c: number, sum: number): void => {
+    if (out.length >= limit) return;
+    path.push(c);
+    used[c] = true;
+    const s = sum + board[c];
+    if (s === target && path.length >= MIN_LEN) out.push([...path]);
+    if (s < target && path.length < MAX_LEN) for (const n of neighbors(c)) if (!used[n]) rec(n, s);
+    path.pop();
+    used[c] = false;
+  };
+  for (let c = 0; c < SIZE * SIZE; c++) rec(c, 0);
+  return out;
+}
+
+/** 合法な経路を先に作り、その合計を目標値にする（必ず正解がある） */
+function randomPath(rng: Rng, len: number): number[] | null {
+  const path = [rng.int(0, SIZE * SIZE - 1)];
+  while (path.length < len) {
+    const opts = neighbors(path[path.length - 1]).filter((n) => !path.includes(n));
+    if (!opts.length) return null;
+    path.push(rng.pick(opts));
+  }
+  return path;
+}
+
+function makeRound(rng: Rng): { board: number[]; targets: number[] } {
+  for (let guard = 0; guard < 200; guard++) {
+    const board = Array.from({ length: SIZE * SIZE }, () => rng.int(1, 9));
+    const targets: number[] = [];
+    for (let q = 0; q < QUESTIONS; q++) {
+      let p: number[] | null = null;
+      for (let g = 0; g < 30 && !p; g++) p = randomPath(rng, rng.int(MIN_LEN + 1, MAX_LEN));
+      if (!p) break;
+      const t = sumOf(board, p);
+      if (targets.includes(t)) break;
+      targets.push(t);
+    }
+    if (targets.length === QUESTIONS) return { board, targets };
+  }
+  throw new Error('p01: 問題を生成できませんでした');
+}
+
+const totalOf = (a: P01Answer[]) => a.reduce((n, x) => n + x.points, 0);
 
 function resolve(s: P01State): void {
-  const cur = s.current!;
-  const truth = cur.card === cur.claim;
-  const delta: Record<string, number> = Object.fromEntries(s.players.map((p) => [p, 0]));
-  for (const p of s.players) {
-    if (p === cur.declarer) continue;
-    const trust = s.judges[p];
-    if (truth && trust) { /* 0 / 0 */ }
-    else if (truth && !trust) { delta[cur.declarer] += 2; delta[p] -= 2; }
-    else if (!truth && trust) { delta[cur.declarer] += 2; delta[p] -= 2; }
-    else { delta[cur.declarer] -= 2; delta[p] += 2; s.catches[p] += 1; }
+  for (const p of s.players) s.answers[p].push(s.current[p] ?? { ok: false, len: 0, ms: Q_MS, points: 0, path: [] });
+  s.current = {};
+  if (s.q < QUESTIONS - 1) {
+    s.q += 1;
+    return;
   }
-  for (const p of s.players) s.score[p] += delta[p];
-  s.history.push({ declarer: cur.declarer, claim: cur.claim, card: cur.card, judges: { ...s.judges }, delta });
-  s.hands[cur.declarer] = s.hands[cur.declarer].filter((c) => c !== cur.card);
-  s.current = null;
-  s.judges = {};
-  s.turn += 1;
-  s.stage = s.turn >= s.players.length * TURNS_EACH ? 'done' : 'play';
+  if (s.round >= ROUNDS - 1) {
+    s.phase = 'done';
+    return;
+  }
+  // 2 ラウンドごとに休憩
+  if ((s.round + 1) % 2 === 0) {
+    s.phase = 'break';
+    s.ready = Object.fromEntries(s.players.map((p) => [p, false]));
+    return;
+  }
+  s.round += 1;
+  s.q = 0;
 }
 
+/**
+ * CPU：見えている盤面だけを使い、無作為な出発点から深さ優先で経路を探す。能力（論理）で調べられる数が変わる。
+ * 答えにかかる時間は実際の計算時間ではなく、調べた数から決めた仮の時間。
+ */
 function p01Ai(v: P01View, ctx: AiCtx): P01Move {
-  const me = ctx.self;
-  const n = v.players.length;
-  if (v.stage === 'play') {
-    const hand = v.myHand;
-    const usedMine = v.used[me] ?? [];
-    // 自分の過去の発覚率から、相手がどれだけ疑うかを推定
-    const myTurns = v.history.filter((h) => h.declarer === me);
-    const doubted = myTurns.reduce((a, h) => a + Object.values(h.judges).filter((t) => !t).length, 0);
-    const pDoubt = myTurns.length ? (doubted + 1) / (myTurns.length * (n - 1) + 2) : 0.35;
-    const acting = skill(ctx.stats.acting);
-    const riskLove = ctx.personality.risk / 100;
-    const moral = ctx.personality.morality / 100;
-    // 期待値（相手 n-1 人あたり）：真実 = +1、嘘 = 2(1-q) - 2q （q は「疑われる確率」）
-    // ただし既に使った数字を宣言すると嘘が確定で見抜かれるので候補から外す
-    const claimedMine = v.claimed[me] ?? [];
-    const legalClaims = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((c) => !claimedMine.includes(c));
-    const plausible = legalClaims.filter((c) => !usedMine.includes(c));
-    const qLie = Math.min(0.95, pDoubt + 0.12 - acting * 0.15);
-    // 真実 = 疑われた分だけ +2、嘘 = 信用 +2 / 看破 -2。疑い率 1/3 が損益分岐
-    const evTruthRel = 2 * pDoubt * (n - 1);
-    const evLie = (2 * (1 - qLie) - 2 * qLie) * (n - 1);
-    const lieBias = (riskLove - 0.5) * 1.2 - (moral - 0.5) * 0.8 + ctx.rng.gauss(0, ctx.noise * 0.8);
-    const truthCards = hand.filter((c) => legalClaims.includes(c));
-    const wantLie = evLie + lieBias > evTruthRel;
-    if (truthCards.length && (!wantLie || plausible.length < 2)) {
-      const card = ctx.rng.pick(truthCards);
-      return { t: 'play', card, claim: card };
+  if (v.phase !== 'solve') return { t: 'ready' };
+  const logic = skill(ctx.stats.logic);
+  const rate = (15 + logic * 6) * Math.max(0.5, 1 + ctx.rng.gauss(0, 0.3)) / Math.max(0.6, ctx.noise * 0.5 + 0.5); // 1 秒に調べられるマスの数
+  const read = 2.6 + (1 - logic) * 0.7;
+  const limitSec = Q_MS / 1000 - 0.8;
+  const budget = Math.floor((limitSec - read) * rate);
+  // 短い鎖から順に探す。見つけた後、さらに長い鎖を狙って粘るかどうかは性格と能力しだい
+  const greed = 0.15 + ctx.personality.ambition / 400 + logic * 0.12;
+  let nodes = 0;
+  let best: { path: number[]; at: number } | null = null;
+  const path: number[] = [];
+  const used = new Array<boolean>(SIZE * SIZE).fill(false);
+  let want = MIN_LEN;
+  let hit: number[] | null = null;
+  const rec = (c: number, sum: number): void => {
+    if (nodes >= budget || hit) return;
+    nodes++;
+    path.push(c);
+    used[c] = true;
+    const sm = sum + v.board[c];
+    if (path.length === want) {
+      if (sm === v.target) hit = [...path];
+    } else if (sm < v.target) for (const n of ctx.rng.shuffle(neighbors(c))) if (!used[n]) rec(n, sm);
+    path.pop();
+    used[c] = false;
+  };
+  for (want = MIN_LEN; want <= MAX_LEN && nodes < budget; want++) {
+    hit = null;
+    for (const c of ctx.rng.shuffle(Array.from({ length: SIZE * SIZE }, (_, i) => i))) {
+      if (nodes >= budget || hit) break;
+      rec(c, 0);
     }
-    const card = ctx.rng.pick(hand);
-    const lies = (plausible.length > 1 ? plausible : legalClaims).filter((c) => c !== card);
-    return { t: 'play', card, claim: ctx.rng.pick(lies.length ? lies : legalClaims) };
+    if (hit) {
+      best = { path: hit, at: nodes };
+      if (!ctx.rng.chance(greed)) break;
+    }
   }
-  // 判定
-  const d = v.declarer!;
-  const claim = v.claim!;
-  const used = v.used[d] ?? [];
-  // 記憶の欠落：使用済みカードを見落とすことがある
-  const remembered = used.filter(() => !ctx.rng.chance(ctx.memoryLoss * (1 - skill(ctx.stats.memory))));
-  if (remembered.includes(claim)) return { t: 'judge', trust: false }; // 使用済みの数字 = 嘘確定
-  const remaining = 9 - used.length;
-  void remaining;
-  // 相手の嘘の頻度（公開履歴から）
-  const theirs = v.history.filter((h) => h.declarer === d);
-  const lies = theirs.filter((h) => h.card !== h.claim).length;
-  const obs = skill(ctx.stats.observation);
-  // 事前確率は卓全体の嘘の割合（公開履歴）から推定する
-  const allLies = v.history.filter((h) => h.card !== h.claim).length;
-  const prior = (allLies + 1.2) / (v.history.length + 4);
-  const weight = 0.6 + obs * 1.4;
-  let pLie = (lies * weight + prior * 3) / (theirs.length * weight + 3);
-
-  // 残り1枚で、その数字が唯一の未使用なら真実の可能性が高い…が嘘も可能。枚数が少ないほど推定しやすい
-
-  const rel = ctx.relation(d);
-  pLie += (rel.wary - rel.trust) / 400;
-  pLie += ctx.rng.gauss(0, 0.12 * ctx.noise);
-  // 信用の期待値: -2p ／ 疑う: -2(1-p) + 2p = 4p-2 → p > 1/3 で疑う方が得
-  return { t: 'judge', trust: pLie <= 1 / 3 };
+  const stopAt = () => nodes;
+  const found = best as { path: number[]; at: number } | null;
+  if (!found) return { t: 'pass' };
+  const spent = Math.min(nodes, stopAt());
+  const sec = read + spent / rate + found.path.length * 0.35;
+  return { t: 'chain', path: found.path, ms: Math.round(Math.min(Q_MS - 300, Math.max(2500, sec * 1000 * (1 + ctx.rng.gauss(0, 0.08))))) };
 }
 
 export const P01: MatchEngine<P01State, P01Move, P01View> = {
   id: 'p01',
-  name: '偽りの数字',
+  name: '数字の鎖',
   kind: 'prison',
   minPlayers: 2,
   maxPlayers: 4,
-  summary: '伏せた数字カードの宣言が本当か嘘かを見抜く。',
+  summary: '隣り合う数字をなぞって、合計を目標値に合わせる。長い鎖ほど高得点。',
   rules: [
-    '全員が10点と、1〜9のカードを1枚ずつ持ちます。',
-    '手番の人はカードを1枚伏せて出し、1〜9のいずれかの数字を宣言します（嘘でもよい）。',
-    '他の全員が同時に「信用」か「虚偽」を選び、その後カードを公開します。',
-    '宣言が真実で信用された：双方0。真実なのに疑われた：宣言者+2・回答者−2。',
-    '嘘を信用させた：宣言者+2・回答者−2。嘘を見抜かれた：宣言者−2・回答者+2。（回答者ごとに計算。点はマイナスにもなります）',
-    '各自の手番は6回（全員で一巡ずつ）。同じ数字を2度宣言することはできません。出したカードと宣言した数字の履歴はどちらも公開されます。',
-    '全員が6手を終えた時点の合計点で、最下位が脱落します。',
-    '時間切れの場合：宣言者は「まだ宣言していない最小の手札」を正直に宣言（なければ最小の手札と宣言可能な最小の数字）、回答者は「信用」になります。',
+    '4×4 の盤面に 1〜9 の数字が並びます。全員が同じ盤面、同じ目標値で同時に解きます。',
+    '縦か横に隣り合うマスを 3〜6 個なぞり、数字の合計を目標値に合わせます。同じマスは 2 度使えません。',
+    '全 6 ラウンド、1 ラウンド 2 問。1 問の制限時間は 25 秒です。',
+    '正解すると 10 点。さらに、なぞったマスの数（最大 6）と、残り時間に応じた加点（最大 3）が加わります。',
+    '合計が目標値と違う、時間切れ、未回答は 0 点です。正解は 1 つとは限りません。',
+    '2 ラウンドごとに 15 秒の休憩があります。この競技にピースの補助はありません。',
+    '合計点の最下位が脱落します。同点は、正解した数、正解にかかった時間の合計の順で決めます。それでも同じなら共通決定戦です。',
   ],
-  init(players) {
+  init(players, rng) {
+    const rounds = Array.from({ length: ROUNDS }, () => makeRound(rng));
     return {
       players: [...players],
-      hands: Object.fromEntries(players.map((p) => [p, [1, 2, 3, 4, 5, 6, 7, 8, 9]])),
-      score: Object.fromEntries(players.map((p) => [p, 10])),
-      turn: 0,
-      stage: 'play',
-      current: null,
-      judges: {},
-      history: [],
-      catches: Object.fromEntries(players.map((p) => [p, 0])),
+      round: 0,
+      q: 0,
+      phase: 'solve',
+      boards: rounds.map((r) => r.board),
+      targets: rounds.map((r) => r.targets),
+      current: {},
+      answers: Object.fromEntries(players.map((p) => [p, []])),
+      ready: {},
     };
   },
   pending(s) {
-    if (s.stage === 'done') return [];
-    if (s.stage === 'play') return [declarerOf(s)];
-    return s.players.filter((p) => p !== s.current!.declarer && s.judges[p] === undefined);
+    if (s.phase === 'done') return [];
+    if (s.phase === 'break') return s.players.filter((p) => !s.ready[p]);
+    return s.players.filter((p) => !s.current[p]);
   },
   stage(s) {
-    if (s.stage === 'done') return { label: '終了' };
-    return { label: `${s.turn + 1} / ${s.players.length * TURNS_EACH} 手目`, time: 30_000 };
+    if (s.phase === 'done') return { label: '終了' };
+    if (s.phase === 'break') return { label: `休憩（次はラウンド ${s.round + 2}）`, time: BREAK_MS, negotiation: true };
+    return { label: `ラウンド ${s.round + 1} / ${ROUNDS}　第 ${s.q + 1} 問`, time: Q_MS };
   },
   validate(s, p, m) {
-    if (s.stage === 'play') return m.t === 'play' && p === declarerOf(s) && s.hands[p].includes(m.card) && Number.isInteger(m.claim) && m.claim >= 1 && m.claim <= 9 && !claimedBy(s, p).includes(m.claim);
-    if (s.stage === 'judge') return m.t === 'judge' && p !== s.current!.declarer && s.players.includes(p) && s.judges[p] === undefined && typeof m.trust === 'boolean';
-    return false;
+    if (!m || s.phase === 'done' || !s.players.includes(p)) return false;
+    if (s.phase === 'break') return m.t === 'ready' && !s.ready[p];
+    if (s.current[p]) return false;
+    if (m.t === 'pass') return true;
+    if (m.t !== 'chain') return false;
+    if (typeof m.ms !== 'number' || !Number.isFinite(m.ms) || m.ms < 0 || m.ms > Q_MS + 1000) return false;
+    return legalPath(m.path);
   },
-  defaultMove(s, p) {
-    if (s.stage === 'play') {
-      const claimed = claimedBy(s, p);
-      const honest = s.hands[p].filter((c) => !claimed.includes(c));
-      if (honest.length) return { t: 'play', card: Math.min(...honest), claim: Math.min(...honest) };
-      const free = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((c) => !claimed.includes(c));
-      return { t: 'play', card: Math.min(...s.hands[p]), claim: free[0] };
-    }
-    return { t: 'judge', trust: true };
+  defaultMove(s) {
+    return s.phase === 'break' ? { t: 'ready' } : { t: 'pass' };
   },
   submit(s, p, m) {
     if (!this.validate(s, p, m)) throw new Error(`p01: illegal move ${JSON.stringify(m)}`);
-    if (m.t === 'play') {
-      s.current = { declarer: p, card: m.card, claim: m.claim };
-      s.stage = 'judge';
-    } else {
-      s.judges[p] = m.trust;
-      if (this.pending(s).length === 0) resolve(s);
+    if (m.t === 'ready') {
+      s.ready[p] = true;
+      if (s.players.every((x) => s.ready[x])) {
+        s.phase = 'solve';
+        s.round += 1;
+        s.q = 0;
+      }
+      return;
     }
+    if (m.t === 'pass') s.current[p] = { ok: false, len: 0, ms: Q_MS, points: 0, path: [] };
+    else {
+      const ms = Math.min(Q_MS, m.ms);
+      const ok = sumOf(s.boards[s.round], m.path) === s.targets[s.round][s.q];
+      s.current[p] = { ok, len: m.path.length, ms, points: ok ? pointsOf(m.path.length, ms) : 0, path: [...m.path] };
+    }
+    if (s.players.every((x) => s.current[x])) resolve(s);
   },
   view(s, p) {
-    const used: Record<string, number[]> = {};
-    for (const q of s.players) used[q] = s.history.filter((h) => h.declarer === q).map((h) => h.card);
+    const r = Math.min(s.round, ROUNDS - 1);
+    const n = s.answers[s.players[0]].length;
+    let last: P01View['last'] = null;
+    if (n > 0) {
+      const lr = Math.floor((n - 1) / QUESTIONS);
+      const lq = (n - 1) % QUESTIONS;
+      last = { board: s.boards[lr], target: s.targets[lr][lq], answers: Object.fromEntries(s.players.map((x) => [x, s.answers[x][n - 1]])) };
+    }
     return {
       self: p,
       players: s.players,
-      myHand: p === 'spectator' ? [] : [...(s.hands[p] ?? [])],
-      score: { ...s.score },
-      turn: s.turn,
-      totalTurns: s.players.length * TURNS_EACH,
-      claimed: Object.fromEntries(s.players.map((q) => [q, claimedBy(s, q)])),
-      stage: s.stage,
-      declarer: s.stage === 'done' ? null : s.current?.declarer ?? declarerOf(s),
-      claim: s.current?.claim ?? null,
-      used,
-      history: s.history,
-      judged: p !== 'spectator' && s.judges[p] !== undefined,
+      round: s.round,
+      rounds: ROUNDS,
+      q: s.q,
+      questions: QUESTIONS,
+      phase: s.phase,
+      board: s.boards[r],
+      target: s.targets[r][Math.min(s.q, QUESTIONS - 1)],
+      submitted: p !== 'spectator' && !!s.current[p],
+      answers: s.answers,
+      totals: Object.fromEntries(s.players.map((x) => [x, totalOf(s.answers[x])])),
+      ready: { ...s.ready },
+      last,
     };
   },
   ai: p01Ai,
   done(s) {
-    return s.stage === 'done';
+    return s.phase === 'done';
   },
   scores(s) {
-    return { ...s.score };
+    return Object.fromEntries(s.players.map((p) => [p, totalOf(s.answers[p])]));
   },
   ranking(s) {
-    return sortGroups(s.players, (p) => s.score[p]);
+    const ok = (p: CharId) => s.answers[p].filter((a) => a.ok).length;
+    const time = (p: CharId) => s.answers[p].reduce((n, a) => n + (a.ok ? a.ms : Q_MS), 0);
+    return sortGroups(s.players, (p) => totalOf(s.answers[p]) * 100 + ok(p), (p) => -time(p));
   },
 };
 
-export type { Rng };
+/** 練習に使う盤面（本番の問題とは別）。目標値は 14 */
+export const P01_PRACTICE = [4, 2, 7, 1, 6, 3, 5, 8, 2, 9, 1, 4, 5, 3, 6, 2];

@@ -5,6 +5,8 @@ import { registerSW } from 'virtual:pwa-register';
 import './style.css';
 import { CHANNEL } from './app/entitlement';
 import { applyUpdateIfAny, pokeServiceWorker, updateAvailable } from './app/update';
+import { rescueFlow } from './ui/rescue';
+import { ceremonyScreen, handoutScreen } from './ui/ceremony';
 import { G, runGame } from './app/game';
 import { applyUiAssets } from './assets/registry';
 import { Sound } from './audio/audio';
@@ -27,7 +29,7 @@ document.body.dataset.channel = CHANNEL;
 
 initStage();
 applyUiAssets();
-Sound.init(G.meta.settings.bgm, G.meta.settings.se);
+Sound.init(G.meta.settings.bgm, G.meta.settings.se, G.meta.settings.voice);
 screens.initSettings();
 
 G.ui = {
@@ -45,6 +47,9 @@ G.ui = {
   boardScreen: screens.boardScreen,
   purchaseScreen: screens.purchaseScreen,
   showInspect: screens.showInspect,
+  rescueFlow,
+  ceremony: ceremonyScreen,
+  handout: handoutScreen,
 };
 
 // UI の操作音（ボタンの種類で音を変える）
@@ -122,7 +127,7 @@ document.addEventListener('visibilitychange', () => {
     toast(t('update.available'), 'info', 6000);
   });
 });
-if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input, sim: { placeIn, setPathTo } };
+if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input, Sound, sim: { placeIn, setPathTo } };
 void boot();
 
 if (!isNative && 'serviceWorker' in navigator) registerSW({ immediate: true });

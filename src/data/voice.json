@@ -1,0 +1,257 @@
+{
+  "version": 1,
+  "note": "汎用ボイスの対応表。全文読み上げではなく、会話の内容や感情が一致する時だけ短い音声を鳴らす。音源は加工せず、gain は再生時の音量補正（他キャラクターと揃えるための倍率）。音源が置かれていないキャラクターは無音。",
+  "categories": [
+    "greeting",
+    "hello",
+    "understand",
+    "accept",
+    "refuse",
+    "thinking",
+    "surprise",
+    "happy",
+    "disappointed",
+    "thanks"
+  ],
+  "lines": {
+    "accept": "accept",
+    "reject_price": "refuse",
+    "reject_principle": "refuse",
+    "refuse": "refuse",
+    "trust_low": "refuse",
+    "counter": "thinking",
+    "info_uncertain": "thinking",
+    "gift_received": "thanks",
+    "promise_fulfilled": "thanks",
+    "success_payment": "thanks",
+    "trust_high": "happy",
+    "main_win": "happy",
+    "prison_survive": "happy",
+    "betrayal_observed": "surprise",
+    "main_low": "disappointed",
+    "repay_refused": "disappointed",
+    "accuseBelieve": "understand"
+  },
+  "characters": {
+    "npc_02_kanzaki": {
+      "dir": "audio/voice/npc_02_kanzaki",
+      "clips": {
+        "greeting": {
+          "file": "01_greeting.mp3",
+          "text": "おはようございます。",
+          "gain": 0.7
+        },
+        "hello": {
+          "file": "02_hello.mp3",
+          "text": "何か用ですか？",
+          "gain": 0.77
+        },
+        "understand": {
+          "file": "03_understand.mp3",
+          "text": "なるほど。",
+          "gain": 1.04
+        },
+        "accept": {
+          "file": "04_accept.mp3",
+          "text": "分かりました。",
+          "gain": 0.88
+        },
+        "refuse": {
+          "file": "05_refuse.mp3",
+          "text": "お断りします。",
+          "gain": 0.85
+        },
+        "thinking": {
+          "file": "06_thinking.mp3",
+          "text": "そうですね……。",
+          "gain": 1.4
+        },
+        "surprise": {
+          "file": "07_surprise.mp3",
+          "text": "まさか……。",
+          "gain": 1.4
+        },
+        "happy": {
+          "file": "08_happy.mp3",
+          "text": "悪くないですね。",
+          "gain": 0.9
+        },
+        "disappointed": {
+          "file": "09_disappointed.mp3",
+          "text": "困りましたね。",
+          "gain": 0.99
+        },
+        "thanks": {
+          "file": "10_thanks.mp3",
+          "text": "ありがとうございます。",
+          "gain": 0.78
+        }
+      }
+    },
+    "npc_03_kurose": {
+      "dir": "audio/voice/npc_03_kurose",
+      "clips": {
+        "greeting": {
+          "file": "01_greeting.mp3",
+          "text": "おはよう。",
+          "gain": 0.75
+        },
+        "hello": {
+          "file": "02_hello.mp3",
+          "text": "何か用かしら？",
+          "gain": 0.89
+        },
+        "understand": {
+          "file": "03_understand.mp3",
+          "text": "なるほどね。",
+          "gain": 0.99
+        },
+        "accept": {
+          "file": "04_accept.mp3",
+          "text": "いいわ、分かった。",
+          "gain": 0.92
+        },
+        "refuse": {
+          "file": "05_refuse.mp3",
+          "text": "それはお断りするわ。",
+          "gain": 0.83
+        },
+        "thinking": {
+          "file": "06_thinking.mp3",
+          "text": "そうね……。",
+          "gain": 1.4
+        },
+        "surprise": {
+          "file": "07_surprise.mp3",
+          "text": "そんな……。",
+          "gain": 1.27
+        },
+        "happy": {
+          "file": "08_happy.mp3",
+          "text": "悪くないわね。",
+          "gain": 0.84
+        },
+        "disappointed": {
+          "file": "09_disappointed.mp3",
+          "text": "困ったものね。",
+          "gain": 0.97
+        },
+        "thanks": {
+          "file": "10_thanks.mp3",
+          "text": "ありがとう。助かったわ。",
+          "gain": 0.93
+        }
+      }
+    },
+    "npc_04_mido": {
+      "dir": "audio/voice/npc_04_mido",
+      "clips": {
+        "greeting": {
+          "file": "01_greeting.mp3",
+          "text": "おはよう。",
+          "gain": 0.88
+        },
+        "hello": {
+          "file": "02_hello.mp3",
+          "text": "どうした？",
+          "gain": 1.15
+        },
+        "understand": {
+          "file": "03_understand.mp3",
+          "text": "なるほどな。",
+          "gain": 1.33
+        },
+        "accept": {
+          "file": "04_accept.mp3",
+          "text": "いいだろう。",
+          "gain": 1.1
+        },
+        "refuse": {
+          "file": "05_refuse.mp3",
+          "text": "その話は断る。",
+          "gain": 0.89
+        },
+        "thinking": {
+          "file": "06_thinking.mp3",
+          "text": "ふむ……。",
+          "gain": 1.4
+        },
+        "surprise": {
+          "file": "07_surprise.mp3",
+          "text": "なんだと？",
+          "gain": 0.95
+        },
+        "happy": {
+          "file": "08_happy.mp3",
+          "text": "ははっ、悪くない。",
+          "gain": 1.19
+        },
+        "disappointed": {
+          "file": "09_disappointed.mp3",
+          "text": "まったく、参ったな。",
+          "gain": 1.4
+        },
+        "thanks": {
+          "file": "10_thanks.mp3",
+          "text": "感謝するよ。",
+          "gain": 1.12
+        }
+      }
+    },
+    "npc_05_shiraishi": {
+      "dir": "audio/voice/npc_05_shiraishi",
+      "clips": {
+        "greeting": {
+          "file": "01_greeting.mp3",
+          "text": "おはようございます。",
+          "gain": 0.79
+        },
+        "hello": {
+          "file": "02_hello.mp3",
+          "text": "どうしました？",
+          "gain": 1.08
+        },
+        "understand": {
+          "file": "03_understand.mp3",
+          "text": "なるほど、そうなんですね。",
+          "gain": 1.3
+        },
+        "accept": {
+          "file": "04_accept.mp3",
+          "text": "ええ、いいですよ。",
+          "gain": 1.08
+        },
+        "refuse": {
+          "file": "05_refuse.mp3",
+          "text": "ごめんなさい、それはちょっと。",
+          "gain": 1.4
+        },
+        "thinking": {
+          "file": "06_thinking.mp3",
+          "text": "どうしましょうか……。",
+          "gain": 1.4
+        },
+        "surprise": {
+          "file": "07_surprise.mp3",
+          "text": "えっ、本当ですか？",
+          "gain": 1.07
+        },
+        "happy": {
+          "file": "08_happy.mp3",
+          "text": "ふふ、嬉しいです。",
+          "gain": 1.32
+        },
+        "disappointed": {
+          "file": "09_disappointed.mp3",
+          "text": "残念ですね……。",
+          "gain": 1.1
+        },
+        "thanks": {
+          "file": "10_thanks.mp3",
+          "text": "ありがとうございます。",
+          "gain": 0.81
+        }
+      }
+    }
+  }
+}

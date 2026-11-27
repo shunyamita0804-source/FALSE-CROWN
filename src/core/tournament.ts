@@ -108,6 +108,7 @@ export function endDay(state: GameState): string[] {
     prisonScores: state.today.prisonScores ?? {},
     eliminated: Object.values(state.actors).filter((a) => a.eliminatedDay === state.day).map((a) => a.id),
     rewards: {},
+    rescue: state.today.rescue,
   };
   state.history.push(rec);
   const notes = expireDeals(state).map((n) => n.text);

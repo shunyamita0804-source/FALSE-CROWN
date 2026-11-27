@@ -6,7 +6,9 @@
 import { Sound, type BgmId } from '../audio/audio';
 import { engineOf, newSlot, resolveTies, runToEnd } from '../core/runner';
 import { addInfo, adjustRel, aliveIds, learn, log, nameOf, rngOf, shortName, transfer } from '../core/state';
+import { medalIssued, npcRescuePromises } from '../core/rescue';
 import { applyMainResult, applyPrisonResult, endDay, gatherAt, mainMatchId, moveToHouses, prisonMatchId, startMorning } from '../core/tournament';
+import { scheduleFor } from '../data/config';
 import type { GameState, MatchSlot, Phase } from '../core/types';
 import type { CharId, NpcId } from '../data/characters';
 import storyJson from '../data/story_events.json';
@@ -60,6 +62,11 @@ export interface Screens {
   boardScreen(): Promise<void>;
   purchaseScreen(afterDay: boolean): Promise<boolean>;
   showInspect(text: string): Promise<void>;
+  /** 救いのメダル：発行から確定配属の発表まで（v11） */
+  rescueFlow(): Promise<void>;
+  /** 開会式と、その後の配布（v11） */
+  ceremony(opts: { review?: boolean; skippable?: boolean }): Promise<void>;
+  handout(): Promise<void>;
 }
 
 export interface RankingView {
@@ -436,9 +443,22 @@ export async function runGame(): Promise<void> {
   if (running) return;
   running = true;
   try {
+    // v11：競技のルールが全面的に変わった。旧版のセーブで競技が進行中なら、その競技の開始前へ戻す（報酬や支払いは競技後なので重複しない）
+    const s0 = G.state;
+    if (s0 && s0.flags.rules !== 'v11') {
+      const had = !!s0.match;
+      s0.match = null;
+      s0.flags.rules = 'v11';
+      if (had) await alertDialog(t('v11.title'), t('v11.text'), t('common.next'));
+    }
     for (;;) {
       const s = G.state;
       if (!s) break;
+      if (s.phase !== 'prologue' && s.phase !== 'morning' && s.phase !== 'ending' && !dayPlayable(s.day)) {
+        showField(false);
+        await alertDialog(t('wip.title'), t('wip.text', { day: s.day }), t('common.toTitle'));
+        break;
+      }
       if (s.phase === 'ending') {
         showField(false);
         await G.ui.endingScreen(s.ending ?? 'E_BAD');
@@ -462,9 +482,12 @@ const dd = (n: number) => String(n).padStart(2, '0');
 async function step(s: GameState): Promise<boolean> {
   switch (s.phase) {
     case 'prologue': {
+      // 開会式（v11）：中央ホールに 12 人が集まり、進行役が大会の仕組みを段階的に説明する。時計は式が終わってから動き出す
       showField(false);
       Sound.bgm('title');
-      await story('S00', {}, false, 'arrival');
+      await G.ui.ceremony({ skippable: G.meta.ceremonySeen === true });
+      if (!G.meta.ceremonySeen) { G.meta.ceremonySeen = true; saveMeta(G.meta); }
+      await G.ui.handout();
       enter('morning');
       return true;
     }
@@ -485,6 +508,8 @@ async function step(s: GameState): Promise<boolean> {
       }
       if (first()) {
         startMorning(s);
+        // DAY 1 は開会式の直後。全員が中央ホールから散っていく
+        if (s.day === 1) gatherAt(s, 'main_hall');
         s.phaseLeft = phaseDuration('morning');
         log(s, t('log.morning', { day: s.day }), 'day');
       }
@@ -514,7 +539,7 @@ async function step(s: GameState): Promise<boolean> {
       showField(false);
       Sound.bgm('match_main');
       const id = mainMatchId(s.day);
-      if (!s.match || s.match.kind !== 'main' || s.match.day !== s.day) s.match = newSlot(s, id, aliveIds(s), 'main');
+      if (!s.match || s.match.kind !== 'main' || s.match.day !== s.day) { npcRescuePromises(s); s.match = newSlot(s, id, aliveIds(s), 'main'); }
       const slot = s.match;
       const { ranking, scores, notes } = await playAndRank(slot);
       const engine = engineOf(id);
@@ -529,7 +554,7 @@ async function step(s: GameState): Promise<boolean> {
     case 'reward': {
       showField(false);
       const ranking = s.today.mainRanking ?? [];
-      const nPrison = ranking.filter((p) => s.actors[p].house === 'prison').length;
+      const nPrison = scheduleFor(s.day).prison;
       Sound.se('result');
       await G.ui.rankingScreen({
         title: t('rank.mainTitle', { day: s.day }),
@@ -537,9 +562,10 @@ async function step(s: GameState): Promise<boolean> {
         scores: s.today.mainScores ?? {},
         rewards: JSON.parse(String(s.flags.lastRewards ?? '{}')),
         cut: nPrison,
-        cutLabel: t('rank.toPrison'),
+        cutLabel: t(medalIssued(s.day) && s.today.rescue?.status !== 'used' && s.today.rescue?.status !== 'forgone' ? 'rank.toPrisonProv' : 'rank.toPrison'),
         notes: JSON.parse(String(s.flags.lastNotes ?? '[]')),
       });
+      await G.ui.rescueFlow();
       await settleHeroPayments();
       await story('S_MAIN_RESULT', {}, true);
       if (first()) moveToHouses(s);

@@ -25,6 +25,10 @@ export interface AiCtx {
   theirPlans: { from: CharId; plan: PlanTerm }[];
   /** 名前（ログ用） */
   name: (id: CharId) => string;
+  /** 手持ちのピース（競技内の補助を買えるかの判断用） */
+  pieces: number;
+  /** 競技内の補助の代金を支払う（主人公と同じ価格、同じ制限）。払えなければ false */
+  spend: (n: number, reason: string) => boolean;
 }
 
 export interface StageInfo {
@@ -42,8 +46,10 @@ export interface MatchEngine<S = any, M = any, V = any> {
   kind: MatchKind;
   minPlayers: number;
   maxPlayers: number;
-  /** ルール説明（段落） */
+  /** ルール説明（段落）。手帳と「ルール」ボタンで読める全文 */
   rules: string[];
+  /** 旧ルールの競技（v11 で置き換える予定。日程には使わない） */
+  legacy?: boolean;
   /** 一行要約 */
   summary: string;
   init(players: CharId[], rng: Rng, opts?: Record<string, unknown>): S;

@@ -19,7 +19,8 @@ describe('1日の進行（自動対戦）', () => {
       // 主人公が脱落した場合は終局するため、当日の記録（today）を見る
       const main = s.history[0]?.mainRanking ?? s.today.mainRanking!;
       const prison = s.history[0]?.prisonRanking ?? s.today.prisonRanking!;
-      expect(main.slice(8)).toContain(out[0].id);
+      // 救いのメダルで入れ替わることがあるため、順位ではなく監獄マッチの参加者で確かめる
+      expect(prison.length).toBe(4);
       expect(prison.at(-1)).toBe(out[0].id);
       if (s.actors.hero.alive) {
         expect(s.day).toBe(2);
@@ -44,24 +45,42 @@ describe('1日の進行（自動対戦）', () => {
     for (const n of outs.values()) expect(n).toBeLessThan(N * 0.5);
   });
 
-  it('DAY2（M02 と P02）を終えると合計 2 人が脱落し、DAY3 の朝に進む。脱落者は固定されない', async () => {
-    const outs = new Map<string, number>();
-    let reached = 0;
-    for (let seed = 1; seed <= 60; seed++) {
+  it('DAY2 は旧ルールの競技しかないため、本編では DAY2 の朝で止まる（v11 で置き換えるまで完成扱いにしない）', async () => {
+    for (let seed = 1; seed <= 20; seed++) {
       const s = freshState(seed * 13);
       s.phase = 'morning';
-      await autoAdvance(s, 3, 'morning', { free: seed % 20 === 0 });
+      const ok = await autoAdvance(s, 3, 'morning');
+      expect(ok).toBe(false);
       if (!s.actors.hero.alive) continue;
-      reached++;
-      expect(s.day).toBe(3);
-      expect(aliveIds(s).length).toBe(10);
-      const d2 = Object.values(s.actors).find((a) => !a.alive && a.eliminatedDay === 2)!;
-      expect(s.history[1].mainRanking!.slice(7)).toContain(d2.id);
-      outs.set(d2.id, (outs.get(d2.id) ?? 0) + 1);
-      for (const a of Object.values(s.actors)) expect(a.pieces).toBeGreaterThanOrEqual(0);
+      expect(s.day).toBe(2);
+      expect(s.phase).toBe('morning');
+      expect(aliveIds(s).length).toBe(11);
     }
-    expect(reached).toBeGreaterThan(30);
-    expect(outs.size).toBeGreaterThanOrEqual(5);
+  }, 60_000);
+
+  it('救いのメダルが使われても、脱落するのは監獄棟に配属された人の最下位 1 人だけ', async () => {
+    let used = 0;
+    for (let seed = 1; seed <= 60; seed++) {
+      const s = freshState(seed * 17);
+      s.phase = 'morning';
+      await autoAdvance(s, 2, 'morning', { free: seed % 10 === 0 });
+      const rec = s.history[0];
+      const main = rec?.mainRanking ?? s.today.mainRanking!;
+      const prisonRank = rec?.prisonRanking ?? s.today.prisonRanking!;
+      const rescue = rec?.rescue ?? s.today.rescue;
+      const out = Object.values(s.actors).find((a) => !a.alive)!;
+      expect(prisonRank.length).toBe(4);
+      expect(prisonRank.at(-1)).toBe(out.id);
+      expect(rescue).toBeDefined();
+      expect(rescue!.holder).toBe(main[0]);
+      expect(prisonRank).not.toContain(main[0]);
+      if (rescue!.status === 'used') {
+        used++;
+        expect(prisonRank).toContain(rescue!.swapped);
+        expect(prisonRank).not.toContain(rescue!.target);
+      } else expect([...prisonRank].sort()).toEqual([...main.slice(8)].sort());
+    }
+    console.log('DAY1 自動進行 60 回のうち、救いのメダルが使われた回数', used);
   }, 60_000);
 
   it('ピースは増減の合計が合う（報酬は主催者から、脱落者の分は回収）', async () => {

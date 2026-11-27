@@ -76,6 +76,12 @@ export const UI_ASSETS: Record<string, AssetDef> = {
   'background/result': { path: 'ui/background/result' },
   'background/prison_result': { path: 'ui/background/prison_result' },
   'icons/piece_gold': { path: 'ui/icons/piece_gold' },
+  // v11 の追加素材。枠は四隅を伸ばさない 9-slice、タイル面は色をプログラム側で重ねる
+  'v11/m01/puzzle_frame': { path: 'ui/v11/m01/puzzle_frame', slice: S(96) },
+  'v11/m01/tile_surface': { path: 'ui/v11/m01/tile_surface' },
+  'v11/m01/completion_glow': { path: 'ui/v11/m01/completion_glow' },
+  'v11/prison/compact_frame': { path: 'ui/v11/prison/compact_frame', slice: S(96) },
+  'v11/hidden/challenge_frame': { path: 'ui/v11/hidden/challenge_frame', slice: S(96) },
 };
 
 /** 演出用の帯。band は文字を載せる帯の中心と高さ（画像の高さに対する割合）。無い素材は画像の下に文字を出す */
