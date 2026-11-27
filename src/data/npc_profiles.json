@@ -1,0 +1,468 @@
+{
+  "version": 3,
+  "notes": "secretEvidenceKeyは論理キー。既存の証拠IDにマッピングする。価格-1は額だけで受諾しない。情報販売以外のBUY_INFOは相手の売値を評価。数値暫定。",
+  "profiles": [
+    {
+      "id": "npc_02_kanzaki",
+      "name": "神崎怜",
+      "ability": {
+        "logic": 10,
+        "strategy": 9,
+        "memory": 8,
+        "negotiation": 4,
+        "acting": 3,
+        "observation": 7
+      },
+      "personality": {
+        "greed": 15,
+        "loyalty": 60,
+        "ambition": 75,
+        "morality": 65,
+        "risk": 35,
+        "exploration": 80
+      },
+      "basePrices": {
+        "ALLIANCE": -1,
+        "SELL_INFO": 2,
+        "RECRUIT": -1,
+        "PLAN": -1
+      },
+      "secretDay": 6,
+      "secretTrust": 75,
+      "secretEvidenceKey": "evidence_npc_02_kanzaki",
+      "secret": "数理モデル開発に関与",
+      "goal": "合理性・生存期待を優先。根拠のない提案を拒む。",
+      "utilityWeights": {
+        "survival": 1.0,
+        "futureAdvantage": 1.12,
+        "pieceValue": 0.65,
+        "relationship": 1.1,
+        "personalGoal": 1.0,
+        "exploration": 1.3,
+        "risk": 1.15,
+        "time": 1.0
+      },
+      "reputationWeight": 0.62
+    },
+    {
+      "id": "npc_03_kurose",
+      "name": "黒瀬美琴",
+      "ability": {
+        "logic": 9,
+        "strategy": 8,
+        "memory": 7,
+        "negotiation": 10,
+        "acting": 7,
+        "observation": 8
+      },
+      "personality": {
+        "greed": 40,
+        "loyalty": 85,
+        "ambition": 70,
+        "morality": 80,
+        "risk": 35,
+        "exploration": 55
+      },
+      "basePrices": {
+        "ALLIANCE": 2,
+        "SELL_INFO": 2,
+        "RECRUIT": 4,
+        "PLAN": 2
+      },
+      "secretDay": 5,
+      "secretTrust": 70,
+      "secretEvidenceKey": "evidence_npc_03_kurose",
+      "secret": "過去実験被害者からの依頼",
+      "goal": "条件を明確にし、合意の文言を重視。",
+      "utilityWeights": {
+        "survival": 1.0,
+        "futureAdvantage": 1.1,
+        "pieceValue": 0.9,
+        "relationship": 1.35,
+        "personalGoal": 1.0,
+        "exploration": 1.05,
+        "risk": 1.15,
+        "time": 1.0
+      },
+      "reputationWeight": 0.82
+    },
+    {
+      "id": "npc_04_mido",
+      "name": "御堂隆臣",
+      "ability": {
+        "logic": 6,
+        "strategy": 9,
+        "memory": 5,
+        "negotiation": 10,
+        "acting": 8,
+        "observation": 7
+      },
+      "personality": {
+        "greed": 90,
+        "loyalty": 25,
+        "ambition": 95,
+        "morality": 30,
+        "risk": 65,
+        "exploration": 25
+      },
+      "basePrices": {
+        "ALLIANCE": 3,
+        "SELL_INFO": 3,
+        "RECRUIT": 5,
+        "PLAN": 3
+      },
+      "secretDay": 7,
+      "secretTrust": 80,
+      "secretEvidenceKey": "evidence_npc_04_mido",
+      "secret": "研究施設への出資",
+      "goal": "有力者を買収し、脅威となる連合を分断。",
+      "utilityWeights": {
+        "survival": 1.0,
+        "futureAdvantage": 1.23,
+        "pieceValue": 1.4,
+        "relationship": 0.75,
+        "personalGoal": 1.0,
+        "exploration": 0.75,
+        "risk": 0.85,
+        "time": 1.0
+      },
+      "reputationWeight": 0.28
+    },
+    {
+      "id": "npc_05_shiraishi",
+      "name": "白石紗夜",
+      "ability": {
+        "logic": 8,
+        "strategy": 8,
+        "memory": 7,
+        "negotiation": 9,
+        "acting": 9,
+        "observation": 10
+      },
+      "personality": {
+        "greed": 55,
+        "loyalty": 20,
+        "ambition": 85,
+        "morality": 30,
+        "risk": 65,
+        "exploration": 85
+      },
+      "basePrices": {
+        "ALLIANCE": 2,
+        "SELL_INFO": 2,
+        "RECRUIT": 3,
+        "PLAN": 2
+      },
+      "secretDay": 5,
+      "secretTrust": 75,
+      "secretEvidenceKey": "evidence_npc_05_shiraishi",
+      "secret": "裏切り行動の研究",
+      "goal": "複数同盟を維持、情報の偏りを利用。",
+      "utilityWeights": {
+        "survival": 1.0,
+        "futureAdvantage": 1.18,
+        "pieceValue": 1.05,
+        "relationship": 0.7,
+        "personalGoal": 1.0,
+        "exploration": 1.35,
+        "risk": 0.85,
+        "time": 1.0
+      },
+      "reputationWeight": 0.25
+    },
+    {
+      "id": "npc_06_kiryu",
+      "name": "桐生颯",
+      "ability": {
+        "logic": 8,
+        "strategy": 10,
+        "memory": 7,
+        "negotiation": 5,
+        "acting": 4,
+        "observation": 8
+      },
+      "personality": {
+        "greed": 45,
+        "loyalty": 80,
+        "ambition": 85,
+        "morality": 70,
+        "risk": 65,
+        "exploration": 50
+      },
+      "basePrices": {
+        "ALLIANCE": 1,
+        "SELL_INFO": 2,
+        "RECRUIT": 4,
+        "PLAN": 1
+      },
+      "secretDay": 4,
+      "secretTrust": 65,
+      "secretEvidenceKey": "evidence_npc_06_kiryu",
+      "secret": "過去大会のゲーム資料を所有",
+      "goal": "強い対戦相手を好み、戦略的共闘を選ぶ。",
+      "utilityWeights": {
+        "survival": 1.0,
+        "futureAdvantage": 1.18,
+        "pieceValue": 0.95,
+        "relationship": 1.3,
+        "personalGoal": 1.0,
+        "exploration": 1.0,
+        "risk": 0.85,
+        "time": 1.0
+      },
+      "reputationWeight": 0.75
+    },
+    {
+      "id": "npc_07_tachibana",
+      "name": "橘香織",
+      "ability": {
+        "logic": 7,
+        "strategy": 5,
+        "memory": 8,
+        "negotiation": 6,
+        "acting": 3,
+        "observation": 8
+      },
+      "personality": {
+        "greed": 10,
+        "loyalty": 95,
+        "ambition": 45,
+        "morality": 95,
+        "risk": 25,
+        "exploration": 25
+      },
+      "basePrices": {
+        "ALLIANCE": 0,
+        "SELL_INFO": 1,
+        "RECRUIT": -1,
+        "PLAN": 0
+      },
+      "secretDay": 5,
+      "secretTrust": 65,
+      "secretEvidenceKey": "evidence_npc_07_tachibana",
+      "secret": "実験被害患者の担当医",
+      "goal": "弱者支援、仲間への裏切りや虚偽告発を拒否。",
+      "utilityWeights": {
+        "survival": 1.0,
+        "futureAdvantage": 0.97,
+        "pieceValue": 0.6,
+        "relationship": 1.45,
+        "personalGoal": 1.0,
+        "exploration": 0.75,
+        "risk": 1.25,
+        "time": 1.0
+      },
+      "reputationWeight": 0.95
+    },
+    {
+      "id": "npc_08_dojima",
+      "name": "堂島誠司",
+      "ability": {
+        "logic": 8,
+        "strategy": 7,
+        "memory": 7,
+        "negotiation": 7,
+        "acting": 5,
+        "observation": 10
+      },
+      "personality": {
+        "greed": 20,
+        "loyalty": 85,
+        "ambition": 55,
+        "morality": 85,
+        "risk": 30,
+        "exploration": 95
+      },
+      "basePrices": {
+        "ALLIANCE": 1,
+        "SELL_INFO": 1,
+        "RECRUIT": 4,
+        "PLAN": 1
+      },
+      "secretDay": 4,
+      "secretTrust": 65,
+      "secretEvidenceKey": "evidence_npc_08_dojima",
+      "secret": "失踪事件を捜査",
+      "goal": "証拠収集と事実照合を優先、噂に慎重。",
+      "utilityWeights": {
+        "survival": 1.0,
+        "futureAdvantage": 1.02,
+        "pieceValue": 0.7,
+        "relationship": 1.35,
+        "personalGoal": 1.0,
+        "exploration": 1.45,
+        "risk": 1.2,
+        "time": 1.0
+      },
+      "reputationWeight": 0.85
+    },
+    {
+      "id": "npc_09_asahina",
+      "name": "朝比奈ひまり",
+      "ability": {
+        "logic": 5,
+        "strategy": 5,
+        "memory": 10,
+        "negotiation": 8,
+        "acting": 5,
+        "observation": 7
+      },
+      "personality": {
+        "greed": 20,
+        "loyalty": 85,
+        "ambition": 60,
+        "morality": 80,
+        "risk": 35,
+        "exploration": 75
+      },
+      "basePrices": {
+        "ALLIANCE": 0,
+        "SELL_INFO": 1,
+        "RECRUIT": 3,
+        "PLAN": 1
+      },
+      "secretDay": 4,
+      "secretTrust": 65,
+      "secretEvidenceKey": "evidence_npc_09_asahina",
+      "secret": "兄が過去大会に参加",
+      "goal": "親しい相手との共闘と記憶情報の交換。",
+      "utilityWeights": {
+        "survival": 1.0,
+        "futureAdvantage": 1.05,
+        "pieceValue": 0.7,
+        "relationship": 1.35,
+        "personalGoal": 1.0,
+        "exploration": 1.25,
+        "risk": 1.15,
+        "time": 1.0
+      },
+      "reputationWeight": 0.82
+    },
+    {
+      "id": "npc_10_kujo",
+      "name": "九条蓮司",
+      "ability": {
+        "logic": 8,
+        "strategy": 9,
+        "memory": 7,
+        "negotiation": 8,
+        "acting": 10,
+        "observation": 9
+      },
+      "personality": {
+        "greed": 80,
+        "loyalty": 50,
+        "ambition": 90,
+        "morality": 45,
+        "risk": 90,
+        "exploration": 95
+      },
+      "basePrices": {
+        "ALLIANCE": 2,
+        "SELL_INFO": 2,
+        "RECRUIT": 4,
+        "PLAN": 2
+      },
+      "secretDay": 6,
+      "secretTrust": 75,
+      "secretEvidenceKey": "evidence_npc_10_kujo",
+      "secret": "過去大会の元参加者",
+      "goal": "リスクとリターン、残りラウンドから逆転を狙う。",
+      "utilityWeights": {
+        "survival": 1.0,
+        "futureAdvantage": 1.2,
+        "pieceValue": 1.3,
+        "relationship": 1.0,
+        "personalGoal": 1.0,
+        "exploration": 1.45,
+        "risk": 0.6,
+        "time": 1.0
+      },
+      "reputationWeight": 0.47
+    },
+    {
+      "id": "npc_11_kisaragi",
+      "name": "如月麗華",
+      "ability": {
+        "logic": 6,
+        "strategy": 6,
+        "memory": 8,
+        "negotiation": 9,
+        "acting": 10,
+        "observation": 8
+      },
+      "personality": {
+        "greed": 75,
+        "loyalty": 25,
+        "ambition": 80,
+        "morality": 35,
+        "risk": 55,
+        "exploration": 55
+      },
+      "basePrices": {
+        "ALLIANCE": 2,
+        "SELL_INFO": 3,
+        "RECRUIT": 4,
+        "PLAN": 2
+      },
+      "secretDay": 7,
+      "secretTrust": 80,
+      "secretEvidenceKey": "evidence_npc_11_kisaragi",
+      "secret": "主催者から秘密の依頼",
+      "goal": "信頼される演技と派閥内の立場維持。",
+      "utilityWeights": {
+        "survival": 1.0,
+        "futureAdvantage": 1.15,
+        "pieceValue": 1.25,
+        "relationship": 0.75,
+        "personalGoal": 1.0,
+        "exploration": 1.05,
+        "risk": 0.95,
+        "time": 1.0
+      },
+      "reputationWeight": 0.3
+    },
+    {
+      "id": "npc_12_kuze",
+      "name": "久世宗一郎",
+      "ability": {
+        "logic": 10,
+        "strategy": 8,
+        "memory": 9,
+        "negotiation": 6,
+        "acting": 6,
+        "observation": 8
+      },
+      "personality": {
+        "greed": 15,
+        "loyalty": 55,
+        "ambition": 60,
+        "morality": 65,
+        "risk": 45,
+        "exploration": 95
+      },
+      "basePrices": {
+        "ALLIANCE": -1,
+        "SELL_INFO": 1,
+        "RECRUIT": -1,
+        "PLAN": -1
+      },
+      "secretDay": 8,
+      "secretTrust": 80,
+      "secretEvidenceKey": "evidence_npc_12_kuze",
+      "secret": "CROWN計画の創設者の一人",
+      "goal": "研究の真相と観測を優先、知識交換を好む。",
+      "utilityWeights": {
+        "survival": 1.0,
+        "futureAdvantage": 1.05,
+        "pieceValue": 0.65,
+        "relationship": 1.05,
+        "personalGoal": 1.0,
+        "exploration": 1.45,
+        "risk": 1.05,
+        "time": 1.0
+      },
+      "reputationWeight": 0.6
+    }
+  ]
+}

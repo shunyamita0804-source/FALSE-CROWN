@@ -1,0 +1,51 @@
+[
+  {
+    "id": "B02",
+    "file": "audio/bgm/B02_mystery_detective.m4a",
+    "scene": "生活棟・共用施設・タイトル暫定",
+    "loop": true,
+    "source": "PerituneMaterial_Mystery_Detective_loop.m4a"
+  },
+  {
+    "id": "B04",
+    "file": "audio/bgm/B04_suspense3.m4a",
+    "scene": "監獄棟",
+    "loop": false,
+    "source": "PerituneMaterial_Suspense3.m4a"
+  },
+  {
+    "id": "B05",
+    "file": "audio/bgm/B05_investigation2.m4a",
+    "scene": "交渉・メインマッチ",
+    "loop": true,
+    "source": "PerituneMaterial_Investigation2_loop.m4a"
+  },
+  {
+    "id": "B07",
+    "file": "audio/bgm/B07_suspense2.m4a",
+    "scene": "監獄マッチ・地下施設・裏ゲーム暫定",
+    "loop": true,
+    "source": "PerituneMaterial_Suspense2_loop.m4a"
+  },
+  {
+    "id": "B10",
+    "file": "audio/bgm/B10_taishoroman_battle.m4a",
+    "scene": "決勝戦",
+    "loop": true,
+    "source": "PerituneMaterial_TaishoRoman_Battle_loop.m4a"
+  },
+  {
+    "id": "B11",
+    "file": "audio/bgm/B11_scene_tragic.m4a",
+    "scene": "脱落・ゲームオーバー",
+    "loop": false,
+    "source": "PerituneMaterial_Scene_Tragic_loop.m4a"
+  },
+  {
+    "id": "B12",
+    "file": "audio/bgm/B12_piano_melancholy3.m4a",
+    "scene": "エンディング",
+    "loop": true,
+    "source": "PerituneMaterial_Piano_Melancholy3_loop.m4a"
+  }
+]

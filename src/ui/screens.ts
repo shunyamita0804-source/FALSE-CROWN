@@ -1,0 +1,589 @@
+/**
+ * 画面（DOM）。タイトル、物語の再生、HUD、手帳、結果、終局。
+ * ここは表示と入力だけを担当し、勝敗や関係の計算はしない。
+ * 手帳には「プレイヤーが知っていること」だけを表示する（NPC の内部値や未発見の情報は出さない）。
+ */
+import { CHANNEL, fullUnlocked, Purchase } from '../app/entitlement';
+import { ENDINGS, G, phaseName, type RankingView, type StoryLine } from '../app/game';
+import { BGM, Sound } from '../audio/audio';
+import { activeDeals, nameOf, shortName } from '../core/state';
+import type { GameState } from '../core/types';
+import { DEFAULT_HERO_NAMES, NPC_BY_ID, NPC_IDS, type CharId, type NpcId } from '../data/characters';
+import { CONFIG, scheduleFor, type Difficulty } from '../data/config';
+import guideJson from '../data/match_guide.json';
+import { getLang, LANGS, setLang, t, type Lang } from '../i18n/i18n';
+import { Input } from '../input/InputState';
+import { CATALOG, isImplemented, MATCHES } from '../matches/registry';
+import { TIEBREAK } from '../matches/tiebreak';
+import { describeDeal } from '../npc/negotiation';
+import { deleteSave, exportSave, hasSave, importSave, saveMeta } from '../save/save';
+import { canEnter } from '../world/access';
+import { ROOMS } from '../world/maps';
+import { emblemUrl, face, portraitUrl, setHeroGender } from './art';
+import { alertDialog, append, button, clear, closeLayer, confirmDialog, fmtTime, h, openLayer, panel, toast, type Child, type Layer } from './dom';
+
+const GUIDE = Object.fromEntries((guideJson as { id: string; goal: string; practice: string; attention: string }[]).map((g) => [g.id.toLowerCase(), g]));
+
+export const pieces = (n: number): HTMLElement => h('span', { class: 'piece' }, String(n));
+
+// ---------------- タイトル ----------------
+
+export type TitleChoice = 'new' | 'continue' | 'dev';
+
+export function titleScreen(): Promise<TitleChoice> {
+  Sound.bgm('B01');
+  return new Promise((resolve) => {
+    let layer: Layer;
+    const done = (c: TitleChoice) => {
+      closeLayer(layer);
+      resolve(c);
+    };
+    const root = h('div', { class: 'title-screen' });
+    const render = () => {
+      clear(root);
+      const saved = hasSave();
+      root.append(
+        h('img', { class: 'title-emblem', src: emblemUrl(), alt: '', draggable: false }),
+        h('div', { class: 'title-logo' }, 'FALSE CROWN'),
+        h('div', { class: 'title-sub' }, t('title.sub')),
+        h('div', { class: 'title-menu' }, [
+          saved ? button(t('title.continue'), () => done('continue'), { kind: 'primary', autofocus: true }) : null,
+          button(t('title.new'), async () => {
+            if (saved && !(await confirmDialog(t('title.newConfirmTitle'), t('title.newConfirm'), { ok: t('title.new'), cancel: t('common.cancel'), danger: true }))) return;
+            done('new');
+          }, { kind: saved ? 'secondary' : 'primary', autofocus: !saved }),
+          button(t('title.settings'), () => void settingsScreen().then(render)),
+          button(t('title.howto'), () => void howtoScreen()),
+          button(t('title.credits'), () => void creditsScreen()),
+          button(t('title.purchase'), () => void purchaseScreen(false)),
+          button(t('title.restore'), async () => {
+            const ok = await Purchase.restore();
+            toast(t(ok ? 'purchase.restored' : fullUnlocked() ? 'purchase.devUnlocked' : 'purchase.none'), ok ? 'good' : 'info', 4200);
+          }),
+          button(`${t('title.language')}：${LANGS.find((l) => l.id === getLang())?.name}`, () => {
+            const i = LANGS.findIndex((l) => l.id === getLang());
+            applyLang(LANGS[(i + 1) % LANGS.length].id);
+            render();
+          }),
+          CHANNEL === 'dev' ? button(t('title.dev'), () => done('dev'), { kind: 'ghost' }) : null,
+        ]),
+        h('div', { class: 'title-foot' }, `${t(CHANNEL === 'dev' ? 'title.devBuild' : 'title.productBuild')}　v${__APP_VERSION__}`),
+      );
+    };
+    render();
+    layer = openLayer(root, { name: 'title' });
+  });
+}
+
+function applyLang(l: Lang): void {
+  setLang(l);
+  G.meta.settings.lang = l;
+  saveMeta(G.meta);
+}
+
+export function newGameScreen(): Promise<{ gender: 'm' | 'f'; name: string; difficulty: Difficulty } | null> {
+  return new Promise((resolve) => {
+    let layer: Layer;
+    let gender: 'm' | 'f' = 'm';
+    let difficulty: Difficulty = G.meta.settings.difficulty;
+    const nameInput = h('input', { type: 'text', maxLength: 12, value: DEFAULT_HERO_NAMES.m, class: 'text-input' });
+    const body = h('div', { class: 'newgame' });
+    const done = (ok: boolean) => {
+      closeLayer(layer);
+      if (!ok) return resolve(null);
+      G.meta.settings.difficulty = difficulty;
+      saveMeta(G.meta);
+      resolve({ gender, name: nameInput.value.trim() || DEFAULT_HERO_NAMES[gender], difficulty });
+    };
+    const render = () => {
+      clear(body);
+      body.append(
+        h('div', { class: 'row', style: 'gap:18px;align-items:stretch' }, (['m', 'f'] as const).map((g) =>
+          h('button', { class: `hero-pick${gender === g ? ' selected' : ''}`, type: 'button', onclick: () => {
+            if (nameInput.value === DEFAULT_HERO_NAMES[gender]) nameInput.value = DEFAULT_HERO_NAMES[g];
+            gender = g;
+            Sound.se('select');
+            render();
+          } }, h('img', { src: portraitUrl(`hero_${g}`), alt: '', draggable: false }), h('span', null, t(g === 'm' ? 'new.male' : 'new.female'))),
+        ), h('div', { class: 'col grow', style: 'gap:14px' }, [
+          h('div', { class: 'form-grid' }, [
+            h('label', null, t('new.name')), nameInput,
+            h('label', null, t('new.difficulty')),
+            h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' }, (Object.keys(CONFIG.difficulty) as Difficulty[]).map((d) => button(t(`diff.${d}`), () => { difficulty = d; render(); }, { small: true, cls: difficulty === d ? 'selected' : '' }))),
+          ]),
+          h('div', { class: 'note-box' }, t(`diff.${difficulty}.desc`)),
+          h('div', { class: 'note-box' }, t('new.notice')),
+        ])),
+      );
+    };
+    render();
+    layer = openLayer(h('div', { class: 'overlay solid' }, panel(t('new.title'), body, { wide: true, footer: [button(t('common.back'), () => done(false), { kind: 'ghost' }), button(t('new.start'), () => done(true), { kind: 'primary', autofocus: true })] })), { onCancel: () => done(false), name: 'newgame' });
+  });
+}
+
+// ---------------- 物語・台詞 ----------------
+
+function speakerName(s: GameState | null, sp: string): string {
+  if (sp === 'narrator') return '';
+  if (sp === 'host_observer' || sp === 'host') return t('name.host');
+  if (sp === 'hero') return s?.hero.name ?? '';
+  if (sp in NPC_BY_ID) return NPC_BY_ID[sp as NpcId].name;
+  return sp;
+}
+
+/** 台詞を順に表示する。スキップは演出だけを飛ばす（フラグや結果には影響しない） */
+export function playStory(lines: StoryLine[], opts: { bg?: string; expr?: string } = {}): Promise<void> {
+  if (!lines.length) return Promise.resolve();
+  return new Promise((resolve) => {
+    let layer: Layer;
+    let i = 0;
+    const s = G.state;
+    const portrait = h('img', { class: 'dlg-portrait right', alt: '', draggable: false });
+    const name = h('div', { class: 'dlg-name' });
+    const text = h('div', { class: 'dlg-text' });
+    const done = () => {
+      closeLayer(layer);
+      resolve();
+    };
+    const show = () => {
+      const l = lines[i];
+      const who = speakerName(s, l.speaker);
+      const hasPortrait = l.speaker !== 'narrator' && (l.speaker === 'host_observer' || l.speaker === 'hero' || l.speaker in NPC_BY_ID);
+      portrait.style.display = hasPortrait ? '' : 'none';
+      if (hasPortrait) portrait.src = portraitUrl(l.speaker, opts.expr ?? 'normal');
+      name.style.display = who ? '' : 'none';
+      name.textContent = who;
+      text.className = `dlg-text${l.speaker === 'narrator' ? ' narration' : ''}`;
+      text.textContent = l.text;
+    };
+    const next = () => {
+      Sound.se('click');
+      i += 1;
+      if (i >= lines.length) done();
+      else show();
+    };
+    const box = h('div', { class: 'dlg-box', onclick: next, 'data-focus': '', tabIndex: 0 }, name, text, h('div', { class: 'dlg-next' }, '▼'));
+    const el = h('div', { class: `overlay ${G.fieldVisible ? 'clear' : 'solid'} dlg-screen` }, portrait, box, lines.length > 1 ? h('div', { class: 'dlg-skip' }, button(t('common.skip'), done, { small: true, kind: 'ghost' })) : null);
+    show();
+    layer = openLayer(el, { pausesClock: true, name: 'story', onCancel: next, onKey: (k) => (k === 'a' ? (next(), true) : false) });
+  });
+}
+
+export function showInspect(text: string): Promise<void> {
+  return new Promise((resolve) => {
+    let layer: Layer;
+    const done = () => {
+      closeLayer(layer);
+      resolve();
+    };
+    const box = h('div', { class: 'dlg-box', onclick: done }, h('div', { class: 'dlg-text narration' }, text), h('div', { class: 'dlg-next' }, '▼'));
+    layer = openLayer(h('div', { class: 'overlay clear dlg-screen' }, box), { pausesClock: false, name: 'inspect', onCancel: done, onKey: (k) => (k === 'a' ? (done(), true) : false) });
+  });
+}
+
+// ---------------- HUD ----------------
+
+let hudLayer: Layer | null = null;
+let hudEls: { day: HTMLElement; phase: HTMLElement; timer: HTMLElement; room: HTMLElement; pieces: HTMLElement; prompt: HTMLElement; log: HTMLElement; skip: HTMLElement } | null = null;
+let lastTick = -1;
+
+export function hudShow(v: boolean): void {
+  if (!v) {
+    if (hudLayer) closeLayer(hudLayer);
+    hudLayer = null;
+    hudEls = null;
+    return;
+  }
+  if (hudLayer) return;
+  const day = h('span', { class: 'hud-day' });
+  const phase = h('span', { class: 'hud-phase' });
+  const timer = h('span', { class: 'hud-timer' });
+  const room = h('span', { class: 'hud-room' });
+  const pc = h('span', { class: 'piece' });
+  const prompt = h('div', { class: 'prompt', style: 'display:none' });
+  const logBox = h('div', { class: 'hud-log' });
+  const skip = button(t('hud.skip'), async () => {
+    if (await confirmDialog(t('hud.skipTitle'), t('hud.skipText'), { ok: t('hud.skipOk'), cancel: t('common.cancel') })) G.skipFree();
+  }, { small: true, kind: 'ghost' });
+  const pad = h('div', { class: 'touch-pad' }, (['up', 'down', 'left', 'right'] as const).map((d) => h('button', { class: d, type: 'button', 'data-key': d, 'aria-label': d }, { up: '▲', down: '▼', left: '◀', right: '▶' }[d])));
+  const act = h('div', { class: 'touch-act' }, h('button', { type: 'button', 'data-key': 'a' }, t('hud.act')));
+  const el = h('div', null,
+    h('div', { class: 'hud' },
+      h('div', { class: 'hud-box' }, day, phase, timer),
+      h('div', { class: 'hud-box' }, room),
+      h('div', { class: 'spacer' }),
+      h('div', { class: 'hud-box' }, pc),
+      h('div', { class: 'hud-menu' }, skip, button(t('hud.menu'), () => G.openMenu(), { small: true })),
+    ),
+    logBox, prompt, pad, act,
+  );
+  Input.bindTouch(el);
+  hudLayer = openLayer(el, { modal: false, name: 'hud' });
+  hudEls = { day, phase, timer, room, pieces: pc, prompt, log: logBox, skip };
+  hudUpdate();
+}
+
+export function hudUpdate(): void {
+  const s = G.state;
+  if (!s || !hudEls) return;
+  const e = hudEls;
+  e.day.textContent = `DAY ${s.day}`;
+  e.phase.textContent = phaseName(s.phase);
+  const free = G.inFreePhase();
+  e.timer.textContent = free ? fmtTime(s.phaseLeft) : '';
+  const low = free && s.phaseLeft < 30_000;
+  e.timer.classList.toggle('low', low);
+  const sec = Math.ceil(s.phaseLeft / 1000);
+  if (low && sec !== lastTick && sec <= 10 && sec > 0) Sound.se('tick');
+  lastTick = sec;
+  e.room.textContent = `${ROOMS[s.actors.hero.pos.room].floor}　${ROOMS[s.actors.hero.pos.room].name}`;
+  e.pieces.textContent = String(s.actors.hero.pieces);
+  e.skip.style.display = free ? '' : 'none';
+  const tg = G.fieldActive ? G.field?.target : null;
+  if (tg) {
+    const label = tg.kind === 'npc' ? t('prompt.talk', { name: shortName(s, tg.id) }) : tg.kind === 'door' ? t('prompt.door', { name: tg.door.label }) : t('prompt.inspect');
+    e.prompt.textContent = label;
+    e.prompt.style.display = '';
+  } else e.prompt.style.display = 'none';
+}
+
+export function hudLog(text: string): void {
+  if (!hudEls) return;
+  const d = h('div', null, text);
+  hudEls.log.appendChild(d);
+  while (hudEls.log.children.length > 4) hudEls.log.firstChild?.remove();
+  setTimeout(() => d.remove(), 6000);
+}
+
+// ---------------- 手帳（メニュー） ----------------
+
+type Tab = 'status' | 'people' | 'deals' | 'info' | 'history' | 'rules' | 'map' | 'system';
+
+export function openMenu(initial: Tab = 'status'): void {
+  const s = G.state;
+  if (!s) return;
+  Sound.se('bookOpen');
+  let tab: Tab = initial;
+  let layer: Layer;
+  const body = h('div', { class: 'scroll grow' });
+  const tabs = h('div', { class: 'tabs' });
+  const close = () => {
+    Sound.se('bookClose');
+    closeLayer(layer);
+  };
+  const render = () => {
+    clear(tabs);
+    for (const k of ['status', 'people', 'deals', 'info', 'history', 'rules', 'map', 'system'] as Tab[]) {
+      tabs.append(h('button', { class: `tab${tab === k ? ' on' : ''}`, type: 'button', onclick: () => { tab = k; Sound.se('page'); render(); } }, t(`menu.${k}`)));
+    }
+    clear(body);
+    append(body, renderTab(s, tab, close, render));
+  };
+  render();
+  const el = h('div', { class: 'overlay' }, h('div', { class: 'panel book' }, h('div', { class: 'panel-title row' }, t('menu.title'), h('div', { class: 'spacer' }), button(t('common.close'), close, { small: true, kind: 'ghost' })), h('div', { class: 'panel-body col', style: 'gap:10px' }, tabs, body)));
+  layer = openLayer(el, { pausesClock: true, onCancel: close, name: 'menu' });
+}
+
+function renderTab(s: GameState, tab: Tab, close: () => void, rerender: () => void): Child[] {
+  const hero = s.actors.hero;
+  switch (tab) {
+    case 'status': {
+      const sch = scheduleFor(s.day);
+      const alive = Object.values(s.actors).filter((a) => a.alive);
+      const main = CATALOG.find((c) => c.id === sch.main);
+      return [
+        h('div', { class: 'row', style: 'gap:16px;align-items:flex-start' },
+          face('hero', 'lg'),
+          h('div', { class: 'col grow', style: 'gap:6px' },
+            h('div', { class: 'gold', style: 'font-size:1.2em' }, s.hero.name),
+            h('div', null, `DAY ${s.day}　${phaseName(s.phase)}`),
+            h('div', null, t('status.pieces'), '　', pieces(hero.pieces)),
+            h('div', null, t('status.house'), '　', t(hero.house === 'prison' ? 'house.prison' : hero.house === 'living' ? 'house.living' : 'house.none')),
+            h('div', null, t('status.alive', { n: alive.length })),
+            h('div', null, t('status.today', { name: main?.name ?? '', n: sch.prison })),
+            h('div', { class: 'dim small' }, t('status.rule')),
+          ),
+        ),
+        h('h4', { class: 'gold' }, t('status.log')),
+        ...s.log.slice(-14).reverse().map((l) => h('div', { class: 'logline' }, `DAY${l.day}　${l.text}`)),
+      ];
+    }
+    case 'people': {
+      return [h('div', { class: 'dim small' }, t('people.note')), ...NPC_IDS.map((id) => {
+        const a = s.actors[id];
+        const def = NPC_BY_ID[id];
+        const met = !!s.flags[`heroMet_${id}`];
+        const deals = activeDeals(s, 'hero', id);
+        return h('div', { class: 'entry row', style: 'gap:12px;align-items:flex-start' }, face(id),
+          h('div', { class: 'col grow', style: 'gap:2px' },
+            h('div', null, h('b', null, def.name), '　', h('span', { class: 'dim small' }, met ? `${def.age}${t('people.age')}・${def.job}` : t('people.unmet')),
+              a.alive ? (a.house ? h('span', { class: `tag ${a.house === 'living' ? 'living' : ''}` }, t(a.house === 'prison' ? 'house.prison' : 'house.living')) : null) : h('span', { class: 'tag' }, t('people.out', { day: a.eliminatedDay ?? 0 }))),
+            met ? h('div', { class: 'small' }, def.profile) : null,
+            a.alive ? h('div', { class: 'small dim' }, t('people.pieces'), ' ', String(a.pieces)) : null,
+            ...deals.map((d) => h('div', { class: 'small gold' }, describeDeal(s, d))),
+          ));
+      })];
+    }
+    case 'deals': {
+      const mine = s.deals.filter((d) => d.from === 'hero' || d.to === 'hero');
+      if (!mine.length) return [h('div', { class: 'dim' }, t('deals.none'))];
+      return mine.slice().reverse().map((d) => h('div', { class: 'entry' }, h('span', { class: `tag ${d.status === 'active' ? 'fact' : ''}` }, t(`deal.status.${d.status}`)), ' ', `DAY${d.day}　`, describeDeal(s, d)));
+    }
+    case 'info': {
+      const list = Object.entries(hero.knows).map(([id, k]) => ({ info: s.infos[id], k })).filter((x) => x.info && x.info.kind !== 'result').sort((a, b) => b.k.day - a.k.day);
+      if (!list.length) return [h('div', { class: 'dim' }, t('info.none'))];
+      return [h('div', { class: 'dim small' }, t('info.note')), ...list.map(({ info, k }) => h('div', { class: 'entry' },
+        h('span', { class: `tag ${k.from === 'self' || k.from === 'public' ? 'fact' : ''}` }, k.from === 'self' ? t('info.self') : k.from === 'public' ? t('info.public') : t('info.heard', { name: shortName(s, k.from) })),
+        ' ', `DAY${k.day}　`, info.text))];
+    }
+    case 'history': {
+      const out: Child[] = [];
+      for (const b of s.board.slice().reverse()) out.push(h('div', { class: 'entry' }, b.text));
+      for (const r of s.history.slice().reverse()) {
+        out.push(h('div', { class: 'entry' }, h('b', { class: 'gold' }, `DAY ${r.day}`), h('div', { class: 'small' }, t('history.main'), '：', r.mainRanking.map((id, i) => `${i + 1}.${shortName(s, id)}(${r.mainScores[id] ?? 0})`).join('　')),
+          r.prisonRanking.length ? h('div', { class: 'small' }, t('history.prison'), '：', r.prisonRanking.map((id, i) => `${i + 1}.${shortName(s, id)}(${r.prisonScores[id] ?? 0})`).join('　')) : null));
+      }
+      return out.length ? out : [h('div', { class: 'dim' }, t('history.none'))];
+    }
+    case 'rules': {
+      const sch = scheduleFor(s.day);
+      const ids = ([sch.main, sch.prisonGame] as (string | null)[]).filter((x): x is string => !!x && isImplemented(x));
+      return [h('div', { class: 'text' }, t('rules.core')), ...ids.map((id) => h('div', { class: 'entry' }, h('b', { class: 'gold' }, `${id.toUpperCase()}　${MATCHES[id].name}`), ...MATCHES[id].rules.map((r) => h('div', { class: 'small', style: 'margin-top:4px' }, `・${r}`)))),
+        h('div', { class: 'entry' }, h('b', { class: 'gold' }, TIEBREAK.name), ...TIEBREAK.rules.map((r) => h('div', { class: 'small', style: 'margin-top:4px' }, `・${r}`)))];
+    }
+    case 'map': {
+      // 立ち入ったことのある部屋と、通常の案内図にある部屋だけを表示する（隠し区画は発見するまで載せない）
+      const floors = ['3F', '2F', '1F', 'B1', 'B2'] as const;
+      return floors.map((f) => {
+        const rooms = Object.values(ROOMS).filter((r) => r.floor === f && !r.id.startsWith('bedroom_') && (r.area !== 'secret' || !!s.flags[`visited_${r.id}`]));
+        if (!rooms.length) return null;
+        return h('div', { class: 'map-floor' }, h('b', null, f), h('div', { class: 'map-rooms' }, rooms.map((r) => {
+          const here = hero.pos.room === r.id;
+          const ok = canEnter(s, 'hero', r.id);
+          const n = Object.values(s.actors).filter((a) => a.alive && a.id !== 'hero' && a.pos.room === r.id && here).length;
+          return h('div', { class: `map-room${here ? ' here' : ''}${ok ? '' : ' locked'}` }, r.name, here ? h('small', null, t('map.here', { n })) : !ok ? h('small', null, t('map.locked')) : null);
+        })));
+      });
+    }
+    case 'system':
+      return [settingsBody(rerender), h('div', { class: 'row', style: 'gap:10px;margin-top:14px;flex-wrap:wrap' },
+        button(t('system.save'), () => { G.save(); toast(t('system.saved'), 'good'); }),
+        button(t('system.toTitle'), async () => {
+          if (await confirmDialog(t('system.toTitle'), t('system.toTitleText'), { ok: t('system.toTitle'), cancel: t('common.cancel') })) {
+            G.save();
+            close();
+            location.reload();
+          }
+        }, { kind: 'danger' }),
+      )];
+  }
+}
+
+// ---------------- 設定・遊び方・クレジット ----------------
+
+function slider(label: string, value: number, onChange: (v: number) => void): HTMLElement[] {
+  const out = h('b', null, `${Math.round(value * 100)}`);
+  const input = h('input', { type: 'range', min: '0', max: '100', step: '5', value: String(Math.round(value * 100)), class: 'slider' });
+  input.addEventListener('input', () => {
+    out.textContent = input.value;
+    onChange(Number(input.value) / 100);
+  });
+  return [h('label', null, label), h('div', { class: 'row', style: 'gap:12px' }, input, out)];
+}
+
+function settingsBody(rerender: () => void): HTMLElement {
+  const st = G.meta.settings;
+  const commit = () => {
+    saveMeta(G.meta);
+    Sound.setVolumes(st.bgm, st.se);
+    document.documentElement.style.setProperty('--text-scale', String(st.textScale));
+  };
+  return h('div', { class: 'form-grid' }, [
+    ...slider(t('set.bgm'), st.bgm, (v) => { st.bgm = v; commit(); }),
+    ...slider(t('set.se'), st.se, (v) => { st.se = v; commit(); Sound.se('confirm'); }),
+    h('label', null, t('set.text')),
+    h('div', { class: 'row', style: 'gap:6px' }, [0.9, 1, 1.15, 1.3].map((v) => button(t(`set.text.${v}`), () => { st.textScale = v; commit(); rerender(); }, { small: true, cls: st.textScale === v ? 'selected' : '' }))),
+    h('label', null, t('title.language')),
+    h('div', { class: 'row', style: 'gap:6px' }, LANGS.map((l) => button(l.name, () => { applyLang(l.id); rerender(); }, { small: true, cls: getLang() === l.id ? 'selected' : '' }))),
+    h('label', null, t('set.data')),
+    h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' }, [
+      button(t('set.export'), async () => {
+        const raw = exportSave();
+        if (!raw) return toast(t('set.noSave'), 'info');
+        try {
+          await navigator.clipboard.writeText(raw);
+          toast(t('set.exported'), 'good');
+        } catch {
+          await alertDialog(t('set.export'), h('textarea', { class: 'text-input', style: 'width:100%;height:160px', readOnly: true }, raw));
+        }
+      }, { small: true }),
+      button(t('set.import'), async () => {
+        const ta = h('textarea', { class: 'text-input', style: 'width:100%;height:160px', placeholder: t('set.importHint') });
+        if (!(await confirmDialog(t('set.import'), ta, { ok: t('set.import'), cancel: t('common.cancel') }))) return;
+        const r = importSave(ta.value.trim());
+        toast(r.ok ? t('set.imported') : `${t('set.importFail')} ${r.error ?? ''}`, r.ok ? 'good' : 'bad');
+      }, { small: true }),
+    ]),
+  ]);
+}
+
+export function settingsScreen(): Promise<void> {
+  return new Promise((resolve) => {
+    let layer: Layer;
+    const body = h('div');
+    const render = () => {
+      clear(body);
+      body.append(settingsBody(render));
+    };
+    const done = () => {
+      closeLayer(layer);
+      resolve();
+    };
+    render();
+    layer = openLayer(h('div', { class: 'overlay' }, panel(t('title.settings'), body, { wide: true, footer: button(t('common.close'), done, { kind: 'primary', autofocus: true }) })), { onCancel: done, pausesClock: true, name: 'settings' });
+  });
+}
+
+export function howtoScreen(): Promise<void> {
+  const items = ['move', 'talk', 'deal', 'note', 'flow', 'time'];
+  return alertDialog(t('title.howto'), h('div', { class: 'col', style: 'gap:8px' }, items.map((k) => h('div', { class: 'entry' }, h('b', { class: 'gold' }, t(`howto.${k}.h`)), h('div', { class: 'small' }, t(`howto.${k}`))))), t('common.close'));
+}
+
+export function creditsScreen(): Promise<void> {
+  return alertDialog(t('title.credits'), h('div', { class: 'col small', style: 'gap:8px' }, [
+    h('div', null, h('b', { class: 'gold' }, t('credits.bgm')), h('div', null, 'PeriTune（https://peritune.com/）'), h('div', { class: 'dim' }, Object.values(BGM).map((b) => b.title).join(' / ')), h('div', { class: 'dim' }, t('credits.bgmLicense'))),
+    h('div', null, h('b', { class: 'gold' }, t('credits.se')), h('div', null, 'Kenney（https://kenney.nl/）— Casino Audio / Interface Sounds / RPG Audio'), h('div', { class: 'dim' }, t('credits.seLicense'))),
+    h('div', null, h('b', { class: 'gold' }, t('credits.engine')), h('div', null, 'Phaser 4 (MIT) / Vite / TypeScript')),
+    h('div', { class: 'dim' }, t('credits.note')),
+  ]), t('common.close'));
+}
+
+/** 完全版の案内。決済は未実装のため、購入できるようになるまでは案内だけを表示する（価格は未確定） */
+export function purchaseScreen(afterDay: boolean): Promise<boolean> {
+  return new Promise((resolve) => {
+    let layer: Layer;
+    const done = (v: boolean) => {
+      closeLayer(layer);
+      resolve(v);
+    };
+    const unlocked = fullUnlocked();
+    const body = h('div', { class: 'col', style: 'gap:10px' }, [
+      h('div', { class: 'text' }, t(afterDay ? 'purchase.afterDay' : 'purchase.lead')),
+      h('div', { class: 'note-box' }, ['p1', 'p2', 'p3', 'p4'].map((k) => h('div', null, `・${t(`purchase.${k}`)}`))),
+      h('div', { class: 'gold' }, t(unlocked ? (CHANNEL === 'dev' ? 'purchase.devUnlocked' : 'purchase.owned') : Purchase.available() ? 'purchase.ready' : 'purchase.soon')),
+    ]);
+    const buy = button(t('purchase.buy'), async () => {
+      const ok = await Purchase.purchase();
+      if (ok) {
+        toast(t('purchase.thanks'), 'good');
+        done(true);
+      } else toast(t('purchase.soon'), 'info');
+    }, { kind: 'primary', disabled: unlocked || !Purchase.available() });
+    const restore = button(t('title.restore'), async () => {
+      if (await Purchase.restore()) done(true);
+      else toast(t('purchase.none'), 'info');
+    }, { disabled: unlocked });
+    layer = openLayer(h('div', { class: 'overlay solid' }, panel(t('purchase.title'), body, { footer: [button(t(afterDay && !unlocked ? 'common.toTitle' : 'common.close'), () => done(unlocked), { kind: 'ghost' }), restore, buy] })), { onCancel: () => done(unlocked), pausesClock: true, name: 'purchase' });
+  });
+}
+
+// ---------------- 競技説明・結果 ----------------
+
+export function rulesScreen(matchId: string, opts: { prison: boolean }): Promise<void> {
+  const eng = MATCHES[matchId];
+  const g = GUIDE[matchId];
+  return new Promise((resolve) => {
+    let layer: Layer;
+    const done = () => {
+      closeLayer(layer);
+      resolve();
+    };
+    const body = h('div', { class: 'col', style: 'gap:8px' }, [
+      h('div', { class: 'row', style: 'gap:14px;align-items:flex-start' }, h('img', { class: 'face lg', src: portraitUrl('host_observer'), alt: '', style: 'object-fit:cover;object-position:top' }),
+        h('div', { class: 'col grow', style: 'gap:6px' }, h('div', { class: 'text' }, eng.summary), g ? h('div', { class: 'note-box' }, h('b', { class: 'gold' }, t('rules.goal')), '　', g.goal, h('br'), h('b', { class: 'gold' }, t('rules.attention')), '　', g.attention) : null)),
+      ...eng.rules.map((r, i) => h('div', { class: 'entry' }, `${i + 1}. ${r}`)),
+      h('div', { class: 'note-box' }, t(opts.prison ? 'rules.prisonCut' : 'rules.mainCut', { n: scheduleFor(G.state?.day ?? 1).prison })),
+      h('div', { class: 'note-box' }, t('rules.tie')),
+    ]);
+    layer = openLayer(h('div', { class: `overlay ${G.fieldVisible ? '' : 'solid'}` }, panel(`${matchId.toUpperCase()}　${eng.name}`, body, { wide: true, footer: button(t('rules.ok'), done, { kind: 'primary', autofocus: true }) })), { onCancel: undefined, pausesClock: true, name: 'rules' });
+  });
+}
+
+export function rankingScreen(v: RankingView): Promise<void> {
+  const s = G.state!;
+  return new Promise((resolve) => {
+    let layer: Layer;
+    const done = () => {
+      closeLayer(layer);
+      resolve();
+    };
+    const n = v.ranking.length;
+    const list = h('div', { class: 'rank-list' }, v.ranking.map((id, i) => {
+      const cut = i >= n - v.cut;
+      return h('div', { class: `rank${cut ? ' prison' : ''}${id === 'hero' ? ' me' : ''}` },
+        h('span', { class: 'no' }, String(i + 1)), face(id), h('span', { class: 'grow' }, nameOf(s, id)),
+        cut ? h('span', { class: 'tag' }, v.cutLabel) : null,
+        v.rewards && v.rewards[id] ? h('span', { class: 'good' }, '+', pieces(v.rewards[id] ?? 0)) : null,
+        h('span', { class: 'pts' }, `${v.scores[id] ?? 0}${t('rank.pts')}`));
+    }));
+    const body = h('div', { class: 'col', style: 'gap:8px' }, list, ...v.notes.map((x) => h('div', { class: 'note-box' }, x)));
+    layer = openLayer(h('div', { class: `overlay solid${v.prison ? ' prison-bg' : ''}` }, panel(v.title, body, { wide: true, footer: button(t('common.next'), done, { kind: 'primary', autofocus: true }) })), { pausesClock: true, name: 'ranking' });
+  });
+}
+
+export function eliminationScreen(id: CharId): Promise<void> {
+  const s = G.state!;
+  return new Promise((resolve) => {
+    let layer: Layer;
+    const done = () => {
+      closeLayer(layer);
+      resolve();
+    };
+    const line = id === 'hero' ? t('elim.hero') : t('elim.npc', { name: nameOf(s, id) });
+    const el = h('div', { class: 'overlay solid elim-screen', onclick: done },
+      h('img', { class: 'dlg-portrait', src: portraitUrl(id === 'hero' ? 'hero' : id, 'sad'), alt: '', style: 'left:50%;transform:translateX(-50%);opacity:0.5;filter:grayscale(0.8)' }),
+      h('div', { class: 'banner red' }, t('elim.title')),
+      h('div', { class: 'elim-name' }, nameOf(s, id)),
+      h('div', { class: 'text center' }, line),
+      button(t('common.next'), done, { kind: 'primary', autofocus: true }),
+    );
+    Sound.se('drop');
+    layer = openLayer(el, { pausesClock: true, name: 'elim' });
+  });
+}
+
+export async function endingScreen(id: string): Promise<void> {
+  const s = G.state;
+  const e = ENDINGS.find((x) => x.id === id) ?? ENDINGS[0];
+  await playStory(e.lines.map((text) => ({ speaker: 'narrator', text })));
+  const reached = s ? t('ending.reached', { day: s.day }) : '';
+  await new Promise<void>((resolve) => {
+    let layer: Layer;
+    const done = () => {
+      closeLayer(layer);
+      resolve();
+    };
+    const hist = s ? s.board.map((b) => h('div', { class: 'small dim' }, b.text)) : [];
+    layer = openLayer(h('div', { class: 'overlay solid' }, panel(`${t('ending.label')}　${e.title}`, h('div', { class: 'col', style: 'gap:8px' }, h('div', { class: 'text' }, reached), h('div', { class: 'note-box' }, t(id === 'E_BAD' ? 'ending.badNote' : 'ending.note')), ...hist), { footer: button(t('common.toTitle'), done, { kind: 'primary', autofocus: true }) })), { pausesClock: true, name: 'ending' });
+  });
+}
+
+export function boardScreen(): Promise<void> {
+  const s = G.state!;
+  const sch = scheduleFor(s.day);
+  const main = CATALOG.find((c) => c.id === sch.main);
+  return alertDialog(t('board.title'), h('div', { class: 'col', style: 'gap:6px' }, [
+    h('div', { class: 'entry' }, t('board.today', { day: s.day, name: main?.name ?? '', n: sch.prison })),
+    h('div', { class: 'entry' }, t('board.alive'), '：', Object.values(s.actors).filter((a) => a.alive).map((a) => shortName(s, a.id)).join('、')),
+    ...s.board.slice().reverse().map((b) => h('div', { class: 'entry small' }, b.text)),
+  ]), t('common.close'), false);
+}
+
+export function initSettings(): void {
+  const st = G.meta.settings;
+  if (st.lang) setLang(st.lang);
+  document.documentElement.style.setProperty('--text-scale', String(st.textScale));
+  if (G.state) setHeroGender(G.state.hero.gender);
+}
+
+export { deleteSave };

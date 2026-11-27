@@ -3,30 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#050a18" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="FALSE CROWN" />
-    <link rel="icon" type="image/png" href="icons/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <title>FALSE CROWN</title>
   </head>
   <body>
     <div id="game"></div>
-    <div id="touch-controls" aria-hidden="true">
-      <div class="dpad">
-        <button data-key="up" class="up"></button>
-        <button data-key="left" class="left"></button>
-        <button data-key="right" class="right"></button>
-        <button data-key="down" class="down"></button>
-      </div>
-      <div class="buttons">
-        <button data-key="b" class="b">B</button>
-        <button data-key="a" class="a">A</button>
-      </div>
-      <button data-key="start" class="start">START</button>
-    </div>
+    <div id="ui"></div>
+    <div id="safe-probe" aria-hidden="true"></div>
     <div id="rotate-notice">端末を横向きにしてください</div>
     <script type="module" src="/src/main.ts"></script>
   </body>

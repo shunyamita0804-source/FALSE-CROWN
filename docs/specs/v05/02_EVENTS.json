@@ -1,0 +1,899 @@
+{
+  "version": 5,
+  "events": [
+    {
+      "id": "S00",
+      "day": 1,
+      "phase": "intro",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "黒い封筒には、差出人の名前がなかった。"
+        },
+        {
+          "speaker": "narrator",
+          "text": "参加者十二名。十一日間。優勝賞金十億円。最後の一人になる覚悟はありますか？"
+        },
+        {
+          "speaker": "narrator",
+          "text": "招待状の住所にたどり着くと、重い扉が背後で閉じた。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "ようこそ、FALSE CROWNへ。私はオブザーバー。この大会の進行を担当します。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "毎日、全員でメインマッチを行います。下位者は監獄棟へ。監獄マッチの最下位は大会から脱落します。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "ピースは自由に取引できます。ただし、所持数がゼロでも脱落にはなりません。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "外部への連絡は禁止です。競技の規則は全員に等しく適用します。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "それでは、最初の朝をお楽しみください。"
+        }
+      ]
+    },
+    {
+      "id": "S01A",
+      "day": 1,
+      "phase": "morning",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "まだ誰も、誰の言葉を信用してよいか知らない。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "まずは互いの名前を覚えてください。"
+        }
+      ]
+    },
+    {
+      "id": "S02A",
+      "day": 2,
+      "phase": "morning",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "昨日とは異なる顔ぶれで朝が始まった。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "昨日の結果は変えられません。今日の選択は皆様のものです。"
+        }
+      ]
+    },
+    {
+      "id": "S03A",
+      "day": 3,
+      "phase": "morning",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "空いた個室には、荷物の跡さえ残っていなかった。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "脱落者の居室は順次整理されます。"
+        }
+      ]
+    },
+    {
+      "id": "S04A",
+      "day": 4,
+      "phase": "morning",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "中央ホールの掲示板には、古い記録が混じっている。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "施設内の公開資料は自由に閲覧できます。"
+        }
+      ]
+    },
+    {
+      "id": "S05A",
+      "day": 5,
+      "phase": "morning",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "誰かの肩書と、実際の行動が一致するとは限らない。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "競技外の約束について、運営は履行を保証しません。"
+        }
+      ]
+    },
+    {
+      "id": "S06A",
+      "day": 6,
+      "phase": "morning",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "床下から短い振動が伝わった。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "立入制限を守ってお過ごしください。"
+        }
+      ]
+    },
+    {
+      "id": "S07A",
+      "day": 7,
+      "phase": "morning",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "共用廊下に保守案内が掲示された。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "残る日程はわずかです。何に時間を使うかも競技の一部です。"
+        }
+      ]
+    },
+    {
+      "id": "S08A",
+      "day": 8,
+      "phase": "morning",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "施設に来た理由を、もう一度考える時かもしれない。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "旧記録の閲覧許可をお持ちの方は、指定時間内にご利用ください。"
+        }
+      ]
+    },
+    {
+      "id": "S09A",
+      "day": 9,
+      "phase": "morning",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "広い食堂が、以前よりも静かに感じられた。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "ここからは一つの判断が、順位を大きく左右します。"
+        }
+      ]
+    },
+    {
+      "id": "S10A",
+      "day": 10,
+      "phase": "morning",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "最後の夜が近づいている。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "本日の生存者二名が決勝へ進みます。"
+        }
+      ]
+    },
+    {
+      "id": "S11A",
+      "day": 11,
+      "phase": "morning",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "残された席は二つだけだった。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "決勝では補助の購入は認められません。純粋な競技で決着をつけます。"
+        }
+      ]
+    },
+    {
+      "id": "S01P",
+      "day": 1,
+      "phase": "post_prison",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "host_observer",
+          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+        },
+        {
+          "speaker": "narrator",
+          "text": "また一つ、参加者の名前が掲示板から消えた。"
+        }
+      ]
+    },
+    {
+      "id": "S02P",
+      "day": 2,
+      "phase": "post_prison",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "host_observer",
+          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+        },
+        {
+          "speaker": "narrator",
+          "text": "また一つ、参加者の名前が掲示板から消えた。"
+        }
+      ]
+    },
+    {
+      "id": "S03P",
+      "day": 3,
+      "phase": "post_prison",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "host_observer",
+          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+        },
+        {
+          "speaker": "narrator",
+          "text": "また一つ、参加者の名前が掲示板から消えた。"
+        }
+      ]
+    },
+    {
+      "id": "S04P",
+      "day": 4,
+      "phase": "post_prison",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "host_observer",
+          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+        },
+        {
+          "speaker": "narrator",
+          "text": "また一つ、参加者の名前が掲示板から消えた。"
+        }
+      ]
+    },
+    {
+      "id": "S05P",
+      "day": 5,
+      "phase": "post_prison",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "host_observer",
+          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+        },
+        {
+          "speaker": "narrator",
+          "text": "また一つ、参加者の名前が掲示板から消えた。"
+        }
+      ]
+    },
+    {
+      "id": "S06P",
+      "day": 6,
+      "phase": "post_prison",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "host_observer",
+          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+        },
+        {
+          "speaker": "narrator",
+          "text": "また一つ、参加者の名前が掲示板から消えた。"
+        }
+      ]
+    },
+    {
+      "id": "S07P",
+      "day": 7,
+      "phase": "post_prison",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "host_observer",
+          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+        },
+        {
+          "speaker": "narrator",
+          "text": "また一つ、参加者の名前が掲示板から消えた。"
+        }
+      ]
+    },
+    {
+      "id": "S08P",
+      "day": 8,
+      "phase": "post_prison",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "host_observer",
+          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+        },
+        {
+          "speaker": "narrator",
+          "text": "また一つ、参加者の名前が掲示板から消えた。"
+        }
+      ]
+    },
+    {
+      "id": "S09P",
+      "day": 9,
+      "phase": "post_prison",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "host_observer",
+          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+        },
+        {
+          "speaker": "narrator",
+          "text": "また一つ、参加者の名前が掲示板から消えた。"
+        }
+      ]
+    },
+    {
+      "id": "S10P",
+      "day": 10,
+      "phase": "post_prison",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "host_observer",
+          "text": "監獄マッチの結果が確定しました。脱落者は{eliminated}です。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "残る参加者は、次の案内まで指定区域でお過ごしください。"
+        },
+        {
+          "speaker": "narrator",
+          "text": "また一つ、参加者の名前が掲示板から消えた。"
+        }
+      ]
+    },
+    {
+      "id": "S_MAIN_RESULT",
+      "day": 0,
+      "phase": "post_main",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "host_observer",
+          "text": "順位が確定しました。各自の指定された棟へ移動してください。"
+        }
+      ],
+      "repeat": "daily"
+    },
+    {
+      "id": "S_FINAL",
+      "day": 11,
+      "phase": "final",
+      "mandatory": true,
+      "lines": [
+        {
+          "speaker": "host_observer",
+          "text": "最後の対戦者は{opponent}。五つの競技のうち、先に三勝した者が王冠を手にします。"
+        },
+        {
+          "speaker": "narrator",
+          "text": "ここまでの約束も裏切りも、最後の一手を代わりに選んではくれない。"
+        }
+      ]
+    },
+    {
+      "id": "I04",
+      "day": 4,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "過去の記録の端に、移送先B2-Iという記号があった。退場と退館は同じ意味ではないのかもしれない。"
+        }
+      ],
+      "triggerFlag": "v04_board_record",
+      "dayIsMinimum": true
+    },
+    {
+      "id": "I07",
+      "day": 7,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "旧記録閲覧申請。交換所で手続きできると書かれている。"
+        }
+      ],
+      "triggerFlag": "v04_maintenance_notice",
+      "dayIsMinimum": true
+    },
+    {
+      "id": "I08",
+      "day": 8,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "CROWN計画。これは大会の記録ではなく、極限下の意思決定を予測する研究の記録だった。"
+        },
+        {
+          "speaker": "narrator",
+          "text": "責任者の欄には、オブザーバーの名がある。"
+        }
+      ],
+      "triggerFlag": "DOC_CROWN",
+      "dayIsMinimum": true
+    },
+    {
+      "id": "I09",
+      "day": 9,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "隔離区画の窓の向こうに、確かに生存者の姿が見えた。"
+        },
+        {
+          "speaker": "narrator",
+          "text": "脱落は死を意味しなかった。しかし、彼らは自由ではない。"
+        }
+      ],
+      "triggerFlag": "ISOLATION_CONFIRMED",
+      "dayIsMinimum": true
+    },
+    {
+      "id": "I10",
+      "day": 9,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "host_observer",
+          "text": "そこまでたどり着いたのですね。"
+        },
+        {
+          "speaker": "host_observer",
+          "text": "私は計画を継いだ者です。勝者の知性だけでなく、勝利のために何を選ぶかを観測してきました。"
+        },
+        {
+          "speaker": "narrator",
+          "text": "端末には隔離区画の解放操作権が表示されている。"
+        }
+      ],
+      "triggerFlag": "RELEASE_AUTH",
+      "dayIsMinimum": true
+    },
+    {
+      "id": "C02A",
+      "day": 2,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_02_kanzaki",
+          "text": "感情を切り捨てれば正解が出るとは限らない。感情もまた、計算に入れるべき変数だ。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "talk_optional"
+    },
+    {
+      "id": "C02B",
+      "day": 1,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_02_kanzaki",
+          "text": "私の署名が残っていたか。あのモデルがこんな形で使われるとは思わなかった。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "v03_secret_disclosure",
+      "useExistingSecretGate": true
+    },
+    {
+      "id": "C03A",
+      "day": 2,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_03_kurose",
+          "text": "条件を曖昧にした約束は、約束した側にも責任があるわ。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "talk_optional"
+    },
+    {
+      "id": "C03B",
+      "day": 1,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_03_kurose",
+          "text": "依頼人がいるの。ここで何が行われたかを、証拠として持ち帰りたい。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "v03_secret_disclosure",
+      "useExistingSecretGate": true
+    },
+    {
+      "id": "C04A",
+      "day": 2,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_04_mido",
+          "text": "資産は使ってこそ意味がある。だが、人間の価値は値札ほど単純ではない。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "talk_optional"
+    },
+    {
+      "id": "C04B",
+      "day": 1,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_04_mido",
+          "text": "出資したのは事実だ。だが、今の運営に口を出せる立場ではない。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "v03_secret_disclosure",
+      "useExistingSecretGate": true
+    },
+    {
+      "id": "C05A",
+      "day": 2,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_05_shiraishi",
+          "text": "人が約束を破る瞬間って、意外と静かなのよ。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "talk_optional"
+    },
+    {
+      "id": "C05B",
+      "day": 1,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_05_shiraishi",
+          "text": "私の研究対象は裏切り。だからといって、私の言葉が全部嘘とは限らないでしょう？"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "v03_secret_disclosure",
+      "useExistingSecretGate": true
+    },
+    {
+      "id": "C06A",
+      "day": 2,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_06_kiryu",
+          "text": "勝てる手を探す。誰かに勝たせてもらうつもりはない。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "talk_optional"
+    },
+    {
+      "id": "C06B",
+      "day": 1,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_06_kiryu",
+          "text": "昔の競技データを見たことがある。でも今の正解を知っているわけじゃない。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "v03_secret_disclosure",
+      "useExistingSecretGate": true
+    },
+    {
+      "id": "C07A",
+      "day": 2,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_07_tachibana",
+          "text": "誰かが不利だからといって、見捨てる理由にはならないわ。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "talk_optional"
+    },
+    {
+      "id": "C07B",
+      "day": 1,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_07_tachibana",
+          "text": "以前担当した患者の記録が、ここにつながっていたの。個人情報は明かせないけれど。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "v03_secret_disclosure",
+      "useExistingSecretGate": true
+    },
+    {
+      "id": "C08A",
+      "day": 2,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_08_dojima",
+          "text": "噂は噂だ。見たものと聞いたものを混ぜるな。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "talk_optional"
+    },
+    {
+      "id": "C08B",
+      "day": 1,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_08_dojima",
+          "text": "失踪事件を追っていた。ここがその調査先の一つだ。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "v03_secret_disclosure",
+      "useExistingSecretGate": true
+    },
+    {
+      "id": "C09A",
+      "day": 2,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_09_asahina",
+          "text": "みんなの名前、もう覚えたよ。名前を呼べるだけで少し安心するから。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "talk_optional"
+    },
+    {
+      "id": "C09B",
+      "day": 1,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_09_asahina",
+          "text": "兄が昔の大会に参加していたの。今どこにいるかは、まだ分からない。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "v03_secret_disclosure",
+      "useExistingSecretGate": true
+    },
+    {
+      "id": "C10A",
+      "day": 2,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_10_kujo",
+          "text": "勝負は手札より、降り時を知っているかどうかだ。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "talk_optional"
+    },
+    {
+      "id": "C10B",
+      "day": 1,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_10_kujo",
+          "text": "前にも参加したことがある。今回は違う。昔の手口が通用する保証はない。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "v03_secret_disclosure",
+      "useExistingSecretGate": true
+    },
+    {
+      "id": "C11A",
+      "day": 2,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_11_kisaragi",
+          "text": "役を演じるのと、約束を守るのは別の話よ。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "talk_optional"
+    },
+    {
+      "id": "C11B",
+      "day": 1,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_11_kisaragi",
+          "text": "主催者に参加者の言動を報告するよう頼まれていた。勝敗を操作する権限なんてないわ。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "v03_secret_disclosure",
+      "useExistingSecretGate": true
+    },
+    {
+      "id": "C12A",
+      "day": 2,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_12_kuze",
+          "text": "知識は人を救うことも、閉じ込めることもある。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "talk_optional"
+    },
+    {
+      "id": "C12B",
+      "day": 1,
+      "phase": "inspect",
+      "mandatory": false,
+      "lines": [
+        {
+          "speaker": "npc_12_kuze",
+          "text": "CROWN計画の発足に関わった。だが、現在の運営権限は私にはない。"
+        }
+      ],
+      "requiresActiveSpeaker": true,
+      "requiresSameRoom": true,
+      "dayIsMinimum": true,
+      "trigger": "v03_secret_disclosure",
+      "useExistingSecretGate": true
+    }
+  ]
+}

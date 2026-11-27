@@ -1,0 +1,30 @@
+[
+  {
+    "id": "B01",
+    "file": "audio/bgm/B01_echoed_art.m4a",
+    "scene": "タイトル",
+    "loop": true,
+    "source": "Peritune_Echoed_Art.m4a"
+  },
+  {
+    "id": "B03",
+    "file": "audio/bgm/B03_taishoroman_theme2.m4a",
+    "scene": "共用施設・食堂",
+    "loop": true,
+    "source": "PerituneMaterial_TaishoRoman_Theme2_loop.m4a"
+  },
+  {
+    "id": "B03_ALT",
+    "file": "audio/bgm/B03_alt_coffee_lounge.m4a",
+    "scene": "ラウンジ",
+    "loop": true,
+    "source": "PerituneMaterial_Coffee_Lounge_loop.m4a"
+  },
+  {
+    "id": "B08",
+    "file": "audio/bgm/B08_investigation.m4a",
+    "scene": "裏ゲーム・隠し部屋",
+    "loop": true,
+    "source": "PerituneMaterial_Investigation.m4a"
+  }
+]
