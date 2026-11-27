@@ -58,7 +58,7 @@ Kenney（https://kenney.nl/）— Casino Audio / Interface Sounds / RPG Audio
 
 - 制作：FALSE CROWN 制作者が ElevenLabs（音声生成サービス、モデル名の表記は eleven_v4）で生成した音声。納品物の管理表に、元ファイル名（`ElevenLabs_<生成日時>_<キャラクター名>_eleven_v4.mp3`）が記録されています。
 - 加工：なし（納品された MP3 のまま。キャラクター間の音量差は、再生時の倍率で揃えています。ファイルは変更していません）
-- ライセンス：納品物には、ライセンス文や契約プランの情報は含まれていません。商用利用と公開再配布の可否は、制作者の ElevenLabs 契約プランと生成時点の規約によります。制作者が条件を確認し、2026-11-27 に公開リポジトリと GitHub Pages への収録を承認しました。
+- ライセンス：納品物には、ライセンス文や契約プランの情報は含まれていません。商用利用と公開再配布の可否は、制作者の ElevenLabs 契約プランと生成時点の規約によります。制作者が条件を確認し、2026-11-27 に公開リポジトリと GitHub Pages への収録を承認しました（承認時点の対象は神崎、黒瀬、御堂、白石。その後に届いた同じ制作元の納品物は、同じ扱いで収録しています）。取り込みは `scripts/add-voice.py`。
 - 台詞と音声の照合：納品物の説明に「生成時刻順に台本へ対応付けたため、実装前に照合すること」とあります。開発環境では音声を聞いて確かめる手段が無いため、収録時間が台詞の長さと矛盾しないことだけを確認しました。耳での照合は未実施です。
 
 | キャラクター | 納品物 | 件数 | 収録状況 |
@@ -67,6 +67,7 @@ Kenney（https://kenney.nl/）— Casino Audio / Interface Sounds / RPG Audio
 | 黒瀬 美琴（npc_03_kurose） | FALSE_CROWN_voice_02_kurose.zip | 10 | 収録済み（`public/assets/audio/voice/`） |
 | 御堂 隆臣（npc_04_mido） | FALSE_CROWN_voice_03_mido.zip | 10 | 収録済み（`public/assets/audio/voice/`） |
 | 白石 紗夜（npc_05_shiraishi） | FALSE_CROWN_voice_04_shiraishi.zip | 10 | 収録済み（`public/assets/audio/voice/`） |
+| 桐生 颯（npc_06_kiryu） | FALSE_CROWN_voice_05_kiryu.zip | 10 | 収録済み（同上。先の 4 人と同じ制作元、同じ注意書きのため同じ扱い） |
 
 ## キャラクター・アイコン
 

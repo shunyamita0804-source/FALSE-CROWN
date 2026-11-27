@@ -131,7 +131,7 @@
   "cer.give1": "初期ピース", "cer.give2t": "個室の鍵", "cer.give2": "3F 生活棟", "cer.free": "正午まで自由時間", "cer.freeText": "館内を歩いて、ほかの参加者と話してみましょう。12:00 に 1F の大会競技場へ集合です。", "cer.go": "歩き出す",
   "rules.ceremony": "大会のルールを図で見返す",
   "set.voice": "ボイスの音量",
-  "credits.voice": "ボイス", "credits.voiceBy": "ElevenLabs で生成した音声（制作者提供、音源は未加工）", "credits.voiceNote": "神崎、黒瀬、御堂、白石の汎用ボイス。ほかの参加者は順次追加します。",
+  "credits.voice": "ボイス", "credits.voiceBy": "ElevenLabs で生成した音声（制作者提供、音源は未加工）", "credits.voiceNote": "届いた参加者から順に、汎用ボイスを収録しています。",
   "cb.target": "目標", "cb.sum": "合計", "cb.len": "長さ {n}", "cb.submit": "確定", "cb.clear": "やり直す",
   "p01.okLen": "長さ {n}", "p01.miss": "不正解", "p01.rank": "順位と直前の問題", "p01.lastNote": "最下位の 1 人が脱落します", "p01.finished": "終了", "p01.breakTitle": "ラウンド {n} まで終了", "p01.next": "ラウンド {n} へ",
   "tut.practice": "練習", "tut.practiceDone": "できました。本番も同じ操作です。", "tut.skip": "説明を飛ばす", "tut.toPractice": "練習へ", "tut.start": "本番へ", "tut.startSkip": "練習を飛ばして本番へ",

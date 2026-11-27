@@ -252,6 +252,61 @@
           "gain": 0.81
         }
       }
+    },
+    "npc_06_kiryu": {
+      "dir": "audio/voice/npc_06_kiryu",
+      "clips": {
+        "greeting": {
+          "file": "01_greeting.mp3",
+          "text": "おはよっ。",
+          "gain": 0.7
+        },
+        "hello": {
+          "file": "02_hello.mp3",
+          "text": "ん？ どうした？",
+          "gain": 1.26
+        },
+        "understand": {
+          "file": "03_understand.mp3",
+          "text": "あー、なるほどね。",
+          "gain": 1.4
+        },
+        "accept": {
+          "file": "04_accept.mp3",
+          "text": "オッケー、乗った！",
+          "gain": 0.83
+        },
+        "refuse": {
+          "file": "05_refuse.mp3",
+          "text": "いや、それは無理だわ。",
+          "gain": 1.2
+        },
+        "thinking": {
+          "file": "06_thinking.mp3",
+          "text": "うーん、どうすっかな。",
+          "gain": 1.4
+        },
+        "surprise": {
+          "file": "07_surprise.mp3",
+          "text": "えっ、マジで！？",
+          "gain": 0.84
+        },
+        "happy": {
+          "file": "08_happy.mp3",
+          "text": "よっしゃ！ いいね！",
+          "gain": 0.7
+        },
+        "disappointed": {
+          "file": "09_disappointed.mp3",
+          "text": "くっそー、マジかよ。",
+          "gain": 1.23
+        },
+        "thanks": {
+          "file": "10_thanks.mp3",
+          "text": "サンキュー！ 助かったわ。",
+          "gain": 0.72
+        }
+      }
     }
   }
 }
