@@ -17,8 +17,12 @@ import { face, icon } from './art';
 import { alertDialog, append, button, clear, clockPaused, closeLayer, fmtTime, h, openLayer, toast, type Child, type Layer } from './dom';
 import { renderM01 } from './games/m01';
 import { renderM02 } from './games/m02';
+import { renderM03 } from './games/m03';
+import { renderM04 } from './games/m04';
 import { renderP01 } from './games/p01';
 import { renderP02 } from './games/p02';
+import { renderP04 } from './games/p04';
+import { renderP03 } from './games/p03';
 import { renderTiebreak } from './games/tiebreak';
 import { talkTo } from './talk';
 
@@ -46,8 +50,12 @@ export type Renderer = (view: never, ui: MatchUi) => { main: Child; side?: Child
 const RENDERERS: Record<string, Renderer> = {
   m01: renderM01 as Renderer,
   m02: renderM02 as Renderer,
+  m03: renderM03 as Renderer,
+  m04: renderM04 as Renderer,
   p01: renderP01 as Renderer,
   p02: renderP02 as Renderer,
+  p04: renderP04 as Renderer,
+  p03: renderP03 as Renderer,
   tiebreak: renderTiebreak as Renderer,
 };
 

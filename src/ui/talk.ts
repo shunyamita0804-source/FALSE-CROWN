@@ -100,7 +100,10 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
       text.textContent = say(s, npc, key, { name: me, ...vars });
       setBust(portrait, npc, expr ?? EXPR[key] ?? 'normal');
       // 汎用ボイス：内容が一致する場面だけ鳴らす（一致しなければ、前の音声を止めるだけ）
-      if (!playVoice(npc, categoryForLine(key, { hour: Math.floor(clockMinutes(s) / 60), heroStarted: !opts.event }))) stopVoice();
+      // 初めて話しかけた時の挨拶は、自己紹介の声（持っている人だけ）
+      const firstMeet = key === 'greeting' && !opts.event && !s.flags[`voice_intro_${npc}`];
+      if (firstMeet && playVoice(npc, 'introduction')) s.flags[`voice_intro_${npc}`] = true;
+      else if (!playVoice(npc, categoryForLine(key, { hour: Math.floor(clockMinutes(s) / 60), heroStarted: !opts.event }))) stopVoice();
     };
     const raw = (str: string, expr = 'normal') => {
       stopVoice();

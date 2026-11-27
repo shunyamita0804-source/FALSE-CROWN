@@ -4,10 +4,12 @@
 - フォルダ内の管理表（CSV）と MP3 10 点を照合し、public/assets/audio/voice/<ID>/ へ無加工で複写する
 - src/data/voice.json に、ファイル名、台詞、再生時の音量補正（0.7〜1.4）を書き込む
 - 管理表と音源が合わない時は、何も書き込まずに終了する
+- 追加ボイス（11〜15：自己紹介、勝利、敗北、脱落、裏切り）の納品物は、登録済みのキャラクターの extra に足す（既存の 10 点は変えない）
 """
 import csv, glob, json, os, re, shutil, subprocess, sys
 
-CATS = ['greeting', 'hello', 'understand', 'accept', 'refuse', 'thinking', 'surprise', 'happy', 'disappointed', 'thanks']
+EXTRA = ['introduction', 'victory', 'defeat', 'elimination', 'betrayal']
+BASIC = ['greeting', 'hello', 'understand', 'accept', 'refuse', 'thinking', 'surprise', 'happy', 'disappointed', 'thanks']
 
 def main():
     src, cid = sys.argv[1], sys.argv[2]
@@ -21,6 +23,8 @@ def main():
     tkey = next((k for k in rows[0] if k in ('text', 'dialogue', 'line')), None)
     if not fkey or not tkey:
         sys.exit(f'管理表の列名が分かりません: {list(rows[0])}')
+    addon = all(re.sub(r'^\d+_', '', r[fkey].strip()[:-4]) in EXTRA for r in rows)
+    CATS = EXTRA if addon else BASIC
     clips, problems = {}, []
     for r in rows:
         f = r[fkey].strip()
@@ -49,8 +53,15 @@ def main():
         print(f"{c['file']:22s} {c.pop('_dur'):.2f}s gain {c['gain']:.2f}  {c['text']}")
     path = os.path.join(root, 'src', 'data', 'voice.json')
     data = json.load(open(path, encoding='utf-8'))
-    data['characters'][cid] = {'dir': f'audio/voice/{cid}', 'clips': {cat: clips[cat] for cat in CATS}}
+    if addon:
+        if cid not in data['characters']:
+            sys.exit(f'{cid} の基本ボイスが未登録です')
+        data['characters'][cid]['extra'] = {cat: clips[cat] for cat in CATS}
+    else:
+        keep = data['characters'].get(cid, {}).get('extra')
+        data['characters'][cid] = {'dir': f'audio/voice/{cid}', 'clips': {cat: clips[cat] for cat in CATS}}
+        if keep: data['characters'][cid]['extra'] = keep
     json.dump(data, open(path, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
-    print(f'{cid}: 10 点を取り込みました')
+    print(f'{cid}: {len(CATS)} 点を取り込みました')
 
 main()

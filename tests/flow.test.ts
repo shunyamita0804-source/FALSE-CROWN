@@ -1,6 +1,7 @@
 import { isImplemented } from '../src/matches/registry';
 import { describe, expect, it } from 'vitest';
 import { autoAdvance } from '../src/core/autoplay';
+import { scheduleFor } from '../src/data/config';
 import { aliveIds } from '../src/core/state';
 import jaUi from '../src/locales/ja/ui.json';
 import enUi from '../src/locales/en/ui.json';
@@ -50,14 +51,20 @@ describe('1日の進行（自動対戦）', () => {
     for (let seed = 1; seed <= 20; seed++) {
       const s = freshState(seed * 13);
       s.phase = 'morning';
-      const ok = await autoAdvance(s, 4, 'morning');
+      // 実装と確認が済んでいる最後の日
+      let lastDay = 0;
+      for (let d = 1; d <= 10; d++) {
+        const sch = scheduleFor(d);
+        if (!isImplemented(sch.main) || (sch.prisonGame && !isImplemented(sch.prisonGame))) break;
+        lastDay = d;
+      }
+      const ok = await autoAdvance(s, lastDay + 2, 'morning');
       expect(ok).toBe(false);
       if (!s.actors.hero.alive) continue;
-      const day2 = isImplemented('m02') && isImplemented('p02');
-      expect(s.day).toBe(day2 ? 3 : 2);
+      expect(s.day).toBe(lastDay + 1);
       expect(s.phase).toBe('morning');
-      expect(aliveIds(s).length).toBe(day2 ? 10 : 11);
-      if (day2) expect(s.history[1].mainRanking!.length).toBe(11);
+      expect(aliveIds(s).length).toBe(12 - lastDay);
+      for (let d = 1; d <= lastDay; d++) expect(s.history[d - 1].mainRanking!.length).toBe(13 - d);
     }
   }, 60_000);
 

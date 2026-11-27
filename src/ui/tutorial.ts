@@ -6,9 +6,17 @@
 import { Sound } from '../audio/audio';
 import { t } from '../i18n/i18n';
 import { L4, M01_DEMO, M01_PRACTICE, SQ } from '../matches/m01';
+import { M03_DEMO, M03_PRACTICE } from '../matches/m03';
+import { applyAct as applyRail, CITY_NAMES, EDGES, practiceTable, routeFor } from '../matches/m04';
+import { P03_PRACTICE } from '../matches/p03';
+import { RailMap, SEAT_COLORS, type RailMapData } from './railmap';
+import { LinkBoard } from './linkboard';
+import { SpeedTable } from './speedtable';
 import { M02_PRACTICE } from '../matches/m02';
 import { P01_PRACTICE } from '../matches/p01';
 import { COLORS, P02_PRACTICE, SHAPES } from '../matches/p02';
+import { P04_PRACTICE, SHAPES as P04_SHAPES } from '../matches/p04';
+import { DiffQuiz, diffFigure, diffReview, figEl, FIG_NAME } from './diffquiz';
 import { rotated, type Cell } from '../matches/poly';
 import { ChainBoard } from './chainboard';
 import { append, button, clear, closeLayer, h, openLayer, type Child, type Layer } from './dom';
@@ -176,7 +184,175 @@ function p02Guide(): Guide {
   };
 }
 
-const GUIDES: Record<string, () => Guide> = { m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide };
+// ---- M03 ツイン・リンク ----
+
+const M03_DEMO_SOL = [[0, 4, 8, 12], [1, 2, 3, 7], [5, 6, 10, 14]];
+
+function m03Guide(): Guide {
+  const fig = (paths: number[][], cell: number) => new LinkBoard(M03_DEMO, { readonly: true, cell, paths }).el;
+  return {
+    name: 'ツイン・リンク',
+    pages: [
+      { title: t('tut.m03.t1'), text: t('tut.m03.p1'), figure: () => fig(M03_DEMO_SOL, 76) },
+      { title: t('tut.m03.t2'), text: t('tut.m03.p2'), figure: () => fig([[0, 4, 8], [], [5, 6]], 76) },
+      {
+        title: t('tut.m03.t3'), text: t('tut.m03.p3'),
+        figure: () => h('div', { class: 'tg-row' },
+          h('div', { class: 'tg-fig ok' }, fig(M03_DEMO_SOL, 54), h('div', { class: 'tg-mark ok' }, '○'), h('div', { class: 'tg-cap' }, t('tut.m03.ok'))),
+          h('div', { class: 'tg-fig ng' }, fig([[0, 4, 8, 12], [1, 2, 6, 7], [5, 6, 10, 14]], 54), h('div', { class: 'tg-mark ng' }, '✕'), h('div', { class: 'tg-cap' }, t('tut.m03.ng')))),
+      },
+      {
+        title: t('tut.m03.t4'), text: t('tut.m03.p4'),
+        figure: () => h('div', { class: 'col', style: 'gap:14px;align-items:center' },
+          chips([{ label: t('tut.m03.c1'), value: '20' }, { label: t('tut.m03.c2'), value: '0〜4' }, { label: t('tut.m03.c3'), value: '15' }], ['×', '+']),
+          facts([['5', t('tut.m03.f1')], ['4', t('tut.m03.f2')], ['150', t('tut.m03.f3')]])),
+      },
+    ],
+    practice: {
+      text: t('tut.m03.practice'),
+      build: (onDone) => {
+        const b: LinkBoard = new LinkBoard(M03_PRACTICE, { cell: 84, onComplete: () => { b.lock(); onDone(); } });
+        return b.el;
+      },
+    },
+  };
+}
+
+// ---- P03 スピードカード ----
+
+function p03Guide(): Guide {
+  return {
+    name: 'スピードカード',
+    pages: [
+      { title: t('tut.p03.t1'), text: t('tut.p03.p1'), figure: () => new SpeedTable(P03_PRACTICE, { readonly: true }).el },
+      { title: t('tut.p03.t2'), text: t('tut.p03.p2'), figure: () => new SpeedTable({ deck: [1, 12, 6, 1], piles: [4, 9], reserve: [7, 3, 5, 9, 2, 10, 4, 8] }, { readonly: true }).el },
+      {
+        title: t('tut.p03.t3'), text: t('tut.p03.p3'),
+        figure: () => h('div', { class: 'col', style: 'gap:14px;align-items:center' },
+          chips([{ label: t('tut.p03.c1'), value: '2' }, { label: t('tut.p03.c2'), value: '0〜24' }, { label: t('tut.p03.c3'), value: '8' }], ['×', '+']),
+          facts([['3', t('tut.p03.f1')], ['24', t('tut.p03.f2')], ['180', t('tut.p03.f3')]])),
+      },
+    ],
+    practice: {
+      text: t('tut.p03.practice'),
+      build: (onDone) => {
+        // 出し切れずに止まった時は、同じ並びでやり直せる
+        const box = h('div', { class: 'col', style: 'align-items:center' });
+        const start = (): void => {
+          box.replaceChildren(new SpeedTable(P03_PRACTICE, { onEnd: (_a, cleared) => { if (cleared) onDone(); else setTimeout(start, 1600); } }).el);
+        };
+        start();
+        return box;
+      },
+    },
+  };
+}
+
+// ---- M04 鉄道王国・改 ----
+
+function m04Guide(): Guide {
+  const demo = practiceTable();
+  const fig = (owner: Record<number, number>, extra: Partial<RailMapData> = {}, scale = 0.72): HTMLElement => {
+    const m = new RailMap(undefined, scale);
+    m.draw({ costs: demo.costs, owner: EDGES.map((_, e) => owner[e] ?? -1), marks: ['自', '他'], ...extra });
+    return m.el;
+  };
+  return {
+    name: '鉄道王国・改',
+    pages: [
+      { title: t('tut.m04.t1'), text: t('tut.m04.p1'), figure: () => fig({ 0: 0, 8: 0 }, { cities: [0, 4], route: [0, 8] }) },
+      { title: t('tut.m04.t2'), text: t('tut.m04.p2'), figure: () => fig({ 0: 0 }, { sel: 8, cities: [0, 4] }) },
+      {
+        title: t('tut.m04.t3'), text: t('tut.m04.p3'),
+        figure: () => h('div', { class: 'tg-row' }, fig({ 0: 0, 8: 1 }, { cities: [0, 4], route: [0, 8] }, 0.62),
+          h('div', { class: 'col', style: 'gap:10px' }, h('div', { class: 'row', style: 'gap:8px;align-items:center' }, h('i', { class: 'sw', style: `width:16px;height:16px;border-radius:4px;background:${SEAT_COLORS[0]}` }), t('tut.m04.own')),
+            h('div', { class: 'row', style: 'gap:8px;align-items:center' }, h('i', { class: 'sw', style: `width:16px;height:16px;border-radius:4px;background:${SEAT_COLORS[1]}` }), t('tut.m04.toll')))),
+      },
+      {
+        title: t('tut.m04.t4'), text: t('tut.m04.p4'),
+        figure: () => h('div', { class: 'col', style: 'gap:14px;align-items:center' },
+          chips([{ label: t('tut.m04.c1'), value: '8〜12' }, { label: t('tut.m04.c2'), value: '1' }, { label: t('tut.m04.c3'), value: '1' }], ['+', '+']),
+          facts([['9', t('tut.m04.f1')], ['3', t('tut.m04.f2')], ['12', t('tut.m04.f3')]])),
+      },
+    ],
+    practice: {
+      text: t('tut.m04.practice'),
+      build: (onDone) => {
+        const tb = practiceTable();
+        let sel: number | undefined;
+        const box = h('div', { class: 'm04-play' });
+        const map = new RailMap((e) => { sel = sel === e ? undefined : e; draw(); }, 0.78);
+        const draw = (): void => {
+          const m = tb.missions[0][0];
+          const r = routeFor(tb, 0, m.from, m.to);
+          map.draw({ costs: tb.costs, owner: tb.owner, marks: ['自'], sel, cities: [m.from, m.to], route: r?.edges });
+          const cost = sel !== undefined ? tb.costs[sel] : 0;
+          box.replaceChildren(map.el, h('div', { class: 'm04-col', style: 'width:250px' },
+            h('div', { class: 'm04-me' }, h('span', { class: 'm04-fund' }, String(tb.funds[0])), h('span', { class: 'small dim' }, `${CITY_NAMES[m.from]} → ${CITY_NAMES[m.to]}`)),
+            button(sel !== undefined ? t('m04.build', { e: `${CITY_NAMES[EDGES[sel][0]]}–${CITY_NAMES[EDGES[sel][1]]}`, c: cost }) : t('m04.buildNone'), () => {
+              if (sel === undefined) return;
+              // 練習は手数を数えない（何度でも敷ける）。資金が足りない時は増やす
+              tb.turn = 0;
+              if (applyRail(tb, 0, { t: 'build', edge: sel })) Sound.se('chip');
+              sel = undefined;
+              draw();
+            }, { kind: 'primary', disabled: sel === undefined || cost > tb.funds[0] }),
+            button(t('m04.fund', { n: 3 }), () => { tb.turn = 0; applyRail(tb, 0, { t: 'fund' }); draw(); }, {}),
+            button(t('m04.move'), () => { tb.turn = 0; if (applyRail(tb, 0, { t: 'transport', mission: 0 })) { draw(); onDone(); } }, { kind: 'primary', disabled: !r || m.done })));
+        };
+        draw();
+        return box;
+      },
+    },
+  };
+}
+
+// ---- P04 消えた図形 ----
+
+function p04Guide(): Guide {
+  const s = P04_PRACTICE;
+  return {
+    name: '消えた図形',
+    pages: [
+      { title: t('tut.p04.t1'), text: t('tut.p04.p1'), figure: () => diffFigure(s.a, { cell: 50 }) },
+      { title: t('tut.p04.t2'), text: t('tut.p04.p2'), figure: () => diffReview(s, undefined, 44) },
+      {
+        title: t('tut.p04.t3'), text: t('tut.p04.p3'),
+        figure: () => h('div', { class: 'col', style: 'gap:12px;align-items:center' },
+          h('div', { class: 'tg-opts' }, P04_SHAPES.map((sh) => h('span', { class: 'tg-leg dq-leg' }, figEl(`${sh}:0`), h('small', null, FIG_NAME[sh])))),
+          h('div', { class: 'tg-opts' }, [0, 1, 2, 3].map((r) => h('span', { class: 'tg-leg dq-leg' }, figEl(`arrow:${r}`), h('small', null, t(`dq.dir${r}`)))))),
+      },
+      {
+        title: t('tut.p04.t4'), text: t('tut.p04.p4'),
+        figure: () => h('div', { class: 'tg-row' },
+          chips([{ label: t('tut.p04.c1'), value: '+3' }, { label: t('tut.p04.c2'), value: '−1' }, { label: t('tut.p04.c3'), value: '+3' }], ['', '']),
+          facts([['10', t('tut.p04.f1')], ['8', t('tut.p04.f2')], ['25', t('tut.p04.f3')]])),
+      },
+    ],
+    practice: {
+      text: t('tut.p04.practice'),
+      build: (onDone) => {
+        const box = h('div', { class: 'p04-prac' });
+        const run = () => {
+          const start = performance.now();
+          const quiz = new DiffQuiz(s, {
+            elapsed: () => performance.now() - start, showMs: 6000, answerMs: 60_000, cell: 66,
+            onDone: (cells) => {
+              const again = button(t('tut.p04.again'), run, { small: true });
+              box.replaceChildren(h('div', { class: 'col', style: 'gap:10px;align-items:center' }, diffReview(s, cells, 40), again));
+              onDone();
+            },
+          });
+          box.replaceChildren(quiz.el);
+        };
+        run();
+        return box;
+      },
+    },
+  };
+}
+
+const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide };
 
 export const hasGuide = (id: string) => id in GUIDES;
 

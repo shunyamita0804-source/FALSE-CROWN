@@ -576,6 +576,8 @@ export function rankingScreen(v: RankingView): Promise<void> {
     const mine = v.ranking.indexOf('hero');
     const fx = mine < 0 ? null : mine >= n - v.cut ? fxBanner('defeat', v.cutLabel, 'sm') : mine === 0 ? fxBanner('victory', t('rank.first'), 'sm') : null;
     const body = h('div', { class: 'col', style: 'gap:8px' }, fx, list, ...v.notes.map((x) => h('div', { class: 'note-box' }, x)));
+    // 追加ボイス：1 位の人の勝利の声。持っていなければ、最下位の人の敗北の声（監獄マッチの最下位は、脱落の画面で鳴らす）
+    if (!playVoice(v.ranking[0], 'victory') && !v.prison && n > 1) playVoice(v.ranking[n - 1], 'defeat');
     layer = openLayer(h('div', { class: `overlay solid ${v.prison ? 'prison-bg' : 'result-bg'}` }, panel(v.title, body, { wide: true, footer: button(t('common.next'), done, { kind: 'primary', autofocus: true }) })), { pausesClock: true, name: 'ranking' });
   });
 }
@@ -596,6 +598,8 @@ export function eliminationScreen(id: CharId): Promise<void> {
       button(t('common.next'), done, { kind: 'primary', autofocus: true }),
     );
     Sound.se('drop');
+    // 追加ボイス：脱落が確定した時だけ
+    playVoice(id, 'elimination');
     layer = openLayer(el, { pausesClock: true, name: 'elim' });
   });
 }

@@ -306,6 +306,33 @@
           "text": "サンキュー！ 助かったわ。",
           "gain": 0.72
         }
+      },
+      "extra": {
+        "introduction": {
+          "file": "11_introduction.mp3",
+          "text": "桐生颯。プロゲーマーやってる。こういう勝負なら、誰にも負ける気しないけどね。",
+          "gain": 0.7
+        },
+        "victory": {
+          "file": "12_victory.mp3",
+          "text": "よっしゃ！ 俺の勝ち！ まあ、実力ってやつだね。",
+          "gain": 0.7
+        },
+        "defeat": {
+          "file": "13_defeat.mp3",
+          "text": "くそっ！ 次は絶対に負けねえからな。",
+          "gain": 0.7
+        },
+        "elimination": {
+          "file": "14_elimination.mp3",
+          "text": "マジかよ……こんなところで終わりか。まだ全然、やり足りねえよ……。",
+          "gain": 1.02
+        },
+        "betrayal": {
+          "file": "15_betrayal.mp3",
+          "text": "は？ お前、俺を騙したのかよ！ ふざけんな！",
+          "gain": 0.71
+        }
       }
     },
     "npc_07_tachibana": {
@@ -360,6 +387,33 @@
           "file": "10_thanks.mp3",
           "text": "ありがとう。本当に助かったわ。",
           "gain": 1.11
+        }
+      },
+      "extra": {
+        "introduction": {
+          "file": "11_introduction.mp3",
+          "text": "橘香織です。医師をしています。困ったことがあったら、遠慮なく相談してね。",
+          "gain": 1.23
+        },
+        "victory": {
+          "file": "12_victory.mp3",
+          "text": "ふぅ……なんとか勝てたわね。安心したわ。",
+          "gain": 1.3
+        },
+        "defeat": {
+          "file": "13_defeat.mp3",
+          "text": "負けてしまったわね……次はもっと慎重に考えないと。",
+          "gain": 1.07
+        },
+        "elimination": {
+          "file": "14_elimination.mp3",
+          "text": "ここまでみたいね……。みんな、どうか無事でいてね。",
+          "gain": 1.01
+        },
+        "betrayal": {
+          "file": "15_betrayal.mp3",
+          "text": "どうして……？ あなたのこと、信じていたのに。",
+          "gain": 1.38
         }
       }
     },
@@ -525,6 +579,116 @@
           "file": "10_thanks.mp3",
           "text": "ありがとう。借りができたね。",
           "gain": 0.86
+        }
+      }
+    },
+    "npc_11_kisaragi": {
+      "dir": "audio/voice/npc_11_kisaragi",
+      "clips": {
+        "greeting": {
+          "file": "01_greeting.mp3",
+          "text": "おはよう。今日もよろしくね。",
+          "gain": 1.11
+        },
+        "hello": {
+          "file": "02_hello.mp3",
+          "text": "あら、私に何か用？",
+          "gain": 1.4
+        },
+        "understand": {
+          "file": "03_understand.mp3",
+          "text": "なるほどね。そういうこと。",
+          "gain": 1.4
+        },
+        "accept": {
+          "file": "04_accept.mp3",
+          "text": "ええ、喜んで。",
+          "gain": 1.02
+        },
+        "refuse": {
+          "file": "05_refuse.mp3",
+          "text": "悪いけれど、お断りするわ。",
+          "gain": 1.19
+        },
+        "thinking": {
+          "file": "06_thinking.mp3",
+          "text": "そうねぇ……どうしようかしら。",
+          "gain": 1.4
+        },
+        "surprise": {
+          "file": "07_surprise.mp3",
+          "text": "まあ！ 驚いたわ。",
+          "gain": 1.0
+        },
+        "happy": {
+          "file": "08_happy.mp3",
+          "text": "ふふっ、素晴らしいわね。",
+          "gain": 1.12
+        },
+        "disappointed": {
+          "file": "09_disappointed.mp3",
+          "text": "はぁ……期待外れね。",
+          "gain": 1.4
+        },
+        "thanks": {
+          "file": "10_thanks.mp3",
+          "text": "ありがとう。感謝しているわ。",
+          "gain": 1.23
+        }
+      }
+    },
+    "npc_12_kuze": {
+      "dir": "audio/voice/npc_12_kuze",
+      "clips": {
+        "greeting": {
+          "file": "01_greeting.mp3",
+          "text": "おはよう。今日もよろしく頼むよ。",
+          "gain": 0.98
+        },
+        "hello": {
+          "file": "02_hello.mp3",
+          "text": "ふむ、何か用かね？",
+          "gain": 1.19
+        },
+        "understand": {
+          "file": "03_understand.mp3",
+          "text": "なるほど、実に興味深い。",
+          "gain": 1.4
+        },
+        "accept": {
+          "file": "04_accept.mp3",
+          "text": "よろしい。引き受けよう。",
+          "gain": 1.3
+        },
+        "refuse": {
+          "file": "05_refuse.mp3",
+          "text": "残念だが、賛同しかねるね。",
+          "gain": 1.3
+        },
+        "thinking": {
+          "file": "06_thinking.mp3",
+          "text": "ふむ……もう少し考える必要があるな。",
+          "gain": 1.4
+        },
+        "surprise": {
+          "file": "07_surprise.mp3",
+          "text": "ほう！ これは予想外だ。",
+          "gain": 0.91
+        },
+        "happy": {
+          "file": "08_happy.mp3",
+          "text": "はっはっは、実に素晴らしい。",
+          "gain": 1.29
+        },
+        "disappointed": {
+          "file": "09_disappointed.mp3",
+          "text": "むぅ……私としたことが。",
+          "gain": 1.4
+        },
+        "thanks": {
+          "file": "10_thanks.mp3",
+          "text": "ありがとう。心から感謝するよ。",
+          "gain": 1.24
         }
       }
     }

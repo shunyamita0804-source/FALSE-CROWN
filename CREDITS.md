@@ -83,6 +83,11 @@ Kenney（https://kenney.nl/）— Casino Audio / Interface Sounds / RPG Audio
 | 堂島（npc_08_dojima） | MP3 10 点（管理表なし。元ファイル名 ElevenLabs_2026-11-27T13_42_37〜13_44_28_堂島_eleven_v4.mp3） | 10 | 収録済み（同じ制作元のため同じ扱い）。**分類への割り当ては生成順による暫定**：管理表のある 8 人は、すべて生成順と分類の順が一致しているため同じ順に当てた。台詞の文面は未確認 |
 | 朝比奈 ひまり（npc_09_asahina） | FALSE_CROWN_voice_08_asahina.zip | 10 | 収録済み（同じ制作元、同じ趣旨の注意書きのため同じ扱い） |
 | 九条 蓮司（npc_10_kujo） | FALSE_CROWN_voice_09_kujo.zip | 10 | 収録済み（同上） |
+| 如月 麗華（npc_11_kisaragi） | FALSE_CROWN_voice_10_kisaragi.zip | 10 | 収録済み（同上） |
+| 久世 宗一郎（npc_12_kuze） | FALSE_CROWN_voice_11_kuze.zip | 10 | 収録済み（同上） |
+| 桐生 颯（追加） | FALSE_CROWN_voice_05_kiryu_addon.zip | 5 | 収録済み。自己紹介（初めて話しかけた時）、勝利（1 位の結果発表）、敗北（メインマッチ最下位の結果発表）、脱落（確定の画面）、裏切り（主人公の裏切りに本人が気づいた時） |
+| 橘 香織（追加） | FALSE_CROWN_voice_06_tachibana_addon.zip | 5 | 収録済み（同上） |
+| オブザーバー（進行役） | FALSE_CROWN_voice_12_observer.zip | 15 | **未収録（保留）**。注意書きに「外部音声の公開・商用利用条件は確認してください」とあり、持ち主の確認を待っている。原本は公開リポジトリの外に保管 |
 
 ## キャラクター・アイコン
 
