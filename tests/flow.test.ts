@@ -44,6 +44,26 @@ describe('1日の進行（自動対戦）', () => {
     for (const n of outs.values()) expect(n).toBeLessThan(N * 0.5);
   });
 
+  it('DAY2（M02 と P02）を終えると合計 2 人が脱落し、DAY3 の朝に進む。脱落者は固定されない', async () => {
+    const outs = new Map<string, number>();
+    let reached = 0;
+    for (let seed = 1; seed <= 60; seed++) {
+      const s = freshState(seed * 13);
+      s.phase = 'morning';
+      await autoAdvance(s, 3, 'morning', { free: seed % 20 === 0 });
+      if (!s.actors.hero.alive) continue;
+      reached++;
+      expect(s.day).toBe(3);
+      expect(aliveIds(s).length).toBe(10);
+      const d2 = Object.values(s.actors).find((a) => !a.alive && a.eliminatedDay === 2)!;
+      expect(s.history[1].mainRanking!.slice(7)).toContain(d2.id);
+      outs.set(d2.id, (outs.get(d2.id) ?? 0) + 1);
+      for (const a of Object.values(s.actors)) expect(a.pieces).toBeGreaterThanOrEqual(0);
+    }
+    expect(reached).toBeGreaterThan(30);
+    expect(outs.size).toBeGreaterThanOrEqual(5);
+  }, 60_000);
+
   it('ピースは増減の合計が合う（報酬は主催者から、脱落者の分は回収）', async () => {
     const s = freshState(7);
     s.phase = 'morning';
