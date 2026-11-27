@@ -362,6 +362,171 @@
           "gain": 1.11
         }
       }
+    },
+    "npc_08_dojima": {
+      "dir": "audio/voice/npc_08_dojima",
+      "clips": {
+        "greeting": {
+          "file": "01_greeting.mp3",
+          "text": "（文面は未確認）",
+          "gain": 0.79
+        },
+        "hello": {
+          "file": "02_hello.mp3",
+          "text": "（文面は未確認）",
+          "gain": 1.12
+        },
+        "understand": {
+          "file": "03_understand.mp3",
+          "text": "（文面は未確認）",
+          "gain": 1.4
+        },
+        "accept": {
+          "file": "04_accept.mp3",
+          "text": "（文面は未確認）",
+          "gain": 1.24
+        },
+        "refuse": {
+          "file": "05_refuse.mp3",
+          "text": "（文面は未確認）",
+          "gain": 0.79
+        },
+        "thinking": {
+          "file": "06_thinking.mp3",
+          "text": "（文面は未確認）",
+          "gain": 1.4
+        },
+        "surprise": {
+          "file": "07_surprise.mp3",
+          "text": "（文面は未確認）",
+          "gain": 1.06
+        },
+        "happy": {
+          "file": "08_happy.mp3",
+          "text": "（文面は未確認）",
+          "gain": 0.87
+        },
+        "disappointed": {
+          "file": "09_disappointed.mp3",
+          "text": "（文面は未確認）",
+          "gain": 1.4
+        },
+        "thanks": {
+          "file": "10_thanks.mp3",
+          "text": "（文面は未確認）",
+          "gain": 1.35
+        }
+      }
+    },
+    "npc_09_asahina": {
+      "dir": "audio/voice/npc_09_asahina",
+      "clips": {
+        "greeting": {
+          "file": "01_greeting.mp3",
+          "text": "おはよー！",
+          "gain": 0.85
+        },
+        "hello": {
+          "file": "02_hello.mp3",
+          "text": "ん？ なになに？",
+          "gain": 1.22
+        },
+        "understand": {
+          "file": "03_understand.mp3",
+          "text": "あっ、そっか！",
+          "gain": 1.4
+        },
+        "accept": {
+          "file": "04_accept.mp3",
+          "text": "うん！ いいよ！",
+          "gain": 0.9
+        },
+        "refuse": {
+          "file": "05_refuse.mp3",
+          "text": "ごめん、それはちょっと……。",
+          "gain": 1.4
+        },
+        "thinking": {
+          "file": "06_thinking.mp3",
+          "text": "うーん、どうしようかな。",
+          "gain": 1.4
+        },
+        "surprise": {
+          "file": "07_surprise.mp3",
+          "text": "ええっ！？ うそ！",
+          "gain": 0.78
+        },
+        "happy": {
+          "file": "08_happy.mp3",
+          "text": "やったー！ うれしい！",
+          "gain": 0.76
+        },
+        "disappointed": {
+          "file": "09_disappointed.mp3",
+          "text": "うぅ……悔しいなぁ。",
+          "gain": 1.4
+        },
+        "thanks": {
+          "file": "10_thanks.mp3",
+          "text": "ありがとう！ 本当に助かったよ！",
+          "gain": 0.85
+        }
+      }
+    },
+    "npc_10_kujo": {
+      "dir": "audio/voice/npc_10_kujo",
+      "clips": {
+        "greeting": {
+          "file": "01_greeting.mp3",
+          "text": "やあ、おはよう。",
+          "gain": 0.8
+        },
+        "hello": {
+          "file": "02_hello.mp3",
+          "text": "俺に何か用かい？",
+          "gain": 0.7
+        },
+        "understand": {
+          "file": "03_understand.mp3",
+          "text": "なるほど、そう来たか。",
+          "gain": 1.4
+        },
+        "accept": {
+          "file": "04_accept.mp3",
+          "text": "いいだろう。乗ったよ。",
+          "gain": 0.95
+        },
+        "refuse": {
+          "file": "05_refuse.mp3",
+          "text": "悪いね。その話は見送るよ。",
+          "gain": 0.77
+        },
+        "thinking": {
+          "file": "06_thinking.mp3",
+          "text": "さて、どう出るべきかな。",
+          "gain": 1.07
+        },
+        "surprise": {
+          "file": "07_surprise.mp3",
+          "text": "おっと、これは意外だ。",
+          "gain": 0.93
+        },
+        "happy": {
+          "file": "08_happy.mp3",
+          "text": "ふっ、悪くないね。",
+          "gain": 1.0
+        },
+        "disappointed": {
+          "file": "09_disappointed.mp3",
+          "text": "参ったね。読み違えたか。",
+          "gain": 1.4
+        },
+        "thanks": {
+          "file": "10_thanks.mp3",
+          "text": "ありがとう。借りができたね。",
+          "gain": 0.86
+        }
+      }
     }
   }
 }

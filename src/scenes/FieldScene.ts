@@ -1,3 +1,5 @@
+import { Sound } from '../audio/audio';
+import { isPrivateRoom, plateOf } from '../world/rooms';
 import Phaser from 'phaser';
 import { G } from '../app/game';
 import { assetFile, CHAR_FOOT, CHAR_H, CHAR_SCALE, CHAR_W, charFolder, TILE } from '../assets/registry';
@@ -12,7 +14,7 @@ import { Input } from '../input/InputState';
 import { anyModal } from '../ui/dom';
 import { ROOMS, doorApproach, doorDir, propVisible, type DoorDef, type InspectDef, type RoomDef } from '../world/maps';
 import { PROPS } from '../world/props';
-import { DIRS, actorsIn, facingTile, tryStep } from '../world/sim';
+import { DIRS, actorsIn, drainDoorPasses, facingTile, tryStep } from '../world/sim';
 import { WALK_LINGER_MS, walkFrame } from '../world/walk';
 import standAlign from '../data/stand_align.json';
 
@@ -101,6 +103,59 @@ export class FieldScene extends Phaser.Scene {
       g.lineWidth = 2; g.strokeStyle = 'rgba(40,28,8,0.9)'; g.stroke();
       this.textures.addCanvas('arrow', c);
     }
+    if (!this.textures.exists('doorglow')) {
+      // 扉が開いた時に、室内の明かりが床へ漏れる表現（扉の絵そのものは変えない）
+      const c = document.createElement('canvas');
+      c.width = c.height = 128;
+      const g = c.getContext('2d')!;
+      for (let i = 0; i < 6; i++) {
+        const inset = i * 5;
+        const grad = g.createLinearGradient(0, 0, 0, 128);
+        grad.addColorStop(0, 'rgba(255,255,255,0.34)');
+        grad.addColorStop(0.4, 'rgba(255,255,255,0.14)');
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = grad;
+        g.beginPath(); g.moveTo(24 + inset, 0); g.lineTo(104 - inset, 0); g.lineTo(128 - inset * 1.6, 128); g.lineTo(inset * 1.6, 128); g.closePath();
+        g.fill();
+      }
+      this.textures.addCanvas('doorglow', c);
+    }
+  }
+
+  /** 開いている扉（扉 ID → 明かりの表示と、閉じる時刻） */
+  private doorFx = new Map<string, { img: Phaser.GameObjects.Image; until: number; iron: boolean; closing: boolean }>();
+
+  /** 扉が開く。開いている間に続けて人が通った時は、閉じる時刻を延ばすだけにする */
+  private openDoor(d: DoorDef, who: CharId): void {
+    if (d.kind === 'open' || d.kind === 'stairs_up' || d.kind === 'stairs_down') return;
+    const now = this.time.now;
+    const cur = this.doorFx.get(d.id);
+    if (cur && !cur.closing) { cur.until = now + 650; return; }
+    const v = DIRS[d.dir];
+    const cx = (d.tiles.reduce((a, tl) => a + tl.x, 0) / d.tiles.length + 0.5 + v.dx * 0.5) * TILE;
+    const cy = (d.tiles.reduce((a, tl) => a + tl.y, 0) / d.tiles.length + 0.5 + v.dy * 0.5) * TILE;
+    const iron = d.kind === 'iron' || d.kind === 'black';
+    const img = this.add.image(cx, cy, 'doorglow').setOrigin(0.5, 0).setDisplaySize((d.size + 0.6) * TILE, 2 * TILE)
+      .setAngle({ up: 0, right: 90, down: 180, left: 270 }[d.dir]).setDepth(0.8).setAlpha(0).setTint(iron ? 0xb8ccff : 0xffd596).setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({ targets: img, alpha: 1, duration: 180, ease: 'Sine.easeOut' });
+    this.doorFx.set(d.id, { img, until: now + 650, iron, closing: false });
+    if (who !== 'hero') Sound.se(iron ? 'latch' : 'doorOpen', { volume: 0.45 });
+  }
+
+  private updateDoors(): void {
+    const s = G.state!;
+    for (const p of drainDoorPasses()) {
+      if (p.room !== this.roomId) continue;
+      const d = ROOMS[p.room]?.doors.find((x) => x.id === p.door);
+      if (d && !(d.lock && !s.flags[d.lock])) this.openDoor(d, p.who);
+    }
+    const now = this.time.now;
+    for (const [id, fx] of this.doorFx) {
+      if (fx.closing || now < fx.until) continue;
+      fx.closing = true;
+      Sound.se(fx.iron ? 'latch' : 'doorClose', { volume: 0.4 });
+      this.tweens.add({ targets: fx.img, alpha: 0, duration: 240, ease: 'Sine.easeIn', onComplete: () => { fx.img.destroy(); if (this.doorFx.get(id) === fx) this.doorFx.delete(id); } });
+    }
   }
 
   private setTextRes(v: ActorView): void {
@@ -177,6 +232,8 @@ export class FieldScene extends Phaser.Scene {
     this.roomObjects = [];
     for (const m of this.marks) m.destroy();
     this.marks = [];
+    for (const fx of this.doorFx.values()) { this.tweens.killTweensOf(fx.img); fx.img.destroy(); }
+    this.doorFx.clear();
     for (const k of this.roomTextures) if (this.textures.exists(k)) this.textures.remove(k);
     this.roomTextures = [];
     for (const v of this.actors.values()) {
@@ -191,7 +248,9 @@ export class FieldScene extends Phaser.Scene {
     for (const p of room.props) { if (p.showIf) keys.add(p.showIf); if (p.hideIf) keys.add(p.hideIf); }
     for (const d of room.doors) if (d.lock) keys.add(d.lock);
     if (room.overlay) keys.add(room.overlay.flag);
-    return [...keys].map((k) => (s.flags[k] ? 1 : 0)).join('') + (s.phase === 'night' ? 'n' : 'd');
+    // 個室の名札（持ち主、空室、閉鎖中）が変わった時も描き直す
+    const plates = room.doors.filter((d) => isPrivateRoom(d.to)).map((d) => { const p = plateOf(s, d.to)!; return `${p.owner ?? ''}/${p.away ?? ''}`; }).join(',');
+    return [...keys].map((k) => (s.flags[k] ? 1 : 0)).join('') + (s.phase === 'night' ? 'n' : 'd') + plates;
   }
 
   /** 部屋を描画し直す */
@@ -252,11 +311,13 @@ export class FieldScene extends Phaser.Scene {
       this.tweens.add({ targets: m, alpha: 0.3, x: m.x + v.dx * 6, y: m.y + v.dy * 6, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       this.marks.push(m);
       // 行き先の名前を出入口に表示する（他の参加者の個室は持ち主の名前）
-      const owner = d.to.startsWith('bedroom_') ? d.to.slice('bedroom_'.length) : '';
-      const name = owner && owner !== 'hero' ? t('door.roomOf', { name: shortName(s, owner as CharId) }) : d.label;
+      // 個室の扉：部屋番号と持ち主の名前を、扉の脇にプログラムで表示する（背景画像には書き込まない）
+      const plate = plateOf(s, d.to);
+      const name = !plate ? d.label : `${plate.no}　${plate.owner === 'hero' ? t('door.mine') : plate.owner ? shortName(s, plate.owner) : plate.away ? t('door.away', { name: shortName(s, plate.away) }) : t('door.vacant')}`;
+      const closed = !!plate && !plate.owner;
       const lx = cx * TILE + (d.dir === 'left' ? 26 : d.dir === 'right' ? -26 : 0);
       const ly = cy * TILE + (d.dir === 'up' ? 30 : d.dir === 'down' ? -30 : 0);
-      const lab = this.add.text(lx, ly, name, { fontFamily: '"Noto Sans JP", "Hiragino Sans", sans-serif', fontSize: '17px', color: '#f3ead2', backgroundColor: 'rgba(8,12,28,0.78)', padding: { x: 7, y: 3 } })
+      const lab = this.add.text(lx, ly, name, { fontFamily: '"Noto Sans JP", "Hiragino Sans", sans-serif', fontSize: '17px', color: closed ? '#8f96ad' : plate?.owner === 'hero' ? '#f1d88a' : '#f3ead2', backgroundColor: 'rgba(8,12,28,0.78)', padding: { x: 7, y: 3 } })
         .setOrigin(d.dir === 'left' ? 0 : d.dir === 'right' ? 1 : 0.5, 0.5).setDepth(8592).setResolution(Math.max(1, Math.ceil(this.view.zoom * 2) / 2));
       this.marks.push(lab);
     }
@@ -479,6 +540,7 @@ export class FieldScene extends Phaser.Scene {
     if (!control) hero.intent = undefined;
     G.tick(dt);
     if (hero.pos.room !== this.roomId) this.buildRoom();
+    this.updateDoors();
     this.syncActors(dt);
     this.target = control ? this.findTarget() : null;
     // カメラは主人公に遅れなく付ける（遅れて追う方式は、主人公と背景の動きがずれてガタついて見えるため使わない）

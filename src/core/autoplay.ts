@@ -2,6 +2,7 @@
  * 画面なしで大会を進める（自動対戦テスト、バランス検証、開発者用の「任意の日程から開始」に使う）。
  * プレイヤーも NPC と同じ AI（平均的な能力値）で動かす。勝敗の補正や結果の固定は行わない。
  */
+import { homeOf } from '../world/rooms';
 import { autoRescue } from './rescue';
 import { isImplemented } from '../matches/registry';
 import { fastForward } from '../npc/brain';
@@ -94,7 +95,7 @@ export async function autoAdvance(s: GameState, untilDay: number, untilPhase: Ph
         s.phase = 'curfew';
         break;
       case 'curfew':
-        for (const id of aliveIds(s)) placeIn(s, id, `bedroom_${id}`);
+        for (const id of aliveIds(s)) placeIn(s, id, homeOf(s, id));
         endDay(s);
         s.phase = 'morning';
         break;

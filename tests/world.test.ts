@@ -1,3 +1,4 @@
+import { isPrivateRoom } from '../src/world/rooms';
 import { describe, expect, it } from 'vitest';
 import { ROOMS, ROOM_IDS, buildCollision } from '../src/world/maps';
 import { freshState } from './helpers';
@@ -84,7 +85,7 @@ describe('施設内の歩行（実際の移動処理で確認）', () => {
     placeIn(s, 'hero', 'bedroom_hero');
     const failed: string[] = [];
     for (const id of ROOM_IDS) {
-      if (id.startsWith('bedroom_') && id !== 'bedroom_hero') continue;
+      if (isPrivateRoom(id) && id !== 'bedroom_hero') continue;
       const room = ROOMS[id];
       for (const ins of room.inspects) if (!walk(s, 'hero', id, { x: ins.x, y: ins.y })) failed.push(`${id}:${ins.id}`);
       for (const sp of room.spots) if (!walk(s, 'hero', id, sp)) failed.push(`${id}:spot(${sp.x},${sp.y})`);
@@ -99,9 +100,9 @@ describe('施設内の歩行（実際の移動処理で確認）', () => {
     for (const a of Object.values(s.actors)) if (a.id !== 'hero') placeIn(s, a.id, `bedroom_${a.id}`);
     const bad: string[] = [];
     for (const id of ROOM_IDS) {
-      if (id.startsWith('bedroom_') && id !== 'bedroom_hero') continue;
+      if (isPrivateRoom(id) && id !== 'bedroom_hero') continue;
       for (const d of ROOMS[id].doors) {
-        if (d.to.startsWith('bedroom_') && d.to !== 'bedroom_hero') continue;
+        if (isPrivateRoom(d.to) && d.to !== 'bedroom_hero') continue;
         const hero = s.actors.hero;
         hero.pos = { room: id, x: d.tiles[0].x, y: d.tiles[0].y, dir: d.dir };
         hero.step = undefined;
