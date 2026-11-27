@@ -558,6 +558,9 @@ html[data-ui-assets~="panel/hud"] .hud-band .hud-timer { font-size: 1.2em; }
 /* 手前に別のウィンドウが開いている間、背後のウィンドウは操作できず、会話コマンドは表示しない */
 .layer-covered { pointer-events: none; }
 .layer-covered .talk-menu, .layer-covered .dlg-next { visibility: hidden; }
+/* 上に窓が開いている間は、下の会話欄を隠す（窓のボタンが会話欄に隠れる重なりを防ぐ）。各層は独立した重なり順にする */
+.layer { isolation: isolate; }
+.layer-covered.dlg-screen .dlg-box, .layer-covered.dlg-screen .talk-info { visibility: hidden; }
 /* ウィンドウが開いている間は、画面上の方向キーと行動ボタンを隠す（ウィンドウと重ならないようにする） */
 .has-modal .touch-pad, .has-modal .touch-act { visibility: hidden; pointer-events: none; }
 /* 会話中は上部の帯と記録を隠し、立ち絵やコマンドと重ならないようにする */
@@ -875,3 +878,20 @@ button.m02-cand { cursor: pointer; min-height: 130px; }
 .fatal-box pre { font-size: 11px; white-space: pre-wrap; word-break: break-all; opacity: 0.7; max-height: 90px; overflow: auto; margin: 0 0 12px; }
 .fatal-btns { display: flex; gap: 12px; }
 .fatal-btns button { min-height: 46px; padding: 0 20px; font-size: 16px; border-radius: 8px; border: 1.5px solid #e9cf8a; background: #1a2140; color: #f1ead8; }
+
+/* 人物の胸から上の表示（立ち絵は加工せず、表示範囲だけを絞る） */
+.bust { background-repeat: no-repeat; background-position: 50% 0; background-size: 185% auto; aspect-ratio: 10 / 11; }
+.hero-pick { justify-content: center; }
+.hero-pick .bust { width: 100%; border-radius: 6px; background-color: #0b1022; }
+.bust.dlg-portrait { height: 64%; max-width: none; bottom: calc(150px + var(--safe-bottom)); filter: drop-shadow(0 10px 30px rgba(0,0,0,0.6)); -webkit-mask-image: linear-gradient(#000 82%, transparent); mask-image: linear-gradient(#000 82%, transparent); }
+.bust.dlg-portrait.left { left: calc(2% + var(--safe-left)); } .bust.dlg-portrait.right { right: calc(2% + var(--safe-right)); }
+.cer-say { position: relative; padding-left: 196px; }
+.cer-say:not(.host) { flex-direction: row; }
+.cer-bust { position: absolute; left: -6px; bottom: 0; width: 200px; pointer-events: none; filter: drop-shadow(0 6px 14px rgba(0,0,0,0.7)); -webkit-mask-image: linear-gradient(#000 85%, transparent); mask-image: linear-gradient(#000 85%, transparent); }
+
+/* 上部の帯：欄の幅を、帯の画像に描かれている仕切り（左から 26.8%、50%、73.2%）に合わせる。文字が仕切りに重ならない */
+html[data-ui-assets~="panel/hud"] .hud-band { grid-template-columns: calc(26.8% - 18.6px) calc(23.2% + 18.6px) calc(23.2% + 18.6px) minmax(0, 1fr); }
+html[data-ui-assets~="panel/hud"] .hud-band .hud-cell { padding: 0 10px; }
+html[data-ui-assets~="panel/hud"] .hud-band .hud-phase { font-size: 0.9em; }
+html[data-ui-assets~="panel/hud"] .hud-band .hud-menu .btn { padding-left: 10px; padding-right: 10px; }
+.cer-hand p, .handout p { text-wrap: balance; }

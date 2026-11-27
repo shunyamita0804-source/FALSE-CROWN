@@ -20,7 +20,7 @@ import { say, type LineKey } from '../npc/lines';
 import { absorb, accuse, commit, dealLabel, evaluate, noteDeal, type Proposal } from '../npc/negotiation';
 import { aboutTarget, addInvite, endInvite, INVITE_TIME, inviteVerdict, isPrivate, observeAttitude } from '../npc/social';
 import { actorsIn, distance } from '../world/sim';
-import { icon, portraitUrl } from './art';
+import { bust, icon, setBust } from './art';
 import { button, choose, clear, closeLayer, h, openLayer, panel, type Layer } from './dom';
 import { pieces } from './screens';
 
@@ -81,7 +81,7 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
   return new Promise((resolve) => {
     let layer: Layer;
     let closed = false;
-    const portrait = h('img', { class: 'dlg-portrait left', alt: '', draggable: false, src: portraitUrl(npc) });
+    const portrait = bust(npc, 'normal', 'dlg-portrait left');
     const text = h('div', { class: 'dlg-text' });
     const menu = h('div', { class: 'talk-menu' });
     const info = h('div', { class: 'talk-info hud-box' });
@@ -98,14 +98,14 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
       const seen = ATTITUDE[key];
       if (seen) observeAttitude(s, npc, seen[0], seen[1] ? key : undefined);
       text.textContent = say(s, npc, key, { name: me, ...vars });
-      portrait.src = portraitUrl(npc, expr ?? EXPR[key] ?? 'normal');
+      setBust(portrait, npc, expr ?? EXPR[key] ?? 'normal');
       // 汎用ボイス：内容が一致する場面だけ鳴らす（一致しなければ、前の音声を止めるだけ）
       if (!playVoice(npc, categoryForLine(key, { hour: Math.floor(clockMinutes(s) / 60), heroStarted: !opts.event }))) stopVoice();
     };
     const raw = (str: string, expr = 'normal') => {
       stopVoice();
       text.textContent = str;
-      portrait.src = portraitUrl(npc, expr);
+      setBust(portrait, npc, expr);
     };
     const refreshInfo = () => {
       clear(info);

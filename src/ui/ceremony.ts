@@ -8,7 +8,7 @@ import { Sound } from '../audio/audio';
 import { HOST, NPC_BY_ID, type NpcId } from '../data/characters';
 import { CONFIG } from '../data/config';
 import { t } from '../i18n/i18n';
-import { bgUrl, emblemUrl, face, icon, portraitUrl } from './art';
+import { bgUrl, bust, emblemUrl, icon } from './art';
 import { button, clear, closeLayer, h, openLayer, type Child, type Layer } from './dom';
 
 interface Line { who: 'host' | NpcId; text: string }
@@ -129,7 +129,7 @@ export function ceremonyScreen(opts: { review?: boolean; skippable?: boolean } =
       clear(say);
       say.className = `cer-say${isHost ? ' host' : ''}`;
       say.append(
-        isHost ? h('img', { class: 'face lg', src: portraitUrl('host_observer'), alt: '', style: 'object-fit:cover;object-position:top' }) : face(l.who, 'lg'),
+        bust(isHost ? 'host_observer' : l.who, 'normal', 'cer-bust'),
         h('div', { class: 'cer-bubble' }, h('b', null, isHost ? HOST.name : NPC_BY_ID[l.who as NpcId].name), h('p', null, l.text)));
       clear(foot);
       const last = si === all.length - 1 && li === all[si].lines.length - 1;

@@ -191,6 +191,13 @@ function nearestSpot(a: Actor, spots: { x: number; y: number }[], rng: Rng): { x
 }
 
 /** 主人公が自分の方へ向かってきている、またはすぐ隣にいるか */
+/** 扉のすぐ近くにいるか。入口で立ち止まると後ろが詰まるので、ここでは主人公を待たない */
+function nearDoor(a: Actor): boolean {
+  const room = ROOMS[a.pos.room];
+  if (!room) return false;
+  return room.doors.some((d) => d.tiles.some((t) => Math.abs(t.x - a.pos.x) + Math.abs(t.y - a.pos.y) <= 3));
+}
+
 function heroComing(h: Actor, a: Actor): boolean {
   if (h.pos.room !== a.pos.room) return false;
   const dx = a.pos.x - h.pos.x;
@@ -376,7 +383,7 @@ export function tickNpcs(state: GameState, dt: number, heroBusy: boolean): Brain
     // 主人公が話しかけようと近づいてきたら、立ち止まって待つ（待ち続けはしない。自分から主人公へ向かっている時と同行中は対象外）
     const hero = state.actors.hero;
     const toHero = (a.goal?.kind === 'talk' || a.goal?.kind === 'follow') && a.goal.target === 'hero';
-    if (!heroBusy && !toHero && heroComing(hero, a)) {
+    if (!heroBusy && !toHero && !nearDoor(a) && heroComing(hero, a)) {
       if ((a.waitCd ?? 0) <= state.simTime) {
         a.waitUntil = state.simTime + CONFIG.npc.waitForHero;
         a.waitCd = a.waitUntil + CONFIG.npc.waitForHeroCooldown;

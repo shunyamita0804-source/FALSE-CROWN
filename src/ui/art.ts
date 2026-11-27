@@ -57,7 +57,7 @@ export function face(id: string, cls = ''): HTMLImageElement {
 export function emblemUrl(): string {
   let url = cache.get('emblem');
   if (!url) {
-    url = assetUrl('ui/logo/app_icon') ?? assetUrl('ui/logo/emblem') ?? drawEmblem(512).toDataURL();
+    url = assetUrl('ui/logo/emblem') ?? assetUrl('ui/logo/app_icon') ?? drawEmblem(512).toDataURL();
     cache.set('emblem', url);
   }
   return url;
@@ -120,4 +120,19 @@ export function fxPop(name: FxName, text: string, ms = 2600): void {
     el.classList.remove('show');
     setTimeout(() => el.remove(), 300);
   }, ms);
+}
+
+/**
+ * 人物の胸から上の表示。立ち絵の画像は加工せず、表示する範囲だけを絞る（上から約 45%、左右は中央寄り）。
+ * 表情を替える時は setBust を使う。
+ */
+export function bust(id: string, expr = 'normal', cls = ''): HTMLElement {
+  const el = document.createElement('div');
+  el.className = `bust ${cls}`;
+  setBust(el, id, expr);
+  return el;
+}
+
+export function setBust(el: HTMLElement, id: string, expr = 'normal'): void {
+  el.style.backgroundImage = `url("${portraitUrl(id, expr)}")`;
 }

@@ -23,7 +23,7 @@ import { canEnter } from '../world/access';
 import { ROOMS } from '../world/maps';
 import { ceremonyScreen } from './ceremony';
 import { playVoice, resetVoiceHistory } from '../audio/voice';
-import { bgUrl, emblemUrl, face, fxBanner, icon, logoUrl, portraitUrl, setHeroGender } from './art';
+import { bgUrl, bust, emblemUrl, face, fxBanner, icon, logoUrl, portraitUrl, setBust, setHeroGender } from './art';
 import { alertDialog, append, button, clear, closeLayer, confirmDialog, h, openLayer, panel, toast, type Child, type Layer } from './dom';
 
 const GUIDE = Object.fromEntries((guideJson as { id: string; goal: string; practice: string; attention: string }[]).map((g) => [g.id.toLowerCase(), g]));
@@ -113,7 +113,7 @@ export function newGameScreen(): Promise<{ gender: 'm' | 'f'; name: string; diff
             gender = g;
             Sound.se('select');
             render();
-          } }, h('img', { src: portraitUrl(`hero_${g}`), alt: '', draggable: false }), h('span', null, t(g === 'm' ? 'new.male' : 'new.female'))),
+          } }, bust(`hero_${g}`), h('span', null, t(g === 'm' ? 'new.male' : 'new.female'))),
         ), h('div', { class: 'col grow', style: 'gap:14px' }, [
           h('div', { class: 'form-grid' }, [
             h('label', null, t('new.name')), nameInput,
@@ -147,7 +147,7 @@ export function playStory(lines: StoryLine[], opts: { bg?: string; expr?: string
     let layer: Layer;
     let i = 0;
     const s = G.state;
-    const portrait = h('img', { class: 'dlg-portrait right', alt: '', draggable: false });
+    const portrait = h('div', { class: 'bust dlg-portrait right' });
     const name = h('div', { class: 'dlg-name' });
     const text = h('div', { class: 'dlg-text' });
     const done = () => {
@@ -159,7 +159,7 @@ export function playStory(lines: StoryLine[], opts: { bg?: string; expr?: string
       const who = speakerName(s, l.speaker);
       const hasPortrait = l.speaker !== 'narrator' && (l.speaker === 'host_observer' || l.speaker === 'hero' || l.speaker in NPC_BY_ID);
       portrait.style.display = hasPortrait ? '' : 'none';
-      if (hasPortrait) portrait.src = portraitUrl(l.speaker, opts.expr ?? 'normal');
+      if (hasPortrait) setBust(portrait, l.speaker, opts.expr ?? 'normal');
       name.style.display = who ? '' : 'none';
       name.textContent = who;
       text.className = `dlg-text${l.speaker === 'narrator' ? ' narration' : ''}`;
@@ -221,9 +221,9 @@ export function hudShow(v: boolean): void {
   const el = h('div', null,
     h('div', { class: 'hud' },
       h('div', { class: 'hud-band' },
-        h('div', { class: 'hud-cell' }, day, icon('timer'), timer, phase),
+        h('div', { class: 'hud-cell' }, day, icon('timer'), timer, pc),
+        h('div', { class: 'hud-cell' }, phase),
         h('div', { class: 'hud-cell' }, icon('map'), room),
-        h('div', { class: 'hud-cell' }, pc),
         h('div', { class: 'hud-cell fill hud-menu' }, skip, button([icon('notebook'), t('hud.menu')], () => G.openMenu(), { small: true })),
       ),
     ),
