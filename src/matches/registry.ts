@@ -17,6 +17,8 @@ import { P08 } from './p08';
 import { M09 } from './m09';
 import { P09 } from './p09';
 import { M07 } from './m07';
+import { M10 } from './m10';
+import { P10 } from './p10';
 
 /** 実装済みの競技。未実装の競技は IMPLEMENTED に含めない（完成扱いしない）。 */
 export const MATCHES: Record<string, MatchEngine> = {
@@ -38,6 +40,8 @@ export const MATCHES: Record<string, MatchEngine> = {
   p08: P08,
   m09: M09,
   p09: P09,
+  m10: M10,
+  p10: P10,
 };
 
 export interface CatalogEntry {

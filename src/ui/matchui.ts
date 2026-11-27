@@ -29,6 +29,8 @@ import { renderP07 } from './games/p07';
 import { renderM08 } from './games/m08';
 import { renderP08 } from './games/p08';
 import { renderP09 } from './games/p09';
+import { renderM10 } from './games/m10';
+import { renderP10 } from './games/p10';
 import { renderM09 } from './games/m09';
 import { renderM06 } from './games/m06';
 import { renderP06 } from './games/p06';
@@ -63,6 +65,8 @@ const RENDERERS: Record<string, Renderer> = {
   m08: renderM08 as Renderer,
   p08: renderP08 as Renderer,
   p09: renderP09 as Renderer,
+  m10: renderM10 as Renderer,
+  p10: renderP10 as Renderer,
   m09: renderM09 as Renderer,
   m01: renderM01 as Renderer,
   m02: renderM02 as Renderer,
