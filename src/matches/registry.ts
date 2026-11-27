@@ -61,7 +61,7 @@ export const CATALOG: CatalogEntry[] = [
 /**
  * 画面の確認が済んでいない競技。確認が済むまで本編の日程には使わない（完成扱いにしない）。
  */
-export const LEGACY = new Set<string>(['m02', 'p02']);
+export const LEGACY = new Set<string>([]);
 export const isLegacy = (id: string) => LEGACY.has(id) && id in MATCHES;
 
 /** v11 のルールで遊べる競技か */

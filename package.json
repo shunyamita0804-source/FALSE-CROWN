@@ -1,6 +1,6 @@
 {
   "name": "false-crown",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "FALSE CROWN",
   "scripts": {
     "dev": "vite --host",

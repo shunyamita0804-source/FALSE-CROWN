@@ -2,6 +2,7 @@
 import { Sound } from '../../audio/audio';
 import { transfer } from '../../core/state';
 import type { CharId, NpcId } from '../../data/characters';
+import { FLAG_BY_ID } from '../../data/flags';
 import { t } from '../../i18n/i18n';
 import { answerOf, type MemSet } from '../../matches/memory';
 import { face } from '../art';
@@ -23,6 +24,7 @@ export function memTable(players: CharId[], totals: Record<string, number>, last
 export function reviewEl(set: MemSet, mine: RoundResult | undefined, cell?: number): HTMLElement {
   const marks: Record<number, { cls: string; label?: string }> = {};
   const rows: Child[] = [];
+  const flag = set.board.cells.some((c) => c != null && c in FLAG_BY_ID);
   set.questions.forEach((q, i) => {
     const ok = !!mine?.ok[i];
     const cls = mine ? (ok ? 'ok' : 'ng') : 'asked';
@@ -32,7 +34,7 @@ export function reviewEl(set: MemSet, mine: RoundResult | undefined, cell?: numb
     else marks[set.board.cells.indexOf(q.options[ans])] = { cls, label: String(i + 1) };
     const pick = mine?.picks[i] ?? -1;
     const picked: Child = pick < 0 ? h('span', { class: 'dim' }, t('mq.noAnswer')) : q.kind === 'place' ? (ok ? null : h('span', { class: 'dim' }, t('mq.wrongCell'))) : ok ? null : itemEl(q.options[pick], 'tiny');
-    rows.push(h('div', { class: `mq-rv-row ${cls}` }, h('b', { class: 'no' }, String(i + 1)), h('span', { class: 'kd' }, t(`mq.kind.${q.kind}`)), h('b', { class: 'mk' }, mine ? (ok ? '○' : '✕') : ''), picked));
+    rows.push(h('div', { class: `mq-rv-row ${cls}` }, h('b', { class: 'no' }, String(i + 1)), h('span', { class: 'kd' }, t(q.kind === 'item' && flag ? 'mq.kind.itemFlag' : `mq.kind.${q.kind}`)), h('b', { class: 'mk' }, mine ? (ok ? '○' : '✕') : ''), picked));
   });
   return h('div', { class: 'mq-review' }, boardFigure(set.board, { cell, marks }), h('div', { class: 'mq-rv-list' }, rows));
 }
@@ -51,5 +53,5 @@ export function boostButton(ui: MatchUi, v: { boostOn: boolean; boostUsed: numbe
 }
 
 export function talkRow(players: CharId[], me: CharId, ui: MatchUi): HTMLElement {
-  return h('div', { class: 'row', style: 'gap:8px;justify-content:center;flex-wrap:wrap' }, players.filter((p) => p !== me).map((p) => button([face(p), ui.name(p)], () => ui.talk(p as NpcId), { small: true })));
+  return h('div', { class: 'row mq-talk', style: 'gap:8px;justify-content:center;flex-wrap:wrap' }, h('span', { class: 'small dim' }, t('mq.talk')), players.filter((p) => p !== me).map((p) => button(players.length > 7 ? [face(p)] : [face(p), ui.name(p)], () => ui.talk(p as NpcId), { small: true, title: ui.name(p) })));
 }
