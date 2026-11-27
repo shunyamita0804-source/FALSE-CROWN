@@ -1,129 +1,162 @@
+import { writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { ALL_IDS, type CharId } from '../src/data/characters';
 import { Rng } from '../src/core/rng';
-import { ITEMS, M02, START_FUNDS, itemScore, moneyScore, totalScore, type M02State } from '../src/matches/m02';
+import { ALL_IDS } from '../src/data/characters';
+import { FLAGS, flagSvg } from '../src/data/flags';
+import { BOOST_MAX, BOOST_MS, M02, M02_PRACTICE, makeSet, MIXES, QUESTIONS, showMsOf, type M02State } from '../src/matches/m02';
+import { answerOf, cpuAnswer, emptyAnswer, grade, wellFormed, type MemAnswer } from '../src/matches/memory';
 import { simulate } from './helpers';
 
 const ELEVEN = ALL_IDS.slice(0, 11);
-const bag = (o: Partial<Record<(typeof ITEMS)[number], number>>) => ({ crown: 0, gem: 0, key: 0, book: 0, coin: 0, ...o });
-const bidAll = (s: M02State, f: (p: CharId) => number) => { for (const p of M02.pending(s)) M02.submit(s, p, { t: 'bid', amount: f(p) }); };
+const perfect = (s: M02State): MemAnswer => {
+  const set = s.sets[s.round][s.chosen[s.round]];
+  return { picks: set.questions.map((q) => answerOf(set.board, q)), ms: set.questions.map(() => 2000) };
+};
 
-describe('M02 黄金の競売', () => {
-  it('得点：素点、セット、残金', () => {
-    expect(itemScore(bag({ crown: 1, gem: 1 }))).toBe(18);
-    expect(itemScore(bag({ key: 2, book: 1 }))).toBe(3 + 3 + 4 + 6);
-    expect(itemScore(bag({ coin: 4 }))).toBe(8 + 8);
-    expect(moneyScore(100)).toBe(5);
-    expect(moneyScore(59)).toBe(2);
-    expect(moneyScore(400)).toBe(5);
-    expect(totalScore(bag({}), 100)).toBe(5);
+describe('M02 フラッグ・フラッシュ', () => {
+  it('国旗の一覧：ID と名前が重複せず、すべて描画できる', () => {
+    expect(new Set(FLAGS.map((f) => f.id)).size).toBe(FLAGS.length);
+    expect(new Set(FLAGS.map((f) => f.name)).size).toBe(FLAGS.length);
+    expect(FLAGS.length).toBeGreaterThanOrEqual(40);
+    for (const f of FLAGS) expect(flagSvg(f.id)).toContain('<svg');
   });
 
-  it('20品を5種4つずつ出品し、最高額の1人が支払って落札する', () => {
-    const s = M02.init(ELEVEN, Rng.from(3));
-    expect(s.lots.length).toBe(20);
-    for (const k of ITEMS) expect(s.lots.filter((x) => x === k).length).toBe(4);
-    const first = s.lots[0];
-    bidAll(s, (p) => (p === ELEVEN[2] ? 30 : p === ELEVEN[3] ? 29 : 0));
-    expect(s.history[0].winner).toBe(ELEVEN[2]);
-    expect(s.funds[ELEVEN[2]]).toBe(70);
-    expect(s.funds[ELEVEN[3]]).toBe(100);
-    expect(s.items[ELEVEN[2]][first]).toBe(1);
+  it('出題セット：どの候補も旗 6〜12 枚、5 問、正解がちょうど 1 つ（100 シード）', () => {
+    for (let seed = 1; seed <= 100; seed++) {
+      const s = M02.init(ELEVEN, Rng.from(seed)) as M02State;
+      expect(s.order.length).toBe(11);
+      expect([...s.order].sort()).toEqual([...ELEVEN].sort());
+      s.sets.forEach((cands, r) => {
+        expect(cands.length).toBe(3);
+        expect(new Set(s.cands[r].map((c) => c.mix)).size).toBe(3);
+        cands.forEach((set, i) => {
+          const n = set.board.cells.filter((c) => c != null).length;
+          expect(n).toBe(s.cands[r][i].n);
+          expect(n).toBeGreaterThanOrEqual(6);
+          expect(n).toBeLessThanOrEqual(12);
+          expect(set.questions.length).toBe(QUESTIONS);
+          expect(wellFormed(set)).toBe(true);
+          expect(set.showMs).toBe(showMsOf(s.cands[r][i].mix, n));
+        });
+      });
+    }
+    expect(wellFormed(M02_PRACTICE)).toBe(true);
   });
 
-  it('全員0なら流札。同額首位は1回だけ再入札し、同額のままなら流札', () => {
-    const s = M02.init(ELEVEN, Rng.from(4));
-    bidAll(s, () => 0);
-    expect(s.history[0].winner).toBe(null);
-    bidAll(s, (p) => (p === ELEVEN[0] || p === ELEVEN[1] ? 20 : 5));
-    expect(s.stage).toBe('rebid');
-    expect(M02.pending(s).sort()).toEqual([ELEVEN[0], ELEVEN[1]].sort());
-    expect(M02.validate(s, ELEVEN[0], { t: 'bid', amount: 19 })).toBe(false);
-    expect(M02.validate(s, ELEVEN[5], { t: 'bid', amount: 50 })).toBe(false);
-    bidAll(s, () => 25);
-    expect(s.history[1].winner).toBe(null);
-    expect(s.funds[ELEVEN[0]]).toBe(100);
-    // 再入札で 1 人が降りれば残った人が落札
-    bidAll(s, (p) => (p === ELEVEN[0] || p === ELEVEN[1] ? 20 : 5));
-    bidAll(s, (p) => (p === ELEVEN[0] ? 20 : 0));
-    expect(s.history[2].winner).toBe(ELEVEN[0]);
-    expect(s.funds[ELEVEN[0]]).toBe(80);
-  });
-
-  it('資金を超える入札はできない', () => {
-    const s = M02.init(ELEVEN, Rng.from(5));
-    expect(M02.validate(s, ELEVEN[0], { t: 'bid', amount: 101 })).toBe(false);
-    expect(M02.validate(s, ELEVEN[0], { t: 'bid', amount: -1 })).toBe(false);
-    expect(M02.validate(s, ELEVEN[0], { t: 'bid', amount: 1.5 })).toBe(false);
-  });
-
-  it('5品ごとに交換の時間。同意があれば資金と品物が同時に移り、持っていない物は渡せない', () => {
-    const s = M02.init(ELEVEN, Rng.from(6));
-    const [a, b] = ELEVEN;
-    for (let i = 0; i < 5; i++) bidAll(s, (p) => (p === a ? 10 : 0));
-    expect(s.stage).toBe('trade');
-    const have = ITEMS.find((k) => s.items[a][k] > 0)!;
-    const none = ITEMS.find((k) => s.items[b][k] === 0)!;
-    expect(M02.validate(s, a, { t: 'offer', to: b, give: { money: 0, items: { [have]: 1 } }, take: { money: 0, items: { [none]: 1 } } })).toBe(false);
-    expect(M02.validate(s, a, { t: 'offer', to: b, give: { money: 0, items: { [have]: 9 } }, take: { money: 10, items: {} } })).toBe(false);
-    expect(M02.validate(s, a, { t: 'offer', to: b, give: { money: 0, items: {} }, take: { money: 101, items: {} } })).toBe(false);
-    expect(M02.validate(s, a, { t: 'offer', to: a, give: { money: 1, items: {} }, take: { money: 0, items: {} } })).toBe(false);
-    const fa = s.funds[a];
-    M02.submit(s, a, { t: 'offer', to: b, give: { money: 0, items: { [have]: 1 } }, take: { money: 15, items: {} } });
-    expect(M02.pending(s)).toEqual([b]);
-    M02.submit(s, b, { t: 'answer', accept: true });
-    expect(s.funds[a]).toBe(fa + 15);
-    expect(s.funds[b]).toBe(85);
-    expect(s.items[b][have]).toBe(1);
-    // 断られた提案では何も動かない
-    M02.submit(s, a, { t: 'offer', to: b, give: { money: 5, items: {} }, take: { money: 0, items: { [have]: 1 } } });
-    M02.submit(s, b, { t: 'answer', accept: false });
-    expect(s.items[b][have]).toBe(1);
-    // 提案は 2 回まで
-    expect(M02.validate(s, a, { t: 'offer', to: b, give: { money: 5, items: {} }, take: { money: 0, items: {} } })).toBe(false);
+  it('進行と得点：出題者だけが選ぶ。1 問 10 点、全問正解 +10。選んだ候補は終わるまで出題者だけに見える', () => {
+    const s = M02.init(ELEVEN, Rng.from(7)) as M02State;
+    const setter = s.order[0];
+    const other = s.order[1];
+    expect(M02.pending(s)).toEqual([setter]);
+    expect(M02.validate(s, other, { t: 'pick', i: 0 })).toBe(false);
+    expect(M02.validate(s, setter, { t: 'pick', i: 3 })).toBe(false);
+    expect(M02.validate(s, setter, { t: 'pick', i: 1, tell: { [setter]: 1 } })).toBe(false);
+    M02.submit(s, setter, { t: 'pick', i: 1, tell: { [other]: 2 } });
+    expect(s.phase).toBe('prep');
+    expect(M02.view(s, setter).chosen).toBe(1);
+    expect(M02.view(s, other).chosen).toBe(null);
+    expect(M02.view(s, other).tip).toBe(2);
+    expect(M02.view(s, s.order[2]).tip).toBe(null);
+    expect(M02.view(s, other).set).toBe(null);
+    // 延長は同じラウンドに重ねられない
+    M02.submit(s, other, { t: 'boost' });
+    expect(M02.validate(s, other, { t: 'boost' })).toBe(false);
     for (const p of ELEVEN) M02.submit(s, p, { t: 'ready' });
-    expect(s.stage).toBe('bid');
+    expect(s.phase).toBe('quiz');
+    const base = s.sets[0][1].showMs;
+    expect(M02.view(s, other).set!.showMs).toBe(base + BOOST_MS);
+    expect(M02.view(s, setter).set!.showMs).toBe(base);
+    const good = perfect(s);
+    const four = { picks: [...good.picks], ms: [...good.ms] };
+    four.picks[0] = -1;
+    expect(M02.validate(s, setter, { t: 'answers', a: { picks: [0], ms: [0] } })).toBe(false);
+    M02.submit(s, setter, { t: 'answers', a: good });
+    M02.submit(s, other, { t: 'answers', a: four });
+    for (const p of ELEVEN) if (p !== setter && p !== other) M02.submit(s, p, M02.defaultMove(s, p));
+    expect(s.phase).toBe('break');
+    expect(s.results[setter][0].points).toBe(60);
+    expect(s.results[other][0].points).toBe(40);
+    expect(s.results[s.order[2]][0].points).toBe(0);
+    const v = M02.view(s, other);
+    expect(v.last!.chosen).toBe(1);
+    expect(v.last!.tip).toBe(2);
+    // 次の出題者だけが、休憩中に候補を先に見られる
+    expect(M02.view(s, s.order[1]).nextCands).not.toBe(null);
+    expect(M02.view(s, s.order[2]).nextCands).toBe(null);
+    for (const p of ELEVEN) M02.submit(s, p, { t: 'ready' });
+    expect([s.phase, s.round]).toEqual(['pick', 1]);
+    expect(M02.pending(s)).toEqual([s.order[1]]);
+    expect(s.boostUsed[other]).toBe(1);
+    expect(BOOST_MAX).toBe(2);
   });
 
-  it('CPU 同士の対戦：資金と品物の総量が保たれ、資金は負にならず、必ず終局する', () => {
-    for (let seed = 1; seed <= 60; seed++) {
-      const r = simulate('m02', seed, ELEVEN);
+  it('採点：未回答は不正解。正解時間は正解した問題だけ合計する', () => {
+    const set = makeSet(Rng.from(3), 'even', 9);
+    const a = emptyAnswer(set);
+    expect(grade(set, a).correct).toBe(0);
+    a.picks[2] = answerOf(set.board, set.questions[2]);
+    a.ms[2] = 1234;
+    const g = grade(set, a);
+    expect(g.correct).toBe(1);
+    expect(g.okMs).toBe(1234);
+  });
+
+  it('最後まで進む：全員が 1 回ずつ出題し、順位が全員ぶん決まる（2〜12 人）', () => {
+    for (const n of [2, 5, 11, 12]) {
+      const ps = ALL_IDS.slice(0, n);
+      const r = simulate('m02', 5 + n, ps);
       const s = r.slot.state as M02State;
-      const sold = s.history.filter((h) => h.winner).length;
-      const paid = s.history.reduce((x, h) => x + h.price, 0);
-      expect(s.history.length).toBe(20);
-      expect(ELEVEN.reduce((x, p) => x + s.funds[p], 0)).toBe(START_FUNDS * 11 - paid);
-      expect(ELEVEN.reduce((x, p) => x + ITEMS.reduce((y, k) => y + s.items[p][k], 0), 0)).toBe(sold);
-      for (const p of ELEVEN) {
-        expect(s.funds[p]).toBeGreaterThanOrEqual(0);
-        for (const k of ITEMS) expect(s.items[p][k]).toBeGreaterThanOrEqual(0);
-      }
-      expect(r.ranking.flat().length).toBe(11);
+      expect(s.phase).toBe('done');
+      for (const p of ps) expect(s.results[p].length).toBe(n);
+      expect(r.ranking.flat().length).toBe(n);
     }
   });
 
-  it('勝者と最下位が固定されない', () => {
-    const top = new Map<string, number>();
-    const bottom = new Map<string, number>();
-    let unsold = 0;
-    let trades = 0;
-    const N = 150;
-    for (let seed = 1; seed <= N; seed++) {
-      const r = simulate('m02', seed * 7, ELEVEN);
-      const order = r.ranking.flat();
-      top.set(order[0], (top.get(order[0]) ?? 0) + 1);
-      bottom.set(order[10], (bottom.get(order[10]) ?? 0) + 1);
+  it('100 試合：1 位と最下位が特定の人に固定されない。候補の種類による正答率の差を記録する', () => {
+    const first: Record<string, number> = {};
+    const last: Record<string, number> = {};
+    const byMix: Record<string, { ok: number; n: number }> = {};
+    const setterGain = { setter: 0, others: 0, ns: 0, no: 0 };
+    for (let seed = 1; seed <= 100; seed++) {
+      const ps = ALL_IDS.filter((_, i) => i !== seed % 12);
+      const r = simulate('m02', seed, ps);
       const s = r.slot.state as M02State;
-      unsold += s.history.filter((h) => !h.winner).length;
-      trades += s.trades.filter((x) => x.accepted).length;
+      const f = r.ranking.flat();
+      first[f[0]] = (first[f[0]] ?? 0) + 1;
+      last[f[f.length - 1]] = (last[f[f.length - 1]] ?? 0) + 1;
+      s.order.forEach((setter, round) => {
+        const mix = s.cands[round][s.chosen[round]].mix;
+        byMix[mix] ??= { ok: 0, n: 0 };
+        for (const p of ps) {
+          const c = s.results[p][round].correct;
+          byMix[mix].ok += c;
+          byMix[mix].n += QUESTIONS;
+          if (p === setter) { setterGain.setter += c; setterGain.ns++; } else { setterGain.others += c; setterGain.no++; }
+        }
+      });
     }
-    console.log('m02 top', [...top.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k}:${v}`).join(' '));
-    console.log('m02 bottom', [...bottom.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k}:${v}`).join(' '));
-    console.log('m02 unsold/game', (unsold / N).toFixed(2), 'trades/game', (trades / N).toFixed(2));
-    expect(top.size).toBeGreaterThanOrEqual(6);
-    expect(bottom.size).toBeGreaterThanOrEqual(6);
-    expect(Math.max(...top.values()) / N).toBeLessThan(0.4);
-    expect(Math.max(...bottom.values()) / N).toBeLessThan(0.4);
-    expect(unsold / N).toBeLessThan(3);
+    const rate = Object.fromEntries(Object.entries(byMix).map(([k, x]) => [k, +(x.ok / x.n).toFixed(3)]));
+    writeFileSync('/tmp/m02-stats.json', JSON.stringify({ first, last, rate, setter: +(setterGain.setter / setterGain.ns).toFixed(2), others: +(setterGain.others / setterGain.no).toFixed(2) }, null, 1));
+    expect(Object.keys(first).length).toBeGreaterThanOrEqual(8);
+    expect(Object.keys(last).length).toBeGreaterThanOrEqual(8);
+    expect(Math.max(...Object.values(first))).toBeLessThanOrEqual(30);
+    expect(Math.max(...Object.values(last))).toBeLessThanOrEqual(30);
+    const rates = Object.values(rate);
+    expect(Math.max(...rates) - Math.min(...rates)).toBeLessThan(0.12);
+    expect(MIXES.every((m) => byMix[m])).toBe(true);
+  });
+
+  it('CPU は盤面を覚えていなければ当てられない（正解を参照していない）', () => {
+    let ok = 0;
+    let n = 0;
+    for (let seed = 1; seed <= 300; seed++) {
+      const rng = Rng.from(seed);
+      const set = makeSet(rng, 'even', 12);
+      ok += grade(set, cpuAnswer(set, { pSeen: 0, pLoc: 0 }, rng)).correct;
+      n += QUESTIONS;
+    }
+    // 位置は 12 択、旗と有無は 4 択の当て推量
+    expect(ok / n).toBeLessThan(0.25);
+    expect(ok / n).toBeGreaterThan(0.1);
   });
 });

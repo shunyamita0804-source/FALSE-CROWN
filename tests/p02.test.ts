@@ -1,68 +1,91 @@
+import { writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { ALL_IDS } from '../src/data/characters';
 import { Rng } from '../src/core/rng';
-import { ALL_CODES, P02, candidates, judge, type P02State } from '../src/matches/p02';
+import { ALL_IDS } from '../src/data/characters';
+import { answerOf, wellFormed } from '../src/matches/memory';
+import { P02, P02_PRACTICE, QUESTIONS, ROUND_SPECS, ROUNDS, SYMBOLS, type P02State } from '../src/matches/p02';
 import { simulate } from './helpers';
 
 const FOUR = ALL_IDS.slice(0, 4);
 
-describe('P02 四つの金庫', () => {
-  it('候補は 720 通り。一致と数字のみの判定', () => {
-    expect(ALL_CODES.length).toBe(720);
-    expect(judge('012', '012')).toEqual({ hit: 3, blow: 0 });
-    expect(judge('012', '021')).toEqual({ hit: 1, blow: 2 });
-    expect(judge('012', '345')).toEqual({ hit: 0, blow: 0 });
-    expect(judge('012', '201')).toEqual({ hit: 0, blow: 3 });
+describe('P02 瞬間記憶', () => {
+  it('問題：8 ラウンド、4×4 から 5×5、図柄 8〜18 個、6 問。候補 4 つに正解がちょうど 1 つ（100 シード）', () => {
+    expect(SYMBOLS.length).toBe(20);
+    for (let seed = 1; seed <= 100; seed++) {
+      const s = P02.init(FOUR, Rng.from(seed)) as P02State;
+      expect(s.sets.length).toBe(ROUNDS);
+      s.sets.forEach((set, r) => {
+        const sp = ROUND_SPECS[r];
+        expect(set.board.w).toBe(sp.size);
+        expect(set.board.cells.filter((c) => c != null).length).toBe(sp.n);
+        expect(set.showMs).toBeGreaterThanOrEqual(10_000);
+        expect(set.showMs).toBeLessThanOrEqual(15_000);
+        expect(set.questions.length).toBe(QUESTIONS);
+        expect(wellFormed(set)).toBe(true);
+        expect(new Set(set.questions.map((q) => (q.kind === 'item' ? q.cell : -1))).size).toBe(QUESTIONS);
+        for (const q of set.questions) expect(q.kind === 'item' && q.options.length).toBe(4);
+      });
+    }
+    expect(ROUND_SPECS[0].n).toBe(8);
+    expect(ROUND_SPECS[ROUNDS - 1].n).toBe(18);
+    expect(wellFormed(P02_PRACTICE)).toBe(true);
   });
 
-  it('4 つの金庫は異なる番号。開錠 +5、記録更新は増えた分だけ +1、同じ入力は拒否', () => {
-    const s = P02.init(FOUR, Rng.from(9));
-    expect(new Set(s.codes).size).toBe(4);
-    s.codes = ['012', '345', '678', '901'];
-    const [a, b, c] = FOUR;
-    expect(P02.validate(s, b, { t: 'guess', safe: 0, code: '019' })).toBe(false); // 手番ではない
-    expect(P02.validate(s, a, { t: 'guess', safe: 0, code: '011' })).toBe(false); // 数字の重複
-    P02.submit(s, a, { t: 'guess', safe: 0, code: '019' }); // 2 一致 → +2
-    expect(s.score[a]).toBe(2);
-    expect(P02.validate(s, b, { t: 'guess', safe: 0, code: '019' })).toBe(false);
-    P02.submit(s, b, { t: 'guess', safe: 0, code: '312' }); // 2 一致、記録更新なし
-    expect(s.score[b]).toBe(0);
-    P02.submit(s, c, { t: 'guess', safe: 0, code: '012' });
-    expect(s.score[c]).toBe(5);
-    expect(s.opened[0]).toBe(c);
-    expect(P02.validate(s, FOUR[3], { t: 'guess', safe: 0, code: '987' })).toBe(false);
-    expect(P02.view(s, a).codes).toEqual(['012', null, null, null]);
-  });
-
-  it('候補の絞り込みは正解を必ず残す', () => {
-    const s = P02.init(FOUR, Rng.from(11));
-    const rng = Rng.from(5);
-    for (let i = 0; i < 12; i++) {
-      const p = P02.pending(s)[0];
-      const m = { t: 'guess' as const, safe: 0, code: rng.pick(ALL_CODES) };
-      if (P02.validate(s, p, m)) P02.submit(s, p, m);
-      if (s.opened[0]) break;
-      expect(candidates(s.history, 0)).toContain(s.codes[0]);
+  it('得点：正解 2 点、全問正解 +2。延長は 1 回だけ。2 ラウンドごとに休憩', () => {
+    const s = P02.init(FOUR, Rng.from(2)) as P02State;
+    M: {
+      P02.submit(s, FOUR[0], { t: 'boost' });
+      expect(P02.validate(s, FOUR[0], { t: 'boost' })).toBe(false);
+      for (const p of FOUR) P02.submit(s, p, { t: 'ready' });
+      expect(s.phase).toBe('quiz');
+      expect(P02.view(s, FOUR[0]).set!.showMs).toBe(ROUND_SPECS[0].showMs + 2000);
+      expect(P02.view(s, FOUR[1]).set!.showMs).toBe(ROUND_SPECS[0].showMs);
+      const set = s.sets[0];
+      const good = { picks: set.questions.map((q) => answerOf(set.board, q)), ms: set.questions.map(() => 1500) };
+      const half = { picks: good.picks.map((x, i) => (i < 3 ? x : -1)), ms: [...good.ms] };
+      P02.submit(s, FOUR[0], { t: 'answers', a: good });
+      P02.submit(s, FOUR[1], { t: 'answers', a: half });
+      P02.submit(s, FOUR[2], P02.defaultMove(s, FOUR[2]));
+      P02.submit(s, FOUR[3], P02.defaultMove(s, FOUR[3]));
+      expect(s.results[FOUR[0]][0].points).toBe(14);
+      expect(s.results[FOUR[1]][0].points).toBe(6);
+      expect(s.results[FOUR[2]][0].points).toBe(0);
+      expect([s.phase, s.round]).toEqual(['prep', 1]);
+      expect(P02.validate(s, FOUR[0], { t: 'boost' })).toBe(false);
+      for (const p of FOUR) P02.submit(s, p, { t: 'ready' });
+      for (const p of FOUR) P02.submit(s, p, P02.defaultMove(s, p));
+      expect(s.phase).toBe('break');
+      for (const p of FOUR) P02.submit(s, p, { t: 'ready' });
+      expect([s.phase, s.round]).toEqual(['prep', 2]);
+      break M;
     }
   });
 
-  it('CPU 同士：必ず終局し、入力は 1 人 12 回まで。最下位が固定されない', () => {
-    const bottom = new Map<string, number>();
-    let ties = 0;
-    let opened = 0;
-    const N = 200;
-    for (let seed = 1; seed <= N; seed++) {
-      const r = simulate('p02', seed * 3, FOUR);
+  it('最後まで進む（2〜4 人）。100 試合で最下位が特定の人に固定されない', () => {
+    for (const n of [2, 3, 4]) {
+      const r = simulate('p02', 3 + n, ALL_IDS.slice(0, n));
+      expect((r.slot.state as P02State).phase).toBe('done');
+      expect(r.ranking.flat().length).toBe(n);
+    }
+    const last: Record<string, number> = {};
+    const app: Record<string, number> = {};
+    let ok = 0;
+    let q = 0;
+    const byRound = ROUND_SPECS.map(() => 0);
+    for (let seed = 1; seed <= 300; seed++) {
+      const ps = [ALL_IDS[seed % 12], ALL_IDS[(seed + 3) % 12], ALL_IDS[(seed + 5) % 12], ALL_IDS[(seed + 8) % 12]];
+      const r = simulate('p02', seed, ps);
+      const f = r.ranking.flat();
+      last[f[3]] = (last[f[3]] ?? 0) + 1;
       const s = r.slot.state as P02State;
-      for (const p of FOUR) expect(s.left[p]).toBeGreaterThanOrEqual(0);
-      expect(s.history.length).toBeLessThanOrEqual(48);
-      opened += s.opened.filter(Boolean).length;
-      const last = r.ranking[r.ranking.length - 1];
-      if (last.length > 1) ties++;
-      for (const p of last) bottom.set(p, (bottom.get(p) ?? 0) + 1 / last.length);
+      for (const p of ps) {
+        app[p] = (app[p] ?? 0) + 1;
+        s.results[p].forEach((x, i) => { ok += x.correct; q += QUESTIONS; byRound[i] += x.correct; });
+      }
     }
-    console.log('p02 bottom', [...bottom.entries()].map(([k, v]) => `${k}:${v.toFixed(0)}`).join(' '), 'tieLast', ties, 'opened/game', (opened / N).toFixed(2));
-    expect(bottom.size).toBe(4);
-    expect(Math.max(...bottom.values()) / N).toBeLessThan(0.5);
+    const rate = Object.fromEntries(Object.entries(last).map(([k, v]) => [k, +(v / app[k]).toFixed(2)]));
+    writeFileSync('/tmp/p02-stats.json', JSON.stringify({ rate, ok: +(ok / q).toFixed(3), byRound: byRound.map((x) => +(x / (300 * 4 * QUESTIONS)).toFixed(2)) }, null, 1));
+    expect(Object.keys(last).length).toBeGreaterThanOrEqual(10);
+    expect(Math.max(...Object.values(rate))).toBeLessThan(0.6);
   });
 });

@@ -14,7 +14,7 @@ import { DEFAULT_HERO_NAMES, NPC_IDS, type CharId } from '../data/characters';
 import { CONFIG, scheduleFor } from '../data/config';
 import { t } from '../i18n/i18n';
 import { phaseDuration } from '../core/clock';
-import { CATALOG, isImplemented, isLegacy, MATCHES } from '../matches/registry';
+import { CATALOG, isImplemented, MATCHES } from '../matches/registry';
 import { saveMeta } from '../save/save';
 import { setHeroGender } from '../ui/art';
 import { startMorning } from '../core/tournament';
@@ -117,8 +117,6 @@ export function devMenu(): Promise<GameState | null> {
         h('h4', { class: 'gold' }, `競技を単体で試す（実装済み ${CATALOG.filter((c) => isImplemented(c.id)).length} / ${CATALOG.length}）`),
         ...groups.map(([g, label]) => h('div', null, h('div', { class: 'dim small' }, label), h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' }, CATALOG.filter((c) => c.group === g).map((c) =>
           button(`${c.id.toUpperCase()} ${c.name}`, () => void testMatch(c.id), { small: true, disabled: !isImplemented(c.id), title: isImplemented(c.id) ? '' : '未実装' }))))),
-        h('div', null, h('div', { class: 'dim small' }, '旧ルールのまま残っている競技（v11 で置き換えるまで本編では使いません）'), h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' }, Object.keys(MATCHES).filter(isLegacy).map((id) =>
-          button(`${id.toUpperCase()} 旧「${MATCHES[id].name}」`, () => void testMatch(id), { small: true, kind: 'ghost' })))),
         h('div', { class: 'row', style: 'gap:6px' }, button('共通決定戦（同点決着）', async () => {
           const s = fresh();
           G.state = s;
@@ -127,15 +125,16 @@ export function devMenu(): Promise<GameState | null> {
           G.state = null;
         }, { small: true })),
         h('h4', { class: 'gold' }, '任意の時点から開始（そこまでは自動対戦）'),
-        h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' },
-          button('DAY1 朝', () => void startAt(1, 'morning'), { small: true }),
-          button('DAY1 メインマッチ', () => void startAt(1, 'main'), { small: true }),
-          button('DAY1 生活棟の自由時間', () => void startAt(1, 'house', 'living'), { small: true }),
-          button('DAY1 監獄棟の自由時間（脱落の検証）', () => void startAt(1, 'house', 'prison'), { small: true }),
-          button('DAY1 監獄マッチ（主人公参加）', () => void startAt(1, 'prison', 'prison'), { small: true }),
-          button('DAY1 夜', () => void startAt(1, 'night'), { small: true }),
-          button('DAY1 消灯', () => void startAt(1, 'curfew'), { small: true }),
-        ),
+        ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter((d) => isImplemented(scheduleFor(d).main) && (!scheduleFor(d).prisonGame || isImplemented(scheduleFor(d).prisonGame!))).map((d) =>
+          h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' },
+            button(`DAY${d} 朝`, () => void startAt(d, 'morning'), { small: true }),
+            button(`DAY${d} メインマッチ`, () => void startAt(d, 'main'), { small: true }),
+            button(`DAY${d} 生活棟の自由時間`, () => void startAt(d, 'house', 'living'), { small: true }),
+            button(`DAY${d} 監獄棟の自由時間`, () => void startAt(d, 'house', 'prison'), { small: true }),
+            button(`DAY${d} 監獄マッチ（主人公参加）`, () => void startAt(d, 'prison', 'prison'), { small: true }),
+            button(`DAY${d} 夜`, () => void startAt(d, 'night'), { small: true }),
+            button(`DAY${d} 消灯`, () => void startAt(d, 'curfew'), { small: true }),
+          )),
         h('h4', { class: 'gold' }, '救いのメダルの検証（DAY1 の順位発表から。順位と関係は検証用に並べ替え）'),
         h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' },
           button('主人公が 1 位（選んで使う）', () => void medalCase('heroFirst'), { small: true }),

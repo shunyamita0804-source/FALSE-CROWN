@@ -59,8 +59,7 @@ export const CATALOG: CatalogEntry[] = [
 ];
 
 /**
- * 旧ルール（v10 以前）のまま残っている競技。v11 の全面改訂で置き換えるまで本編では使わない（開発者メニューからだけ試せる）。
- * 一覧の名称は v11 のもの。エンジンは旧ルールなので、完成扱いにしない。
+ * 画面の確認が済んでいない競技。確認が済むまで本編の日程には使わない（完成扱いにしない）。
  */
 export const LEGACY = new Set<string>(['m02', 'p02']);
 export const isLegacy = (id: string) => LEGACY.has(id) && id in MATCHES;

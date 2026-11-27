@@ -117,6 +117,8 @@ export function openLayer(el: HTMLElement, opts: Partial<Omit<Layer, 'el'>> = {}
   const layer: Layer = { el, pausesClock: opts.pausesClock ?? false, modal: opts.modal ?? true, onCancel: opts.onCancel, onKey: opts.onKey, name: opts.name ?? 'layer' };
   el.classList.add('layer');
   if (!layer.modal) el.classList.add('layer-passive');
+  // 暗転したまま画面を開くと、真っ暗で何も押せなくなる。操作を求める画面を開く時は、必ず暗転を解く
+  if (layer.modal && document.getElementById('fade')?.classList.contains('on')) void fade(false, 200);
   stage.appendChild(el);
   layers.push(layer);
   requestAnimationFrame(() => el.classList.add('open'));
@@ -301,14 +303,49 @@ export function fmtTime(ms: number): string {
 }
 
 /** 画面遷移のフェード */
-export function fade(toBlack: boolean, ms = 350): Promise<void> {
+export function fade(toBlack: boolean, ms = 350, label?: string): Promise<void> {
   let el = document.getElementById('fade');
   if (!el) {
     el = h('div', { id: 'fade' });
     document.body.appendChild(el);
   }
+  if (toBlack) el.textContent = label ?? '';
   el.style.transitionDuration = `${ms}ms`;
   void el.offsetWidth;
   el.classList.toggle('on', toBlack);
   return new Promise((r) => setTimeout(r, ms + 20));
+}
+
+/**
+ * 想定外のエラーで画面が止まった時に、原因と戻り方を必ず表示する（真っ暗なまま操作不能にしない）。
+ * セーブデータには触れない。再読み込みすれば、最後に保存された所から続けられる。
+ */
+export function installErrorScreen(version: string): void {
+  let shown = false;
+  const show = (msg: string) => {
+    if (shown) return;
+    shown = true;
+    document.getElementById('fade')?.classList.remove('on');
+    const box = document.createElement('div');
+    box.id = 'fatal';
+    box.innerHTML = '<div class="fatal-box"><h2>問題が発生しました</h2><p>画面の処理でエラーが起きました。下のボタンで読み込み直すと、最後に保存された所から続けられます。</p><pre></pre><div class="fatal-btns"><button type="button" data-a="reload">読み込み直す</button><button type="button" data-a="close">このまま続ける</button></div></div>';
+    (box.querySelector('pre') as HTMLElement).textContent = `${msg}\n${version}`;
+    box.addEventListener('click', (e) => {
+      const a = (e.target as HTMLElement).dataset.a;
+      if (a === 'reload') location.reload();
+      else if (a === 'close') { box.remove(); shown = false; }
+    });
+    document.body.appendChild(box);
+  };
+  window.addEventListener('error', (e) => {
+    // 画像や音声の読み込み失敗（target が要素）は、代わりの表示で続けられるので対象外
+    if (e.error || (e.message && !(e.target instanceof HTMLElement))) show(String(e.error?.stack ?? e.message).slice(0, 600));
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    const r = e.reason;
+    const msg = String(r?.stack ?? r?.message ?? r);
+    // 音声の自動再生の拒否などは無害なので出さない
+    if (/NotAllowedError|AbortError|play\(\)/.test(msg)) return;
+    show(msg.slice(0, 600));
+  });
 }

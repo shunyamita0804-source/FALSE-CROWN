@@ -6,10 +6,14 @@
 import { Sound } from '../audio/audio';
 import { t } from '../i18n/i18n';
 import { L4, M01_DEMO, M01_PRACTICE, SQ } from '../matches/m01';
+import { M02_PRACTICE } from '../matches/m02';
 import { P01_PRACTICE } from '../matches/p01';
+import { COLORS, P02_PRACTICE, SHAPES } from '../matches/p02';
 import { rotated, type Cell } from '../matches/poly';
 import { ChainBoard } from './chainboard';
 import { append, button, clear, closeLayer, h, openLayer, type Child, type Layer } from './dom';
+import { candCard } from './games/m02';
+import { boardFigure, COLOR_NAME, itemEl, MemQuiz, SHAPE_NAME } from './memquiz';
 import { PolyBoard } from './polyboard';
 
 export interface GuidePage {
@@ -112,7 +116,67 @@ function p01Guide(): Guide {
   };
 }
 
-const GUIDES: Record<string, () => Guide> = { m01: m01Guide, p01: p01Guide };
+// ---- M02 フラッグ・フラッシュ、P02 瞬間記憶 ----
+
+/** 練習用の記憶問題。時計は画面を開いた時から数える */
+function memPractice(set: typeof M02_PRACTICE, onDone: () => void): HTMLElement {
+  const start = performance.now();
+  return new MemQuiz(set, { elapsed: () => performance.now() - start, onDone, cell: set.board.w === 3 ? 104 : 124 }).el;
+}
+
+const optRow = (items: string[], pick: number) => h('div', { class: 'tg-opts' }, items.map((x, i) => h('span', { class: `mq-opt${i === pick ? ' ok' : ''}` }, itemEl(x))));
+
+function m02Guide(): Guide {
+  const b = M02_PRACTICE.board;
+  return {
+    name: 'フラッグ・フラッシュ',
+    pages: [
+      { title: t('tut.m02.t1'), text: t('tut.m02.p1'), figure: () => boardFigure(b, { cell: 124 }) },
+      {
+        title: t('tut.m02.t2'), text: t('tut.m02.p2'),
+        figure: () => h('div', { class: 'tg-row mem' },
+          h('div', { class: 'tg-fig' }, h('div', { class: 'row', style: 'gap:10px;align-items:center' }, itemEl('se', 'tgt'), boardFigure(b, { cell: 50, hidden: true, marks: { 5: { cls: 'ok' } } })), h('div', { class: 'tg-cap' }, t('tut.m02.q1'))),
+          h('div', { class: 'tg-fig' }, h('div', { class: 'row', style: 'gap:10px;align-items:center' }, boardFigure(b, { cell: 50, hidden: true, marks: { 7: { cls: 'asked', label: '？' } } }), optRow(['fr', 'de'], 1)), h('div', { class: 'tg-cap' }, t('tut.m02.q2'))),
+          h('div', { class: 'tg-fig' }, optRow(['pl', 'vn', 'gh'], 1), h('div', { class: 'tg-cap' }, t('tut.m02.q3')))),
+      },
+      {
+        title: t('tut.m02.t3'), text: t('tut.m02.p3'),
+        figure: () => h('div', { class: 'm02-cands' }, candCard({ mix: 'place', n: 8, showMs: 6300 }, 0), candCard({ mix: 'item', n: 11, showMs: 8100 }, 1, { cls: 'sel', note: h('i', { class: 'tag' }, t('m02.chosenTag')) }), candCard({ mix: 'present', n: 9, showMs: 4500 }, 2)),
+      },
+      {
+        title: t('tut.m02.t4'), text: t('tut.m02.p4'),
+        figure: () => h('div', { class: 'col', style: 'gap:14px;align-items:center' },
+          chips([{ label: t('tut.m02.c1'), value: '10' }, { label: t('tut.m02.c2'), value: '5' }, { label: t('tut.m02.c3'), value: '10' }], ['×', '+']),
+          facts([['11', t('tut.m02.f1')], ['5', t('tut.m02.f2')], ['8', t('tut.m02.f3')]])),
+      },
+    ],
+    practice: { text: t('tut.m02.practice'), build: (onDone) => memPractice(M02_PRACTICE, onDone) },
+  };
+}
+
+function p02Guide(): Guide {
+  return {
+    name: '瞬間記憶',
+    pages: [
+      { title: t('tut.p02.t1'), text: t('tut.p02.p1'), figure: () => boardFigure(P02_PRACTICE.board, { cell: 104 }) },
+      {
+        title: t('tut.p02.t2'), text: t('tut.p02.p2'),
+        figure: () => h('div', { class: 'col', style: 'gap:12px;align-items:center' },
+          h('div', { class: 'tg-opts' }, SHAPES.map((sh) => h('span', { class: 'tg-leg' }, itemEl(`${sh}:red`), h('small', null, SHAPE_NAME[sh])))),
+          h('div', { class: 'tg-opts' }, COLORS.map((c) => h('span', { class: 'tg-leg' }, itemEl(`circle:${c}`), h('small', null, COLOR_NAME[c]))))),
+      },
+      {
+        title: t('tut.p02.t3'), text: t('tut.p02.p3'),
+        figure: () => h('div', { class: 'col', style: 'gap:14px;align-items:center' },
+          chips([{ label: t('tut.p02.c1'), value: '2' }, { label: t('tut.p02.c2'), value: '6' }, { label: t('tut.p02.c3'), value: '2' }], ['×', '+']),
+          facts([['8', t('tut.p02.f1')], ['6', t('tut.p02.f2')], ['8', t('tut.p02.f3')]])),
+      },
+    ],
+    practice: { text: t('tut.p02.practice'), build: (onDone) => memPractice(P02_PRACTICE, onDone) },
+  };
+}
+
+const GUIDES: Record<string, () => Guide> = { m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide };
 
 export const hasGuide = (id: string) => id in GUIDES;
 
