@@ -33,7 +33,8 @@ export function buildCtx(state: GameState, id: CharId, matchId: string, rng: Rng
     noise: diff.noise * (1.25 - skill(stats.strategy) * 0.5),
     depth: Math.max(0, Math.round(diff.depth + skill(stats.strategy) * 2 - 1)),
     memoryLoss: diff.memoryLoss * (1.5 - skill(stats.memory)),
-    relation: (o) => rel(state, id, o),
+    // 参加者ではない相手（仮面のディーラーなど）には、関係の記録が無い
+    relation: (o) => (state.actors[id] ? rel(state, id, o) : { like: 0, trust: 50, wary: 0, debt: 0, hostility: 0, threat: 0 }),
     allies: deals.filter((d) => d.kind === 'alliance').map(partner),
     nonAggression: deals.filter((d) => d.kind === 'nonaggression').map(partner),
     myPlans: deals.flatMap((d) => {
@@ -53,7 +54,7 @@ export function buildCtx(state: GameState, id: CharId, matchId: string, rng: Rng
     }),
     name: (o) => nameOf(state, o),
     pieces: state.actors[id]?.pieces ?? 0,
-    spend: (n, reason) => transfer(state, id, 'host', n, reason),
+    spend: (n, reason) => (state.actors[id] ? transfer(state, id, 'host', n, reason) : false),
   };
 }
 

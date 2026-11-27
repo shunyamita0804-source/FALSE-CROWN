@@ -100,106 +100,229 @@ export interface P10View {
   caps: number[];
   ready: Record<string, boolean>;
   log: P10Log[];
+  /** 点の入る中央のマス */
+  centers: number[];
+  endBonus: number;
+  /** 最初の配置（手の再生に使う） */
+  start: Piece[];
 }
 
 /** ゲーム game の、巡の k 手目に動く席 */
 export const seatAt = (game: number, k: number) => (game + k) % 2;
 
-// ---- CPU ----
-
-interface Sim { pieces: Piece[]; diff: number; round: number; k: number; game: number }
-
-/** 席 0 から見た評価（得点の差、駒の数の差、中央に近い駒） */
-function evalSim(s: Sim): number {
-  let v = s.diff;
-  const left = ROUNDS - s.round;
-  for (const p of s.pieces) {
-    const [x, y] = xy(p.pos);
-    const d = Math.abs(x - 2) + Math.abs(y - 2);
-    const w = 2.0 + (d <= 1 ? Math.min(left, 4) * 0.55 : d === 2 ? 0.35 : 0);
-    v += p.seat === 0 ? w : -w;
-  }
-  return v;
+export interface P10Cfg {
+  id: string;
+  name: string;
+  kind: 'prison' | 'hidden';
+  rounds: number;
+  games: number;
+  centers: number[];
+  start: () => Piece[];
+  /** 終わった時に残っている駒 1 個の点 */
+  endBonus: number;
+  /** 何巡ごとに休憩を入れるか（0 は休憩なし） */
+  breakEvery: number;
+  summary: string;
+  rules: string[];
 }
 
-function search(s: Sim, depth: number, alpha: number, beta: number): number {
-  const n0 = s.pieces.reduce((n, p) => n + (p.seat === 0 ? 1 : 0), 0);
-  if (s.round >= ROUNDS || n0 === 0 || n0 === s.pieces.length) return s.diff + (n0 - (s.pieces.length - n0)) * 0.01;
-  if (depth <= 0) return evalSim(s);
-  const seat = seatAt(s.game, s.k);
-  const steps = stepsOf(s.pieces, seat);
-  const next = (pieces: Piece[], gain: number): Sim => {
-    let diff = s.diff + (seat === 0 ? gain : -gain);
-    let round = s.round;
-    let k = s.k + 1;
-    if (k >= 2) { k = 0; round += 1; diff += (centerCount(pieces, 0) - centerCount(pieces, 1)) * CENTER_PTS; }
-    return { pieces, diff, round, k, game: s.game };
-  };
-  if (!steps.length) return search(next(s.pieces, 0), depth - 1, alpha, beta);
-  // 取る手、中央へ入る手から先に読む
-  steps.sort((a, b) => (b.cap !== undefined ? 2 : 0) + (IS_CENTER[b.to] ? 1 : 0) - (a.cap !== undefined ? 2 : 0) - (IS_CENTER[a.to] ? 1 : 0));
-  if (seat === 0) {
-    let best = -Infinity;
+/** 同じ駒の動きで、盤面の設定だけを変えた競技を作る（P10 最後の一手、H06 影の対戦者） */
+export function makeP10(cfg: P10Cfg): MatchEngine<P10State, P10Move, P10View> {
+  const isCenter = Array.from({ length: N * N }, (_, c) => cfg.centers.includes(c));
+  const cc = (pieces: Piece[], seat: number) => pieces.reduce((n, p) => n + (p.seat === seat && isCenter[p.pos] ? 1 : 0), 0);
+
+  // ---- CPU ----
+
+  interface Sim { pieces: Piece[]; diff: number; round: number; k: number; game: number }
+
+  /** 席 0 から見た評価（得点の差、駒の数の差、中央に近い駒） */
+  function evalSim(s: Sim): number {
+    let v = s.diff;
+    const left = cfg.rounds - s.round;
+    for (const p of s.pieces) {
+      const [x, y] = xy(p.pos);
+      const d = Math.abs(x - 2) + Math.abs(y - 2);
+      const w = 2.0 + (d <= 1 ? Math.min(left, 4) * 0.55 : d === 2 ? 0.35 : 0);
+      v += p.seat === 0 ? w : -w;
+    }
+    return v;
+  }
+
+  function search(s: Sim, depth: number, alpha: number, beta: number): number {
+    const n0 = s.pieces.reduce((n, p) => n + (p.seat === 0 ? 1 : 0), 0);
+    if (s.round >= cfg.rounds || n0 === 0 || n0 === s.pieces.length) return s.diff + (n0 - (s.pieces.length - n0)) * (0.01 + cfg.endBonus);
+    if (depth <= 0) return evalSim(s);
+    const seat = seatAt(s.game, s.k);
+    const steps = stepsOf(s.pieces, seat);
+    const next = (pieces: Piece[], gain: number): Sim => {
+      let diff = s.diff + (seat === 0 ? gain : -gain);
+      let round = s.round;
+      let k = s.k + 1;
+      if (k >= 2) { k = 0; round += 1; diff += (cc(pieces, 0) - cc(pieces, 1)) * CENTER_PTS; }
+
+  return {
+  pieces, diff, round, k, game: s.game };
+    };
+    if (!steps.length) return search(next(s.pieces, 0), depth - 1, alpha, beta);
+    // 取る手、中央へ入る手から先に読む
+    steps.sort((a, b) => (b.cap !== undefined ? 2 : 0) + (isCenter[b.to] ? 1 : 0) - (a.cap !== undefined ? 2 : 0) - (isCenter[a.to] ? 1 : 0));
+    if (seat === 0) {
+      let best = -Infinity;
+      for (const st of steps) {
+        best = Math.max(best, search(next(applyStep(s.pieces, seat, st), st.cap !== undefined ? CAP_PTS : 0), depth - 1, alpha, beta));
+        alpha = Math.max(alpha, best);
+        if (alpha >= beta) break;
+      }
+      return best;
+    }
+    let best = Infinity;
     for (const st of steps) {
-      best = Math.max(best, search(next(applyStep(s.pieces, seat, st), st.cap !== undefined ? CAP_PTS : 0), depth - 1, alpha, beta));
-      alpha = Math.max(alpha, best);
+      best = Math.min(best, search(next(applyStep(s.pieces, seat, st), st.cap !== undefined ? CAP_PTS : 0), depth - 1, alpha, beta));
+      beta = Math.min(beta, best);
       if (alpha >= beta) break;
     }
     return best;
   }
-  let best = Infinity;
-  for (const st of steps) {
-    best = Math.min(best, search(next(applyStep(s.pieces, seat, st), st.cap !== undefined ? CAP_PTS : 0), depth - 1, alpha, beta));
-    beta = Math.min(beta, best);
-    if (alpha >= beta) break;
+
+  /** CPU：相手の応手まで数手先を読む（読む深さは能力で変わる）。中央、取る手、取られない位置を評価する */
+  function p10Ai(v: P10View, ctx: AiCtx): P10Move {
+    if (v.phase !== 'play') return { t: 'ready' };
+    const seat = v.me;
+    const steps = stepsOf(v.pieces, seat);
+    if (!steps.length) return { t: 'pass' };
+    const st = skill(ctx.stats.strategy);
+    const lg = skill(ctx.stats.logic);
+    const depth = Math.max(1, Math.min(5, Math.round(1.6 + st * 2.2 + lg * 1.0 + ctx.rng.gauss(0, 0.4))));
+    const sd = 0.2 + ctx.noise * 0.9 + (1 - st) * 0.9;
+    const k = seatAt(v.game, 0) === seat ? 0 : 1;
+    const sign = seat === 0 ? 1 : -1;
+    let best = steps[0];
+    let bestVal = -Infinity;
+    for (const s of steps) {
+      const pieces = applyStep(v.pieces, seat, s);
+      let diff = (v.points[0] - v.points[1]) + sign * (s.cap !== undefined ? CAP_PTS : 0);
+      let round = v.round;
+      let kk = k + 1;
+      if (kk >= 2) { kk = 0; round += 1; diff += (cc(pieces, 0) - cc(pieces, 1)) * CENTER_PTS; }
+      const val = sign * search({ pieces, diff, round, k: kk, game: v.game }, depth - 1, -Infinity, Infinity) + ctx.rng.gauss(0, sd);
+      if (val > bestVal) { bestVal = val; best = s; }
+    }
+    return { t: 'move', from: best.from, to: best.to };
   }
-  return best;
-}
 
-/** CPU：相手の応手まで数手先を読む（読む深さは能力で変わる）。中央、取る手、取られない位置を評価する */
-function p10Ai(v: P10View, ctx: AiCtx): P10Move {
-  if (v.phase !== 'play') return { t: 'ready' };
-  const seat = v.me;
-  const steps = stepsOf(v.pieces, seat);
-  if (!steps.length) return { t: 'pass' };
-  const st = skill(ctx.stats.strategy);
-  const lg = skill(ctx.stats.logic);
-  const depth = Math.max(1, Math.min(5, Math.round(1.6 + st * 2.2 + lg * 1.0 + ctx.rng.gauss(0, 0.4))));
-  const sd = 0.2 + ctx.noise * 0.9 + (1 - st) * 0.9;
-  const k = seatAt(v.game, 0) === seat ? 0 : 1;
-  const sign = seat === 0 ? 1 : -1;
-  let best = steps[0];
-  let bestVal = -Infinity;
-  for (const s of steps) {
-    const pieces = applyStep(v.pieces, seat, s);
-    let diff = (v.points[0] - v.points[1]) + sign * (s.cap !== undefined ? CAP_PTS : 0);
-    let round = v.round;
-    let kk = k + 1;
-    if (kk >= 2) { kk = 0; round += 1; diff += (centerCount(pieces, 0) - centerCount(pieces, 1)) * CENTER_PTS; }
-    const val = sign * search({ pieces, diff, round, k: kk, game: v.game }, depth - 1, -Infinity, Infinity) + ctx.rng.gauss(0, sd);
-    if (val > bestVal) { bestVal = val; best = s; }
+  function endGame(s: P10State): void {
+    for (const seat of [0, 1]) {
+      const left = s.pieces.filter((p) => p.seat === seat).length;
+      s.remain[seat] += left;
+      // 終わった時に残っている駒の点（影の対戦者だけ）
+      if (cfg.endBonus) { s.points[seat] += left * cfg.endBonus; s.gamePts[s.game][seat] += left * cfg.endBonus; }
+    }
+    if (s.game >= cfg.games - 1) { s.phase = 'done'; return; }
+    s.game += 1;
+    s.round = 0;
+    s.k = 0;
+    s.pieces = cfg.start();
+    s.phase = 'break';
+    s.ready = Object.fromEntries(s.players.map((x) => [x, false]));
+    s.stage = `g${s.game}-break`;
   }
-  return { t: 'move', from: best.from, to: best.to };
+
+    return {
+    id: cfg.id,
+    name: cfg.name,
+    kind: cfg.kind,
+    minPlayers: 2,
+    maxPlayers: 2,
+    summary: cfg.summary,
+    rules: cfg.rules,
+    init(players) {
+      return {
+        players: [...players], game: 0, round: 0, k: 0, phase: 'play', pieces: cfg.start(),
+        points: [0, 0], gamePts: [[0, 0], [0, 0]], remain: [0, 0], caps: [0, 0],
+        ready: Object.fromEntries(players.map((p) => [p, false])), log: [], stage: 'g0-0',
+      };
+    },
+    pending(s) {
+      if (s.phase === 'done') return [];
+      if (s.phase === 'break') return s.players.filter((p) => !s.ready[p]);
+      return [s.players[seatAt(s.game, s.k)]];
+    },
+    stage(s) {
+      if (s.phase === 'done') return { label: '終了' };
+      if (s.phase === 'break') return { label: s.round === 0 ? `休憩（次はゲーム ${s.game + 1}）` : `休憩（次は ${s.round + 1} 巡目）`, time: BREAK_MS, negotiation: true };
+      return { label: cfg.games > 1 ? `ゲーム ${s.game + 1} / ${cfg.games}　${s.round + 1} 巡目 / ${cfg.rounds}` : `${s.round + 1} 巡目 / ${cfg.rounds}`, time: MOVE_MS };
+    },
+    validate(s, p, m) {
+      if (!m || s.phase === 'done' || !s.players.includes(p)) return false;
+      if (s.phase === 'break') return m.t === 'ready' && !s.ready[p];
+      const seat = seatAt(s.game, s.k);
+      if (s.players[seat] !== p) return false;
+      if (m.t === 'pass') return true;
+      return m.t === 'move' && stepsOf(s.pieces, seat).some((x) => x.from === m.from && x.to === m.to);
+    },
+    defaultMove(s) {
+      return s.phase === 'break' ? { t: 'ready' } : { t: 'pass' };
+    },
+    submit(s, p, m) {
+      if (!this.validate(s, p, m)) throw new Error(`p10: illegal move ${JSON.stringify(m)}`);
+      if (m.t === 'ready') {
+        s.ready[p] = true;
+        if (s.players.every((x) => s.ready[x])) { s.phase = 'play'; s.stage = `g${s.game}-${s.round}-0`; }
+        return;
+      }
+      const seat = s.players.indexOf(p);
+      const g = s.game;
+      if (m.t === 'pass') s.log.push({ game: g, round: s.round, seat, kind: 'pass', pieces: s.pieces, points: [...s.points] });
+      else {
+        const st = stepsOf(s.pieces, seat).find((x) => x.from === m.from && x.to === m.to)!;
+        s.pieces = applyStep(s.pieces, seat, st);
+        if (st.cap !== undefined) { s.points[seat] += CAP_PTS; s.gamePts[g][seat] += CAP_PTS; s.caps[seat] += 1; }
+        s.log.push({ game: g, round: s.round, seat, kind: 'move', from: st.from, to: st.to, cap: st.cap, pieces: s.pieces, points: [...s.points] });
+      }
+      s.k += 1;
+      s.stage = `g${g}-${s.round}-${s.k}`;
+      if (s.k < 2) {
+        // 先手の手で相手の駒が無くなった時は、後手の手番を待たずに巡を終える
+        if (s.pieces.some((x) => x.seat === 1 - seat)) return;
+      }
+      // 巡の終わり：中央の点
+      const gain = [cc(s.pieces, 0) * CENTER_PTS, cc(s.pieces, 1) * CENTER_PTS];
+      for (const i of [0, 1]) { s.points[i] += gain[i]; s.gamePts[g][i] += gain[i]; }
+      s.log.push({ game: g, round: s.round, seat: -1, kind: 'score', gain, pieces: s.pieces, points: [...s.points] });
+      s.round += 1;
+      s.k = 0;
+      s.stage = `g${g}-${s.round}-0`;
+      const n0 = s.pieces.filter((x) => x.seat === 0).length;
+      if (s.round >= cfg.rounds || n0 === 0 || n0 === s.pieces.length) { endGame(s); return; }
+      if (cfg.breakEvery > 0 && s.round % cfg.breakEvery === 0) {
+        s.phase = 'break';
+        s.ready = Object.fromEntries(s.players.map((x) => [x, false]));
+        s.stage = `g${g}-${s.round}-break`;
+      }
+    },
+    view(s, p) {
+      return {
+        self: p, me: p === 'spectator' ? -1 : s.players.indexOf(p), players: s.players, game: s.game, games: cfg.games, round: s.round, rounds: cfg.rounds, phase: s.phase,
+        toMove: s.phase === 'play' ? s.players[seatAt(s.game, s.k)] : null, first: seatAt(s.game, 0),
+        pieces: s.pieces, points: [...s.points], gamePts: s.gamePts.map((x) => [...x]), caps: [...s.caps], ready: { ...s.ready }, log: s.log,
+        centers: cfg.centers, endBonus: cfg.endBonus, start: cfg.start(),
+      };
+    },
+    ai: p10Ai,
+    done(s) {
+      return s.phase === 'done';
+    },
+    scores(s) {
+      return Object.fromEntries(s.players.map((p, i) => [p, s.points[i]]));
+    },
+    ranking(s) {
+      return sortGroups(s.players, (p) => s.points[s.players.indexOf(p)], (p) => s.remain[s.players.indexOf(p)]);
+    },
+  };
 }
 
-function endGame(s: P10State): void {
-  for (const seat of [0, 1]) s.remain[seat] += s.pieces.filter((p) => p.seat === seat).length;
-  if (s.game >= GAMES - 1) { s.phase = 'done'; return; }
-  s.game += 1;
-  s.round = 0;
-  s.k = 0;
-  s.pieces = startPieces();
-  s.phase = 'break';
-  s.ready = Object.fromEntries(s.players.map((x) => [x, false]));
-  s.stage = `g${s.game}-break`;
-}
-
-export const P10: MatchEngine<P10State, P10Move, P10View> = {
-  id: 'p10',
-  name: '最後の一手',
-  kind: 'prison',
-  minPlayers: 2,
-  maxPlayers: 2,
+export const P10 = makeP10({
+  id: 'p10', name: '最後の一手', kind: 'prison', rounds: ROUNDS, games: GAMES, centers: CENTERS, start: startPieces, endBonus: 0, breakEvery: 5,
   summary: '5×5 の盤面で駒を 1 マスずつ動かす。敵を飛び越えて取り、中央の十字に駒を置いて点を重ねる。',
   rules: [
     '5×5 の盤面です。左右の端の列に、駒を 4 個ずつ置いて始めます。',
@@ -212,86 +335,23 @@ export const P10: MatchEngine<P10State, P10Move, P10View> = {
     'ピースで買える補助はありません。',
     '2 ゲームの合計点の低い人が脱落します。同点は、2 ゲームの終了時に残った駒の合計で決めます。それでも同じなら共通決定戦です。',
   ],
-  init(players) {
-    return {
-      players: [...players], game: 0, round: 0, k: 0, phase: 'play', pieces: startPieces(),
-      points: [0, 0], gamePts: [[0, 0], [0, 0]], remain: [0, 0], caps: [0, 0],
-      ready: Object.fromEntries(players.map((p) => [p, false])), log: [], stage: 'g0-0',
-    };
-  },
-  pending(s) {
-    if (s.phase === 'done') return [];
-    if (s.phase === 'break') return s.players.filter((p) => !s.ready[p]);
-    return [s.players[seatAt(s.game, s.k)]];
-  },
-  stage(s) {
-    if (s.phase === 'done') return { label: '終了' };
-    if (s.phase === 'break') return { label: s.round === 0 ? `休憩（次はゲーム ${s.game + 1}）` : `休憩（次は ${s.round + 1} 巡目）`, time: BREAK_MS, negotiation: true };
-    return { label: `ゲーム ${s.game + 1} / ${GAMES}　${s.round + 1} 巡目 / ${ROUNDS}`, time: MOVE_MS };
-  },
-  validate(s, p, m) {
-    if (!m || s.phase === 'done' || !s.players.includes(p)) return false;
-    if (s.phase === 'break') return m.t === 'ready' && !s.ready[p];
-    const seat = seatAt(s.game, s.k);
-    if (s.players[seat] !== p) return false;
-    if (m.t === 'pass') return true;
-    return m.t === 'move' && stepsOf(s.pieces, seat).some((x) => x.from === m.from && x.to === m.to);
-  },
-  defaultMove(s) {
-    return s.phase === 'break' ? { t: 'ready' } : { t: 'pass' };
-  },
-  submit(s, p, m) {
-    if (!this.validate(s, p, m)) throw new Error(`p10: illegal move ${JSON.stringify(m)}`);
-    if (m.t === 'ready') {
-      s.ready[p] = true;
-      if (s.players.every((x) => s.ready[x])) { s.phase = 'play'; s.stage = `g${s.game}-${s.round}-0`; }
-      return;
-    }
-    const seat = s.players.indexOf(p);
-    const g = s.game;
-    if (m.t === 'pass') s.log.push({ game: g, round: s.round, seat, kind: 'pass', pieces: s.pieces, points: [...s.points] });
-    else {
-      const st = stepsOf(s.pieces, seat).find((x) => x.from === m.from && x.to === m.to)!;
-      s.pieces = applyStep(s.pieces, seat, st);
-      if (st.cap !== undefined) { s.points[seat] += CAP_PTS; s.gamePts[g][seat] += CAP_PTS; s.caps[seat] += 1; }
-      s.log.push({ game: g, round: s.round, seat, kind: 'move', from: st.from, to: st.to, cap: st.cap, pieces: s.pieces, points: [...s.points] });
-    }
-    s.k += 1;
-    s.stage = `g${g}-${s.round}-${s.k}`;
-    if (s.k < 2) {
-      // 先手の手で相手の駒が無くなった時は、後手の手番を待たずに巡を終える
-      if (s.pieces.some((x) => x.seat === 1 - seat)) return;
-    }
-    // 巡の終わり：中央の点
-    const gain = [centerCount(s.pieces, 0) * CENTER_PTS, centerCount(s.pieces, 1) * CENTER_PTS];
-    for (const i of [0, 1]) { s.points[i] += gain[i]; s.gamePts[g][i] += gain[i]; }
-    s.log.push({ game: g, round: s.round, seat: -1, kind: 'score', gain, pieces: s.pieces, points: [...s.points] });
-    s.round += 1;
-    s.k = 0;
-    s.stage = `g${g}-${s.round}-0`;
-    const n0 = s.pieces.filter((x) => x.seat === 0).length;
-    if (s.round >= ROUNDS || n0 === 0 || n0 === s.pieces.length) { endGame(s); return; }
-    if (s.round % 5 === 0) {
-      s.phase = 'break';
-      s.ready = Object.fromEntries(s.players.map((x) => [x, false]));
-      s.stage = `g${g}-${s.round}-break`;
-    }
-  },
-  view(s, p) {
-    return {
-      self: p, me: p === 'spectator' ? -1 : s.players.indexOf(p), players: s.players, game: s.game, games: GAMES, round: s.round, rounds: ROUNDS, phase: s.phase,
-      toMove: s.phase === 'play' ? s.players[seatAt(s.game, s.k)] : null, first: seatAt(s.game, 0),
-      pieces: s.pieces, points: [...s.points], gamePts: s.gamePts.map((x) => [...x]), caps: [...s.caps], ready: { ...s.ready }, log: s.log,
-    };
-  },
-  ai: p10Ai,
-  done(s) {
-    return s.phase === 'done';
-  },
-  scores(s) {
-    return Object.fromEntries(s.players.map((p, i) => [p, s.points[i]]));
-  },
-  ranking(s) {
-    return sortGroups(s.players, (p) => s.points[s.players.indexOf(p)], (p) => s.remain[s.players.indexOf(p)]);
-  },
-};
+});
+
+/** H06 影の対戦者の最初の配置：左右の端の列の、上、中、下 */
+export const h06Start = (): Piece[] => [0, 2, 4].flatMap((y) => [{ seat: 0, pos: at(0, y) }, { seat: 1, pos: at(N - 1, y) }]);
+export const H06_ROUNDS = 15;
+
+export const H06 = makeP10({
+  id: 'h06', name: '影の対戦者', kind: 'hidden', rounds: H06_ROUNDS, games: 1, centers: [at(2, 2)], start: h06Start, endBonus: 1, breakEvery: 0,
+  summary: '仮面の対戦者との 5×5 の盤面の勝負。駒 3 個ずつ。敵を飛び越えて取り、中央のマスを占める。',
+  rules: [
+    '5×5 の盤面です。左右の端の列に、駒を 3 個ずつ置いて始めます。',
+    '手番に、駒 1 個を、縦か横へ 1 マス動かします。',
+    `隣に敵の駒があり、その先のマスが空いていれば、飛び越えて取れます（${CAP_PTS} 点）。飛び越しは 1 手に 1 回です。`,
+    `巡（2 人が 1 手ずつ）の終わりに、中央の 1 マスにいる駒に ${CENTER_PTS} 点が入ります。`,
+    `${H06_ROUNDS} 巡、またはどちらかの駒が無くなるまで。終わった時に残っている駒 1 個につき 1 点が入ります。`,
+    '1 手 15 秒。パスは、動かせる手が無い時と、時間切れの時だけです。',
+    '合計点の多い方が勝ち。同点の時は、もう一度勝負します。',
+    'ピースで買える補助はありません。仮面の対戦者も、あなたと同じ決まりで動きます。',
+  ],
+});

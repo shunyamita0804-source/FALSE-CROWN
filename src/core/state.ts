@@ -120,6 +120,9 @@ export function nameOf(state: GameState, id: CharId | string): string {
   if (id === 'hero') return state.hero.name;
   if (id in NPC_BY_ID) return NPC_BY_ID[id as NpcId].name;
   if (id === 'host' || id === 'host_observer') return 'オブザーバー';
+  // 裏ゲームの相手（参加者ではない）
+  if (id === 'dealer') return '仮面のディーラー';
+  if (id === 'mask') return '仮面の対戦者';
   return String(id);
 }
 

@@ -20,6 +20,14 @@ import { M07 } from './m07';
 import { M10 } from './m10';
 import { P10 } from './p10';
 import { M11 } from './m11';
+import { H02 } from './duel';
+import { H01 } from './h01';
+import { H03 } from './h03';
+import { H04 } from './h04';
+import { H05 } from './h05';
+import { H07 } from './h07';
+import { H08 } from './h08';
+import { H06 } from './p10';
 import { S01 } from './s01';
 import { S02 } from './s02';
 import { S03 } from './s03';
@@ -50,6 +58,14 @@ export const MATCHES: Record<string, MatchEngine> = {
   m10: M10,
   p10: P10,
   m11: M11,
+  h01: H01,
+  h02: H02,
+  h03: H03,
+  h04: H04,
+  h05: H05,
+  h06: H06,
+  h07: H07,
+  h08: H08,
   s01: S01,
   s02: S02,
   s03: S03,
