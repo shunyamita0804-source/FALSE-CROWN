@@ -18,7 +18,7 @@ import { describeDeal } from '../npc/negotiation';
 import { deleteSave, exportSave, hasSave, importSave, saveMeta } from '../save/save';
 import { canEnter } from '../world/access';
 import { ROOMS } from '../world/maps';
-import { bgUrl, emblemUrl, face, portraitUrl, setHeroGender } from './art';
+import { bgUrl, emblemUrl, face, fxBanner, icon, logoUrl, portraitUrl, setHeroGender } from './art';
 import { alertDialog, append, button, clear, closeLayer, confirmDialog, fmtTime, h, openLayer, panel, toast, type Child, type Layer } from './dom';
 
 const GUIDE = Object.fromEntries((guideJson as { id: string; goal: string; practice: string; attention: string }[]).map((g) => [g.id.toLowerCase(), g]));
@@ -37,13 +37,15 @@ export function titleScreen(): Promise<TitleChoice> {
       closeLayer(layer);
       resolve(c);
     };
-    const root = h('div', { class: 'title-screen' });
+    const logo = logoUrl();
+    const root = h('div', { class: `title-screen${logo ? ' has-logo' : ''}` });
     const render = () => {
       clear(root);
       const saved = hasSave();
       root.append(
-        h('img', { class: 'title-emblem', src: emblemUrl(), alt: '', draggable: false }),
-        h('div', { class: 'title-logo' }, 'FALSE CROWN'),
+        ...(logo
+          ? [h('img', { class: 'title-logo-img', src: logo, alt: 'FALSE CROWN', draggable: false })]
+          : [h('img', { class: 'title-emblem', src: emblemUrl(), alt: '', draggable: false }), h('div', { class: 'title-logo' }, 'FALSE CROWN')]),
         h('div', { class: 'title-sub' }, t('title.sub')),
         h('div', { class: 'title-menu' }, [
           saved ? button(t('title.continue'), () => done('continue'), { kind: 'primary', autofocus: true }) : null,
@@ -209,11 +211,12 @@ export function hudShow(v: boolean): void {
   const act = h('div', { class: 'touch-act' }, h('button', { type: 'button', 'data-key': 'a' }, t('hud.act')));
   const el = h('div', null,
     h('div', { class: 'hud' },
-      h('div', { class: 'hud-box' }, day, phase, timer),
-      h('div', { class: 'hud-box' }, room),
-      h('div', { class: 'spacer' }),
-      h('div', { class: 'hud-box' }, pc),
-      h('div', { class: 'hud-menu' }, skip, button(t('hud.menu'), () => G.openMenu(), { small: true })),
+      h('div', { class: 'hud-band' },
+        h('div', { class: 'hud-cell' }, day, phase, icon('timer'), timer),
+        h('div', { class: 'hud-cell' }, icon('map'), room),
+        h('div', { class: 'hud-cell' }, pc),
+        h('div', { class: 'hud-cell fill hud-menu' }, skip, button([icon('notebook'), t('hud.menu')], () => G.openMenu(), { small: true })),
+      ),
     ),
     logBox, prompt, pad, act,
   );
@@ -241,7 +244,11 @@ export function hudUpdate(): void {
   const tg = G.fieldActive ? G.field?.target : null;
   if (tg) {
     const label = tg.kind === 'npc' ? t('prompt.talk', { name: shortName(s, tg.id) }) : tg.kind === 'door' ? t('prompt.door', { name: tg.door.label }) : t('prompt.inspect');
-    e.prompt.textContent = label;
+    if (e.prompt.dataset.label !== label) {
+      e.prompt.dataset.label = label;
+      clear(e.prompt);
+      append(e.prompt, [icon(tg.kind === 'npc' ? 'rumor' : tg.kind === 'door' ? 'unlock' : 'search'), label]);
+    }
     e.prompt.style.display = '';
   } else e.prompt.style.display = 'none';
 }
@@ -258,6 +265,8 @@ export function hudLog(text: string): void {
 
 type Tab = 'status' | 'people' | 'deals' | 'info' | 'history' | 'rules' | 'map' | 'system';
 
+const TAB_ICONS: Record<Tab, string> = { status: 'rank', people: 'participant_list', deals: 'contract', info: 'evidence', history: 'document', rules: 'help', map: 'map', system: 'settings' };
+
 export function openMenu(initial: Tab = 'status'): void {
   const s = G.state;
   if (!s) return;
@@ -273,13 +282,13 @@ export function openMenu(initial: Tab = 'status'): void {
   const render = () => {
     clear(tabs);
     for (const k of ['status', 'people', 'deals', 'info', 'history', 'rules', 'map', 'system'] as Tab[]) {
-      tabs.append(h('button', { class: `tab${tab === k ? ' on' : ''}`, type: 'button', onclick: () => { tab = k; Sound.se('page'); render(); } }, t(`menu.${k}`)));
+      tabs.append(h('button', { class: `tab${tab === k ? ' on' : ''}`, type: 'button', onclick: () => { tab = k; Sound.se('page'); render(); } }, icon(TAB_ICONS[k]), t(`menu.${k}`)));
     }
     clear(body);
     append(body, renderTab(s, tab, close, render));
   };
   render();
-  const el = h('div', { class: 'overlay' }, h('div', { class: 'panel book' }, h('div', { class: 'panel-title row' }, t('menu.title'), h('div', { class: 'spacer' }), button(t('common.close'), close, { small: true, kind: 'ghost' })), h('div', { class: 'panel-body col', style: 'gap:10px' }, tabs, body)));
+  const el = h('div', { class: 'overlay' }, h('div', { class: 'panel book' }, h('div', { class: 'panel-title row' }, icon('notebook'), t('menu.title'), h('div', { class: 'spacer' }), button([icon('close'), t('common.close')], close, { small: true, kind: 'ghost' })), h('div', { class: 'panel-body col', style: 'gap:10px' }, tabs, body)));
   layer = openLayer(el, { pausesClock: true, onCancel: close, name: 'menu' });
 }
 
@@ -520,13 +529,15 @@ export function rankingScreen(v: RankingView): Promise<void> {
     const list = h('div', { class: 'rank-list' }, v.ranking.map((id, i) => {
       const cut = i >= n - v.cut;
       return h('div', { class: `rank${cut ? ' prison' : ''}${id === 'hero' ? ' me' : ''}` },
-        h('span', { class: 'no' }, String(i + 1)), face(id), h('span', { class: 'grow' }, nameOf(s, id)),
-        cut ? h('span', { class: 'tag' }, v.cutLabel) : null,
+        h('span', { class: 'no' }, i === 0 ? icon('trophy') ?? '1' : String(i + 1)), face(id), h('span', { class: 'grow' }, nameOf(s, id)),
+        cut ? h('span', { class: 'st' }, icon(v.prison ? 'eliminated' : 'prison'), h('span', { class: 'tag' }, v.cutLabel)) : null,
         v.rewards && v.rewards[id] ? h('span', { class: 'good' }, '+', pieces(v.rewards[id] ?? 0)) : null,
         h('span', { class: 'pts' }, `${v.scores[id] ?? 0}${t('rank.pts')}`));
     }));
-    const body = h('div', { class: 'col', style: 'gap:8px' }, list, ...v.notes.map((x) => h('div', { class: 'note-box' }, x)));
-    layer = openLayer(h('div', { class: `overlay solid${v.prison ? ' prison-bg' : ''}` }, panel(v.title, body, { wide: true, footer: button(t('common.next'), done, { kind: 'primary', autofocus: true }) })), { pausesClock: true, name: 'ranking' });
+    const mine = v.ranking.indexOf('hero');
+    const fx = mine < 0 ? null : mine >= n - v.cut ? fxBanner('defeat', v.cutLabel, 'sm') : mine === 0 ? fxBanner('victory', t('rank.first'), 'sm') : null;
+    const body = h('div', { class: 'col', style: 'gap:8px' }, fx, list, ...v.notes.map((x) => h('div', { class: 'note-box' }, x)));
+    layer = openLayer(h('div', { class: `overlay solid ${v.prison ? 'prison-bg' : 'result-bg'}` }, panel(v.title, body, { wide: true, footer: button(t('common.next'), done, { kind: 'primary', autofocus: true }) })), { pausesClock: true, name: 'ranking' });
   });
 }
 
@@ -540,8 +551,7 @@ export function eliminationScreen(id: CharId): Promise<void> {
     };
     const line = id === 'hero' ? t('elim.hero') : t('elim.npc', { name: nameOf(s, id) });
     const el = h('div', { class: 'overlay solid elim-screen', onclick: done },
-      h('img', { class: 'dlg-portrait', src: portraitUrl(id === 'hero' ? 'hero' : id, 'sad'), alt: '', style: 'left:50%;transform:translateX(-50%);opacity:0.5;filter:grayscale(0.8)' }),
-      h('div', { class: 'banner red' }, t('elim.title')),
+      fxBanner('elimination', t('elim.title')),
       h('div', { class: 'elim-name' }, nameOf(s, id)),
       h('div', { class: 'text center' }, line),
       button(t('common.next'), done, { kind: 'primary', autofocus: true }),

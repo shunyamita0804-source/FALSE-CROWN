@@ -23,7 +23,7 @@
   "hud.menu": "手帳", "hud.act": "調べる\n話す", "hud.skip": "時間を進める", "hud.skipTitle": "時間を進める", "hud.skipText": "この自由時間の残りを過ごしたことにして、次の予定へ進みます。その間も他の参加者は行動を続けます。", "hud.skipOk": "進める",
   "prompt.talk": "{name}と話す", "prompt.door": "{name}へ", "prompt.inspect": "調べる",
   "log.morning": "DAY{day} の朝。", "log.sawTalk": "{a}と{b}が話し込んでいる。", "log.sawDeal": "{a}と{b}が、何か約束を交わしたようだ。", "log.sawSearch": "{a}が何かを調べている。",
-  "toast.noted": "手帳に記録した。", "toast.notYet": "この機能は開発中です。",
+  "rank.first": "第 1 位", "fx.discovery": "手掛かりを発見", "toast.noted": "手帳に記録した。", "toast.notYet": "この機能は開発中です。",
   "rest.title": "休む", "rest.text": "寝台で休み、{time}の残りを過ごしますか？　その間も他の参加者は行動を続けます。", "rest.ok": "休む",
 
   "banner.gather": "全参加者は競技場へ集合してください", "banner.prison": "監獄マッチを開始します", "banner.prisonAway": "地下で監獄マッチが行われています…",

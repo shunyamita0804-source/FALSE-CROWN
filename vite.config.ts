@@ -56,7 +56,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: false,
-      includeAssets: ['icons/*.png', 'icons/*.svg'],
+      includeAssets: [],
       manifest: {
         name: 'FALSE CROWN',
         short_name: 'FALSE CROWN',
@@ -68,10 +68,10 @@ export default defineConfig({
         theme_color: '#050a18',
         start_url: '.',
         scope: '.',
+        // 正式アイコンは加工せず、原寸の 1 枚をそのまま指定する（縮小は端末側の表示に任せる）
         icons: [
-          { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: 'assets/ui/logo/app_icon.png', sizes: '1024x1024', type: 'image/png', purpose: 'any' },
+          { src: 'assets/ui/logo/app_icon.png', sizes: '1024x1024', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
@@ -81,11 +81,11 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         // 初回読み込みを軽くするため、BGM と表情差分の立ち絵はプリキャッシュせず、使った時にキャッシュする。
         // （BGM はオフライン時は鳴らない。効果音・顔アイコン・歩行素材・通常立ち絵はオフラインでも使える）
-        globIgnores: ['**/assets/audio/bgm/**', '**/assets/characters/*/portrait_!(normal).png', '**/assets/maps/**', '**/assets/backgrounds/**', '**/assets/props/**', '**/assets/tilesets/**'],
+        globIgnores: ['**/assets/audio/bgm/**', '**/assets/characters/*/portrait_!(normal).png', '**/assets/maps/**', '**/assets/backgrounds/**', '**/assets/props/**', '**/assets/tilesets/**', '**/assets/ui/background/**', '**/assets/ui/games/**'],
         runtimeCaching: [
           {
             // マップ背景とストーリー背景は容量が大きいので、表示した時にキャッシュする
-            urlPattern: /\/assets\/(maps|backgrounds)\/.*\.png$/,
+            urlPattern: /\/assets\/(maps|backgrounds|ui\/background|ui\/games)\/.*\.png$/,
             handler: 'CacheFirst',
             options: { cacheName: 'fc-maps', expiration: { maxEntries: 60 } },
           },

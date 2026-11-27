@@ -20,6 +20,7 @@ import { loadMeta, saveGame, saveMeta, type Meta } from '../save/save';
 import type { Target } from '../scenes/FieldScene';
 import { CLUE_BY_EVENT } from '../story/clues';
 import { alertDialog, anyModal, choose, clockPaused, confirmDialog, fade, toast } from '../ui/dom';
+import { fxPop } from '../ui/art';
 import { canEnter, denyReason } from '../world/access';
 import { ROOMS } from '../world/maps';
 import { enterDoor, moveActor, placeIn, speedOf } from '../world/sim';
@@ -207,6 +208,7 @@ async function inspect(id: string, text: string, event?: string): Promise<void> 
   if (clue && !(clue.fromDay && s.day < clue.fromDay) && !(clue.nightOnly && s.phase !== 'night')) {
     if (!s.infos[clue.id]) addInfo(s, { id: clue.id, kind: 'clue', text: clue.text, truth: true, about: [], source: 'world', value: clue.value, tags: clue.tags });
     if (learn(s, 'hero', clue.id, 'self', 1)) {
+      fxPop('discovery', t('fx.discovery'));
       toast(t('toast.noted'), 'good');
       Sound.se('bookOpen');
     }
