@@ -27,6 +27,17 @@ def main():
                 clip['gain'] = round(max(LO, min(HI, 10 ** ((TARGET - lufs) / 20))), 3)
                 n += 1
     json.dump(data, open(path, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+    # 競技の説明の声（ゲームマスター）も同じ大きさに
+    tpath = os.path.join(root, 'src', 'data', 'tutorial_voice.json')
+    if os.path.exists(tpath):
+        tv = json.load(open(tpath, encoding='utf-8'))
+        for m in tv['matches'].values():
+            for clip in m['steps'].values():
+                lufs = measure(os.path.join(root, 'public', 'assets', m['dir'], clip['file']))
+                clip['lufs'] = round(lufs, 1)
+                clip['gain'] = round(max(LO, min(HI, 10 ** ((TARGET - lufs) / 20))), 3)
+                n += 1
+        json.dump(tv, open(tpath, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
     print(f'{n} 点の大きさを {TARGET} LUFS に揃えました')
 
 if __name__ == '__main__':

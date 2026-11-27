@@ -11,12 +11,11 @@ const { chromium } = require('playwright');
   const shot = async (n) => { if (out) await page.screenshot({ path: `${out}/${n}.png` }); };
   await page.goto('http://localhost:4173/FALSE-CROWN/'); await page.waitForTimeout(1500);
   await page.getByText('開発者メニュー').tap(); await page.waitForTimeout(400);
-  await page.getByRole('button', { name: /M01 ピース/ }).tap(); await page.waitForTimeout(600);
-  // 説明は 4 画面＋練習。1 画面の文は 70 文字以内
-  let maxLen = 0;
-  for (let i = 0; i < 4; i++) { maxLen = Math.max(maxLen, (await page.locator('.tut-text').innerText()).length); await page.getByRole('button', { name: /次へ|練習へ/ }).tap(); await page.waitForTimeout(250); }
-  check('説明は段階表示で、1 画面の文は 70 文字以内', maxLen > 0 && maxLen <= 70, String(maxLen));
-  // 置き場のピースを選んで回し、盤面のマスをタップして置く（説明の練習と本番で同じ操作）
+  // 音声付きの説明の確認は check-voicetut.cjs。ここでは見たことにして飛ばす
+  await page.evaluate(() => localStorage.setItem('false-crown/tutorial-seen', JSON.stringify(['m01'])));
+  await page.getByRole('button', { name: /M01 ピース/ }).tap(); await page.waitForTimeout(800);
+  await page.getByRole('button', { name: '説明を飛ばす' }).tap(); await page.waitForTimeout(800);
+  // 置き場のピースを選んで回し、盤面のマスをタップして置く
   const place = async (pl, cells0) => {
     const slot = page.locator(`.pb-slot[data-piece="${pl.piece}"]`);
     await slot.tap(); await page.waitForTimeout(60);
@@ -27,11 +26,6 @@ const { chromium } = require('playwright');
     await page.touchscreen.tap(bb.x + (pl.x + cells0[0] + 0.5) * px, bb.y + (pl.y + cells0[1] + 0.5) * px);
     await page.waitForTimeout(80);
   };
-  // 練習：盤面を見て解く（ページ内の探索は使わず、練習用の既知の配置を置く）
-  const prac = [{ piece: 0, rot: 2, x: 0, y: 0, c: [0, 0] }, { piece: 1, rot: 3, x: 0, y: 1, c: [0, 0] }];
-  void prac;
-  await shot('m01_practice');
-  await page.getByRole('button', { name: /本番へ/ }).tap(); await page.waitForTimeout(800);
   check('本番の画面に盤面と置き場がある', await page.locator('.pb-board').count() === 1 && await page.locator('.pb-slot').count() >= 4);
   let totalBefore = 0;
   for (let stage = 0; stage < 6; stage++) {

@@ -15,6 +15,7 @@ import { chooseProposal, type BrainEvent } from '../npc/brain';
 import { commit, evaluate, type Proposal } from '../npc/negotiation';
 import { face, icon } from './art';
 import { alertDialog, append, button, clear, clockPaused, closeLayer, fmtTime, h, openLayer, toast, type Child, type Layer } from './dom';
+import { reviewVoiced } from './tutorial';
 import { renderM01 } from './games/m01';
 import { renderM02 } from './games/m02';
 import { renderM03 } from './games/m03';
@@ -256,7 +257,7 @@ export function playMatch(slot: MatchSlot): Promise<void> {
       } else updateTimer();
     }, 200);
 
-    const rulesBtn = button(t('match.rules'), () => void alertDialog(engine.name, h('div', { class: 'col', style: 'gap:6px' }, engine.rules.map((r, i) => h('div', { class: 'entry small' }, `${i + 1}. ${r}`))), t('common.close'), true), { small: true, kind: 'ghost' });
+    const rulesBtn = button(t('match.rules'), () => void (reviewVoiced(slot.id) ?? alertDialog(engine.name, h('div', { class: 'col', style: 'gap:6px' }, engine.rules.map((r, i) => h('div', { class: 'entry small' }, `${i + 1}. ${r}`))), t('common.close'), true)), { small: true, kind: 'ghost' });
     const el = h('div', { class: `match${slot.kind === 'prison' ? ' prison' : ''}` },
       h('div', { class: 'match-head' }, title, stageEl, inboxEl, h('div', { class: 'spacer' }), heroIn ? h('span', { class: 'row', style: 'gap:6px' }, face('hero'), h('span', { class: 'piece' }, String(s.actors.hero.pieces))) : null, rulesBtn, icon('timer'), gaugeEl, timerEl),
       h('div', { class: 'match-body' }, main, side),
