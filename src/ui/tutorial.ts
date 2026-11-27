@@ -16,6 +16,8 @@ import { M02_PRACTICE } from '../matches/m02';
 import { P01_PRACTICE } from '../matches/p01';
 import { COLORS, P02_PRACTICE, SHAPES } from '../matches/p02';
 import { P04_PRACTICE, SHAPES as P04_SHAPES } from '../matches/p04';
+import { M05_PRACTICE, type Tok } from '../matches/m05';
+import { ExprPad, exprEl } from './exprpad';
 import { DiffQuiz, diffFigure, diffReview, figEl, FIG_NAME } from './diffquiz';
 import { rotated, type Cell } from '../matches/poly';
 import { ChainBoard } from './chainboard';
@@ -352,7 +354,85 @@ function p04Guide(): Guide {
   };
 }
 
-const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide };
+// ---- M05 ナンバー・リレー ----
+
+function m05Guide(): Guide {
+  const { cards, target } = M05_PRACTICE;
+  const ex3: Tok[] = ['(', 2, '-', 0, ')', '*', 3];
+  const ex6: Tok[] = [0, '+', 2, '*', '(', 3, '-', 1, ')', '+', 5, '-', 4];
+  const nums = () => h('div', { class: 'm05-nums' }, cards.map((c) => h('b', { class: 'xp-card mini' }, String(c))));
+  const line = (toks: Tok[], n: number) => h('div', { class: 'tg-exline' }, exprEl(toks, cards, 'small'), h('span', { class: 'xp-val ok' }, `＝ ${target}`), h('small', { class: 'dim' }, t('tut.m05.usedN', { n })));
+  return {
+    name: 'ナンバー・リレー',
+    pages: [
+      { title: t('tut.m05.t1'), text: t('tut.m05.p1'), figure: () => h('div', { class: 'col', style: 'gap:12px;align-items:center' }, h('div', { class: 'xp-target' }, h('small', null, t('xp.target')), h('b', null, String(target))), nums(), line(ex3, 3)) },
+      { title: t('tut.m05.t2'), text: t('tut.m05.p2'), figure: () => h('div', { class: 'col', style: 'gap:10px;align-items:center' }, nums(), line(ex3, 3), line(ex6, 6)) },
+      {
+        title: t('tut.m05.t3'), text: t('tut.m05.p3'),
+        figure: () => h('div', { class: 'tg-row' },
+          chips([{ label: t('tut.m05.c1'), value: '40' }, { label: t('tut.m05.c2'), value: '2〜12' }, { label: t('tut.m05.c3'), value: '0〜8' }], ['+', '+']),
+          facts([['90', t('tut.m05.f1')], ['+10', t('tut.m05.f2')], ['8', t('tut.m05.f3')]])),
+      },
+      {
+        title: t('tut.m05.t4'), text: t('tut.m05.p4'),
+        figure: () => h('div', { class: 'col', style: 'gap:12px;align-items:center' }, h('div', { class: 'm05-cands' }, [38, 45, 57].map((c, i) => h('div', { class: `m05-cand${i === 1 ? ' sel' : ''}` }, String(c)))), nums()),
+      },
+    ],
+    practice: {
+      text: t('tut.m05.practice'),
+      build: (onDone) => new ExprPad(cards, target, { onSubmit: () => onDone() }).el,
+    },
+  };
+}
+
+// ---- P05 21の攻防 ----
+
+function p05Guide(): Guide {
+  const cardRow = (cards: number[], mark?: number, cls = 'hit') => h('div', { class: 'p05-hand tg' }, cards.map((c) => h('div', { class: `p05-card${c === mark ? ` ${cls} sel` : ''}` }, h('b', null, String(c)))));
+  const total = (n: number) => h('div', { class: 'p05-total' }, h('small', null, t('p05.total')), h('b', null, String(n)), h('span', null, '/ 21'));
+  return {
+    name: '21の攻防',
+    pages: [
+      { title: t('tut.p05.t1'), text: t('tut.p05.p1'), figure: () => h('div', { class: 'row', style: 'gap:20px;align-items:center' }, total(8), h('span', { class: 'plus' }, '+'), cardRow([6]), h('span', { class: 'plus' }, '→'), total(14)) },
+      {
+        title: t('tut.p05.t2'), text: t('tut.p05.p2'),
+        figure: () => h('div', { class: 'tg-row' },
+          h('div', { class: 'tg-fig ok' }, h('div', { class: 'row', style: 'gap:10px;align-items:center' }, total(14), cardRow([7], 7)), h('div', { class: 'tg-cap' }, t('tut.p05.hit'))),
+          h('div', { class: 'tg-fig ng' }, h('div', { class: 'row', style: 'gap:10px;align-items:center' }, total(14), cardRow([9], 9, 'bust')), h('div', { class: 'tg-cap' }, t('tut.p05.bust')))),
+      },
+      { title: t('tut.p05.t3'), text: t('tut.p05.p3'), figure: () => h('div', { class: 'col', style: 'gap:8px;align-items:center' }, h('div', { class: 'p05-mini big' }, [1, 2, 3, 4, 5, 6, 7, 8, 9].map((c) => h('i', { class: [2, 5, 9].includes(c) ? 'gone' : '' }, String(c)))), h('small', { class: 'dim' }, t('tut.p05.miniCap'))) },
+      {
+        title: t('tut.p05.t4'), text: t('tut.p05.p4'),
+        figure: () => facts([['3', t('tut.p05.f1')], ['9', t('tut.p05.f2')], ['+4', t('tut.p05.f3')], ['−3', t('tut.p05.f4')]]),
+      },
+    ],
+    practice: {
+      text: t('tut.p05.practice'),
+      build: (onDone) => {
+        const box = h('div', { class: 'p05 prac' });
+        const hand = [3, 5, 7, 9];
+        let sum = 14;
+        let msg = t('tut.p05.pracAsk');
+        const draw = () => {
+          box.replaceChildren(
+            h('div', { class: 'p05-mid' }, total(sum), h('div', { class: 'small' }, msg)),
+            h('div', { class: 'p05-hand' }, hand.map((c) => {
+              const k = sum + c === 21 ? 'hit' : sum + c > 21 ? 'bust' : 'add';
+              const el = h('button', { class: `p05-card ${k}`, type: 'button' }, h('b', null, String(c)), h('small', null, k === 'hit' ? t('p05.pvHit', { n: 4 }) : k === 'bust' ? t('p05.pvBust', { n: -3 }) : t('p05.pvAdd', { s: sum + c })));
+              el.addEventListener('click', () => {
+                if (k === 'hit') { sum = 0; msg = t('tut.p05.pracOk'); hand.splice(hand.indexOf(c), 1); draw(); onDone(); } else { msg = t(k === 'bust' ? 'tut.p05.pracBust' : 'tut.p05.pracAdd'); draw(); }
+              });
+              return el;
+            })));
+        };
+        draw();
+        return box;
+      },
+    },
+  };
+}
+
+const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide };
 
 export const hasGuide = (id: string) => id in GUIDES;
 
