@@ -8,7 +8,8 @@
  */
 import { ALL_IDS, type CharId } from '../data/characters';
 import type { Dir, GameState } from '../core/types';
-import { seatKey, seatsOf, type Facing, type Seat } from './furniture';
+import { FURNITURE, seatKey, seatsOf, type Facing, type Seat } from './furniture';
+import { ROOMS, buildCollision } from './maps';
 
 const TILE = 64;
 
@@ -27,8 +28,62 @@ export interface SeatPick {
   usable?: (seat: Seat) => boolean;
 }
 
-/** 席の「立つ位置」のマス */
-export const seatTile = (seat: Seat): Tile => ({ x: Math.floor(seat.a[0] / TILE), y: Math.floor(seat.a[1] / TILE) });
+/**
+ * 席の「立つ位置」のマス。
+ * 納品の立つ位置（a）のマスが家具や壁で歩けない時は、そのそばの、出入口から歩いて行ける空いたマスを使う
+ * （同じ部屋の別の席と重ならないように選ぶ）。部屋ごとに 1 回だけ決めて覚える。
+ */
+export function seatTile(seat: Seat): Tile {
+  const room = roomOfSeat.get(seat);
+  if (room === undefined) return rawTile(seat);
+  let m = standCache.get(room);
+  if (!m) standCache.set(room, (m = standTiles(room)));
+  return m.get(seat.id) ?? rawTile(seat);
+}
+const rawTile = (seat: Seat): Tile => ({ x: Math.floor(seat.a[0] / TILE), y: Math.floor(seat.a[1] / TILE) });
+const roomOfSeat = new Map<Seat, string>(Object.entries(FURNITURE).flatMap(([room, f]) => f.seats.map((s) => [s, room] as [Seat, string])));
+const standCache = new Map<string, Map<string, Tile>>();
+
+function standTiles(room: string): Map<string, Tile> {
+  const out = new Map<string, Tile>();
+  const def = ROOMS[room];
+  if (!def) return out;
+  const g = buildCollision(def);
+  // 出入口から歩いて行けるマス
+  const reach = new Set<string>();
+  const q = def.doors.flatMap((d) => d.tiles).filter((t) => g[t.y]?.[t.x] === false);
+  for (const t of q) reach.add(`${t.x},${t.y}`);
+  while (q.length) {
+    const p = q.shift()!;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const x = p.x + dx;
+      const y = p.y + dy;
+      if (g[y]?.[x] !== false || reach.has(`${x},${y}`)) continue;
+      reach.add(`${x},${y}`);
+      q.push({ x, y });
+    }
+  }
+  const used = new Set<string>();
+  const seats = seatsOf(room);
+  // 納品どおりのマスが使える席を先に決める
+  for (const s of seats) { const t = rawTile(s); const k = `${t.x},${t.y}`; if (reach.has(k) && !used.has(k)) { out.set(s.id, t); used.add(k); } }
+  for (const s of seats) {
+    if (out.has(s.id)) continue;
+    let best: Tile | null = null;
+    let bd = Infinity;
+    for (const k of reach) {
+      if (used.has(k)) continue;
+      const [x, y] = k.split(',').map(Number);
+      // 足元（マスの下寄り）と、納品の立つ位置、席の腰の位置の近さで選ぶ
+      const fx = x * TILE + TILE / 2;
+      const fy = y * TILE + TILE - 10;
+      const d = Math.hypot(fx - s.a[0], fy - s.a[1]) + 0.5 * Math.hypot(fx - s.hip[0], fy - s.hip[1]);
+      if (d < bd) { bd = d; best = { x, y }; }
+    }
+    if (best && bd < TILE * 6) { out.set(s.id, best); used.add(`${best.x},${best.y}`); }
+  }
+  return out;
+}
 /** 席の腰の位置のマス（椅子そのものがあるマス） */
 export const seatHipTile = (seat: Seat): Tile => ({ x: Math.floor(seat.hip[0] / TILE), y: Math.floor(seat.hip[1] / TILE) });
 

@@ -43,7 +43,6 @@ describe('施設マップ（正式素材に合わせた判定データ）', () =
       for (const i of room.inspects) if (grid[i.y]?.[i.x] !== false) problems.push(`${id}: 調査地点 ${i.id} (${i.x},${i.y}) が歩けない`);
       for (const s of room.spots) if (grid[s.y]?.[s.x] !== false) problems.push(`${id}: 待機地点 (${s.x},${s.y}) が歩けない`);
     }
-    if (problems.length) console.log(problems.join('\n'));
     expect(problems).toEqual([]);
   });
 

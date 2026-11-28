@@ -8,7 +8,8 @@ import type { Actor, Dir, GameState } from '../core/types';
 import { canEnter, passFn } from './access';
 import { ROOMS, buildCollision, doorApproach, doorAt, doorDir, findDoor, type DoorDef } from './maps';
 import { findPath, nearestFree, roomRoute } from './path';
-import { cellOf, cellSpots, closedGateTiles, seatAllowed, type CellRef } from './cells';
+import { cellOf, cellSpots, gateOpen, seatAllowed, type CellRef } from './cells';
+import { gateKey } from './furnitureGrid';
 import type { Seat } from './furniture';
 import { homeOf } from './rooms';
 import { releaseSeat, seatTargetAt, seatTile } from './seats';
@@ -17,13 +18,12 @@ const gridCache = new Map<string, { key: string; grid: boolean[][] }>();
 
 export function collisionOf(state: GameState, roomId: string): boolean[][] {
   const room = ROOMS[roomId];
-  // 閉じている格子の扉（監獄棟の房）は、そのマスを通れなくする
-  const gates = closedGateTiles(state, roomId);
-  const key = room.props.map((p) => (p.showIf ? (state.flags[p.showIf] ? 1 : 0) : p.hideIf ? (state.flags[p.hideIf] ? 1 : 0) : '')).join('') + (gates.length ? `|${gates.map((g) => `${g.x},${g.y}`).join(';')}` : '');
+  // 房の格子の扉（消灯の間、人が入っている房は閉まる）
+  const open = (cellId: string) => gateOpen(state, roomId, cellId);
+  const key = room.props.map((p) => (p.showIf ? (state.flags[p.showIf] ? 1 : 0) : p.hideIf ? (state.flags[p.hideIf] ? 1 : 0) : '')).join('') + '|' + gateKey(roomId, open);
   const c = gridCache.get(roomId);
   if (c && c.key === key) return c.grid;
-  const grid = buildCollision(room, state.flags);
-  for (const g of gates) if (grid[g.y]?.[g.x] === false) grid[g.y][g.x] = true;
+  const grid = buildCollision(room, state.flags, open);
   gridCache.set(roomId, { key, grid });
   return grid;
 }
@@ -179,7 +179,9 @@ export function moveActor(state: GameState, a: Actor, dt: number, speed: number,
       const grid = collisionOf(state, a.pos.room);
       const occ = occupiedSet(state, a.pos.room, a.id);
       let best: { x: number; y: number }[] | null = null;
-      for (const t of tiles) {
+      // 人が立っている扉の前のマスは避ける（空いているマスが無い時だけ、そこを目指して隣で待つ）
+      const freeTiles = tiles.filter((t) => !occ.has(`${t.x},${t.y}`));
+      for (const t of freeTiles.length ? freeTiles : tiles) {
         const p = findPath(grid, a.pos, t, occ);
         if (p && (!best || p.length < best.length)) best = p;
       }

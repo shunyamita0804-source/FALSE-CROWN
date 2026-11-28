@@ -293,13 +293,23 @@ function takeSeat(state: GameState, a: Actor, rng: Rng): void {
   }
 }
 
-/** 取った席に着いていれば座る。着けなかった時は席を放す */
-function settleSeat(state: GameState, a: Actor): void {
-  if (!a.goal?.seat || a.goal.seat === '-') return;
-  if (!sitDown(state, a.id)) {
-    standUp(state, a.id);
-    a.goal.seat = '-';
+/**
+ * 取った席に着いていれば座る。途中で人にふさがれて着けなかった時は、何度か歩き直す。
+ * それでも着けない時は席を放して、立ったまま過ごす。そこで過ごし始めてよければ true（歩き直している間は false）
+ */
+function settleSeat(state: GameState, a: Actor): boolean {
+  const g = a.goal;
+  if (!g?.seat || g.seat === '-') return true;
+  if (sitDown(state, a.id)) return true;
+  const mine = seatOf(state, a.id);
+  if (mine && (g.tries ?? 0) < 4) {
+    g.tries = (g.tries ?? 0) + 1;
+    const t = seatTile(mine.seat);
+    if (setPathTo(state, a, t.x, t.y) && a.path.length) return false;
   }
+  standUp(state, a.id);
+  g.seat = '-';
+  return true;
 }
 
 /** a が b に持ちかける提案を決める（a の知識と関係だけから） */
@@ -630,9 +640,8 @@ export function tickNpcs(state: GameState, dt: number, heroBusy: boolean): Brain
         a.busyUntil = state.simTime + 1500;
         events.push({ type: 'approach', npc: id, other: 'hero', proposal: p ?? undefined });
       }
-    } else if (a.goal?.note === 'meal' && a.pos.room === 'dining' && !a.step && !a.path.length && !a.route.length) {
+    } else if (a.goal?.note === 'meal' && a.pos.room === 'dining' && !a.step && !a.path.length && !a.route.length && settleSeat(state, a)) {
       // 取った席に座って食べる（席が無ければ立ったまま）。食べ終わると立って、席を空ける
-      settleSeat(state, a);
       // 食事：同じ時間に食卓を囲んだ相手と少し打ち解ける
       // 歩いているうちに時間帯を少し過ぎても、その食事として数える
       const slot = clockMinutes(state) < CLOCK.main ? 'breakfast' : 'dinner';
@@ -659,19 +668,18 @@ export function tickNpcs(state: GameState, dt: number, heroBusy: boolean): Brain
         else if (!setPathTo(state, a, a.goal.spot.x, a.goal.spot.y)) a.goal = undefined;
       }
     }
-    else if ((a.goal?.kind === 'wander' || a.goal?.kind === 'rest') && a.goal.note !== 'at' && a.goal.note !== 'bath' && a.pos.room === a.goal.room && !a.step && !a.path.length && !a.route.length) {
+    else if ((a.goal?.kind === 'wander' || a.goal?.kind === 'rest') && a.goal.note !== 'at' && a.goal.note !== 'bath' && a.pos.room === a.goal.room && !a.step && !a.path.length && !a.route.length && settleSeat(state, a)) {
       // 着いた：しばらくそこで過ごす（待機、着席、休息）
       // 就寝の支度で個室へ戻った時、まだなら入浴も済ませる
       if (a.goal.note === 'bed' && !state.flags[`bath:${state.day}:${id}`]) {
         state.flags[`bath:${state.day}:${id}`] = true;
         a.busyUntil = state.simTime + BATH_TIME;
       }
-      settleSeat(state, a);
       a.goal.note = 'at';
       a.goal.until = state.simTime + rng.int(STAY_MIN, STAY_MAX);
     }
     // 席に座っているのは、その場で過ごしている間だけ（用事ができたら立つ。食事中は上の busyUntil で止まっている）
-    if (a.seat && a.goal?.note !== 'at') standUp(state, id);
+    if (a.seat && a.goal?.note !== 'at' && (a.busyUntil ?? 0) <= state.simTime) standUp(state, id);
     // 用事もなく予約だけ残っている席は放す
     else if (!a.seat && (!a.goal?.seat || a.goal.seat === '-') && seatOf(state, id)) standUp(state, id);
     // 用事が済んだら、すぐ次へ動かずに少しその場で過ごす

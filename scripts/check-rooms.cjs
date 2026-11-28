@@ -1,4 +1,4 @@
-// 個室システムの確認（部屋番号と名札、ノックと訪問、監獄棟の個室、扉の開閉、就寝）。
+// 個室システムの確認（部屋番号と名札、ノックと訪問、監獄棟の房、扉の開閉、就寝）。
 // npm run build と npx vite preview --port 4173 の後に実行する。 node scripts/check-rooms.cjs [スクリーンショットの保存先]
 const { chromium, devices } = require('playwright');
 (async () => {
@@ -70,9 +70,12 @@ const { chromium, devices } = require('playwright');
   const l3 = await labels();
   check('共同牢：11 室の扉に番号と名前（空室を含む）', l3.filter((x) => /^B\d\d　/.test(x)).length === 11 && l3.includes('B01　自分') && l3.includes('B02　神崎') && l3.includes('B03　空室'), l3.filter((x) => x.startsWith('B0')).slice(0, 4).join(' / '));
   await shot('rooms_cells');
-  await atDoor('prison_cells', 'cell_p01'); await page.waitForTimeout(300); await act(); await page.waitForTimeout(1300);
-  check('監獄棟の自分の個室へ入れる', (await st()).room === 'cell_p01');
-  await page.waitForTimeout(500); await shot('rooms_cell_inside');
+  // 自分の房：寝台の脇に立つと「休む」が出る（房は共同牢の中。別の部屋には移らない）
+  await page.evaluate(() => { const { G, sim } = window.__fc; sim.placeHome(G.state, 'hero'); });
+  await page.waitForTimeout(500);
+  const bed = await page.evaluate(() => { const { G } = window.__fc; return { room: G.state.actors.hero.pos.room, t: G.field.findTarget()?.kind }; });
+  check('監獄棟の自分の房の寝台へ行ける', bed.room === 'prison_cells' && bed.t === 'bed', JSON.stringify(bed));
+  await shot('rooms_cell_inside');
   await page.evaluate(() => { const { G, sim } = window.__fc; sim.placeIn(G.state, 'hero', 'living_hallway'); G.state.actors.hero.house = null; G.state.phase = 'night'; });
   await page.waitForTimeout(700);
   const l4 = await labels();

@@ -261,12 +261,12 @@ export function hudUpdate(): void {
   e.skip.style.display = free && !curfew ? '' : 'none';
   const tg = G.fieldActive ? G.field?.target : null;
   // 行動ボタンの文字は、いまできることを 1 語だけ出す（何もなければ空）
-  const actLabel = !tg ? '' : tg.kind === 'npc' ? t('act.talk') : tg.kind === 'door' ? t(knockable(s, tg.door.to) ? 'act.knock' : 'act.enter') : t('act.inspect');
+  const actLabel = !tg ? '' : tg.kind === 'npc' ? t('act.talk') : tg.kind === 'door' ? t(knockable(s, tg.door.to) ? 'act.knock' : 'act.enter') : tg.kind === 'inspect' ? t('act.inspect') : t(`act.${tg.kind}`);
   const al = e.act.firstElementChild as HTMLElement;
   if (al.textContent !== actLabel) al.textContent = actLabel;
   e.act.classList.toggle('idle', !tg);
   if (tg) {
-    const label = tg.kind === 'npc' ? t('prompt.talk', { name: shortName(s, tg.id) }) : tg.kind === 'door' ? t('prompt.door', { name: isPrivateRoom(tg.door.to) ? roomTitle(s, tg.door.to) : tg.door.label }) : t('prompt.inspect');
+    const label = tg.kind === 'npc' ? t('prompt.talk', { name: shortName(s, tg.id) }) : tg.kind === 'door' ? t('prompt.door', { name: isPrivateRoom(tg.door.to) ? roomTitle(s, tg.door.to) : tg.door.label }) : tg.kind === 'inspect' ? t('prompt.inspect') : t(`prompt.${tg.kind}`);
     if (e.prompt.dataset.label !== label) {
       e.prompt.dataset.label = label;
       clear(e.prompt);

@@ -133,3 +133,8 @@ export function cellTitle(state: GameState, roomId: string, cellId: string): str
   const owner = cellOwner(state, roomId, cellId);
   return owner === 'hero' ? `${c.no} 自分の房` : owner ? `${c.no} ${shortName(state, owner)}の房` : `${c.no} 空き`;
 }
+
+/** 全員の寝起きする部屋と房の割り当てを、いまの棟分けに合わせ直す（房の札を出す前に呼ぶ） */
+export function refreshHomes(state: GameState): void {
+  for (const id of ALL_IDS) if (state.actors[id]?.alive) homeOf(state, id);
+}

@@ -55,6 +55,8 @@ export interface NpcGoal {
   note?: string;
   /** 向かっている席、座っている席の id（world/seats.ts）。'-' は「席を使わない」と決めた印 */
   seat?: string;
+  /** 席へ歩き直した回数 */
+  tries?: number;
 }
 
 export interface Actor {
