@@ -591,7 +591,28 @@ export class FieldScene extends Phaser.Scene {
         this.actors.delete(id);
       }
     }
+    this.spreadLabels();
     void snap;
+  }
+
+  /**
+   * 名前の札どうしが重ならないようにする。隣り合って立つと「ヴィクトリアヨウコ」のように文字がつながって読めないため、
+   * 手前（画面の下）の人の札はそのままにし、重なる奥の人の札を 1 段ずつ上へずらす。
+   */
+  private spreadLabels(): void {
+    const vs = [...this.actors.values()].filter((v) => v.label.text && v.label.visible).sort((a, b) => b.label.y - a.label.y || a.label.x - b.label.x);
+    const placed: { l: number; r: number; t: number; b: number }[] = [];
+    for (const v of vs) {
+      const w = v.label.displayWidth, hgt = v.label.displayHeight;
+      const box = () => ({ l: v.label.x - w / 2, r: v.label.x + w / 2, t: v.label.y - hgt, b: v.label.y });
+      for (let k = 0; k < 4; k++) {
+        const bx = box();
+        const hit = placed.find((p) => bx.l < p.r - 2 && bx.r > p.l + 2 && bx.t < p.b - 2 && bx.b > p.t + 2);
+        if (!hit) break;
+        v.label.setY(hit.t + 1);
+      }
+      placed.push(box());
+    }
   }
 
   /** プレイヤーの正面・周囲にある操作対象 */
