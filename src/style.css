@@ -1715,7 +1715,7 @@ body .btn.hd-reset, body .btn.hd-pause { min-height: 76px; }
 .vt-sub { display: flex; gap: 14px; align-items: flex-start; background: rgba(0,0,0,0.45); border: 1px solid rgba(216,178,90,0.4); border-radius: 10px; padding: 10px 16px; min-height: 92px; box-sizing: border-box; }
 .vt-who { color: var(--gold2); white-space: nowrap; font-size: 0.95em; padding-top: 3px; }
 .vt-line { font-size: 1.3em; line-height: 1.55; }
-.vt-subrest { opacity: 0.18; }
+.vt-subrest { opacity: 0; }
 .vt-foot { display: flex; align-items: center; gap: 10px; }
 .vt-foot .btn { min-height: 76px; min-width: 150px; }
 body .vt-foot .btn.btn-s { min-height: 76px; }
@@ -1787,3 +1787,6 @@ body .vt-foot .btn.btn-s { min-height: 76px; }
 .m01-play { min-width: 0; align-self: stretch; }
 .m01-fit { flex: none; display: flex; align-items: center; gap: 26px; padding: 18px; transform-origin: 50% 50%; }
 .fit-in { transform-origin: 50% 50%; }
+
+/* 会話の立ち絵は胸から上のアップを基本にする（2026-11-28 本人の指示）。画像は加工せず、表示の倍率と位置だけを決める */
+.bust.dlg-portrait { background-size: 165% auto; background-position: 50% 0; }

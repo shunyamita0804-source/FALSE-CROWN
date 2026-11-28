@@ -1,7 +1,7 @@
 /**
  * UI で使う人物画像（顔・立ち絵）。正式素材があればそれを、無ければ仮素材を返す。
  */
-import { assetUrl, charFolder, FX_ASSETS, iconUrl, type FxName, type GameArt } from '../assets/registry';
+import { assetUrl, charFolder, EXPRESSIONS, FX_ASSETS, iconUrl, type FxName, type GameArt } from '../assets/registry';
 import { drawEmblem, drawFace, drawPortrait } from '../assets/placeholders';
 import { HERO_PALETTES, NPC_BY_ID, type NpcId } from '../data/characters';
 import { hashString } from '../core/rng';
@@ -36,16 +36,9 @@ export function faceUrl(id: string): string {
   return url;
 }
 
-/**
- * 表情の立ち絵に不具合がある人物（2026-11-28 確認）。笑顔・怒りなど normal 以外の 7 表情に、頭の横へ別の顔が半透明で
- * 重なって描かれている（桐生は背景の四角も残る）。素材は加工しないので、差し替えが届くまで normal の立ち絵を出す。
- * 差し替えが届いたら、ここから外す。
- */
-const BROKEN_EXPR = new Set(['npc_06_kiryu', 'npc_07_tachibana', 'npc_10_kujo']);
 
 export function portraitUrl(id: string, expr = 'normal'): string {
   const folder = charFolder(id === 'host' ? 'host_observer' : id, heroGender);
-  if (BROKEN_EXPR.has(folder)) expr = 'normal';
   const key = `portrait:${folder}:${expr}`;
   let url = cache.get(key);
   if (!url) {
@@ -134,7 +127,20 @@ export function fxPop(name: FxName, text: string, ms = 2600): void {
  * 人物の胸から上の表示。立ち絵の画像は加工せず、表示する範囲だけを絞る（上から約 45%、左右は中央寄り）。
  * 表情を替える時は setBust を使う。
  */
+const preloaded = new Set<string>();
+/** 表情を切り替えた瞬間に絵が抜けたり前の顔が残って見えたりしないよう、その人の全表情を先に読み込んでおく */
+function preloadExpressions(id: string): void {
+  const folder = charFolder(id === 'host' ? 'host_observer' : id, heroGender);
+  if (preloaded.has(folder)) return;
+  preloaded.add(folder);
+  for (const e of EXPRESSIONS) {
+    const img = new Image();
+    img.src = portraitUrl(id, e);
+  }
+}
+
 export function bust(id: string, expr = 'normal', cls = ''): HTMLElement {
+  preloadExpressions(id);
   const el = document.createElement('div');
   el.className = `bust ${cls}`;
   setBust(el, id, expr);

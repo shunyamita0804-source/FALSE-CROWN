@@ -1,7 +1,8 @@
 import { Input } from './input/InputState';
 import { placeHome, placeIn, setPathTo, setRouteTo } from './world/sim';
 import { gatherAt } from './core/tournament';
-import { seatActor } from './world/seats';
+import { seatActor, standAll } from './world/seats';
+import { furnitureOf } from './world/furniture';
 import { assignCell } from './world/cells';
 import { ROOMS } from './world/maps';
 import Phaser from 'phaser';
@@ -140,7 +141,7 @@ document.addEventListener('visibilitychange', () => {
     toast(t('update.available'), 'info', 6000);
   });
 });
-if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input, Sound, sim: { placeIn, placeHome, setPathTo, setRouteTo, gatherAt, seatActor, assignCell }, rooms: ROOMS };
+if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input, Sound, sim: { placeIn, placeHome, setPathTo, setRouteTo, gatherAt, seatActor, assignCell, standAll, furnitureOf }, rooms: ROOMS };
 void boot();
 
 if (!isNative && 'serviceWorker' in navigator) registerSW({ immediate: true });

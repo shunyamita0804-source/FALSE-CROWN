@@ -65,6 +65,14 @@ export interface VoicedGuide {
 
 const SEEN_KEY = 'false-crown/tutorial-seen';
 
+/**
+ * 字幕の見せ方。'full'：説明の全文を最初から明るく出す（2026-11-28 本人の指示で既定）。'reveal'：音声に合わせて文字が順に現れる。
+ * 他の競技の音声付き説明も同じ作りで使う。
+ */
+export const SUB_MODE: 'full' | 'reveal' = 'full';
+/** 字幕を読むのに取る時間（ミリ秒）。1 文字 0.15 秒と、読み始めの 1.2 秒。声がこれより長ければ声の終わりまで */
+export const readMs = (text: string): number => 1200 + text.length * 150;
+
 export function tutorialSeen(id: string): boolean {
   try { return (JSON.parse(localStorage.getItem(SEEN_KEY) ?? '[]') as string[]).includes(id); } catch { return false; }
 }
@@ -144,6 +152,7 @@ export function voicedTutorial(matchId: string, g: VoicedGuide, opts: { review?:
     const close = () => {
       if (!alive) return;
       alive = false;
+      clearTimeout(readTimer);
       cancelAnimationFrame(raf);
       Sound.stopVoice();
       markSeen(matchId);
@@ -153,10 +162,21 @@ export function voicedTutorial(matchId: string, g: VoicedGuide, opts: { review?:
 
     /** 字幕：声の進み（0〜1）まで出す */
     const showSub = (text: string, k: number) => {
+      if (SUB_MODE === 'full') {
+        // 全文を最初から読みやすい明るさで出す（音声に合わせてなぞらない）
+        subText.textContent = text;
+        subRest.textContent = '';
+        return;
+      }
+      // 音声に合わせて文字が順に現れる（まだの部分は場所だけ取って見せない）
       const n = Math.round(text.length * Math.max(0, Math.min(1, k)));
       subText.textContent = text.slice(0, n);
       subRest.textContent = text.slice(n);
     };
+    /** 字幕を読み終えたか（声の長さとは別に、文字数から読む時間を取る） */
+    let readDone = false;
+    let readTimer = 0;
+    const heard = () => voiceDone && readDone;
 
     const runCues = (k: number) => {
       view?.cues?.forEach((c, i) => { if (k >= c.at && !fired.has(i)) { fired.add(i); c.run(); } });
@@ -165,7 +185,7 @@ export function voicedTutorial(matchId: string, g: VoicedGuide, opts: { review?:
     const maybeAdvance = () => {
       if (!alive || !view) return;
       renderFoot();
-      if (view.task && taskDone && voiceDone && !view.final) setTimeout(() => { if (alive && view && taskDone) go(idx + 1); }, 900);
+      if (view.task && taskDone && heard() && !view.final) setTimeout(() => { if (alive && view && taskDone) go(idx + 1); }, 900);
     };
 
     /** 声を流す（無音の時も、字幕は文字数から見積もった時間で出す）。部品が複数なら順に流し、字幕は全体の長さに合わせる */
@@ -176,6 +196,9 @@ export function voicedTutorial(matchId: string, g: VoicedGuide, opts: { review?:
       cancelAnimationFrame(raf);
       Sound.stopVoice();
       voiceDone = false;
+      readDone = false;
+      clearTimeout(readTimer);
+      readTimer = window.setTimeout(() => { if (!alive || g.steps[idx] !== step) return; readDone = true; maybeAdvance(); }, readMs(text));
       playing = true;
       renderFoot();
       const est = Math.max(2.2, text.length * 0.13);
@@ -248,7 +271,7 @@ export function voicedTutorial(matchId: string, g: VoicedGuide, opts: { review?:
       if (!view) return;
       clear(foot);
       const last = idx === g.steps.length - 1;
-      const nextReady = voiceDone && (!view.task || taskDone);
+      const nextReady = heard() && (!view.task || taskDone);
       append(foot, [
         canSkipAll ? button(t(opts.review ? 'common.close' : 'tut.skip'), close, { kind: 'ghost', small: true, cls: 'vt-skipall' }) : null,
         h('span', { class: 'spacer' }),

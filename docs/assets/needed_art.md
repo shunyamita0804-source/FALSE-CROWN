@@ -98,7 +98,7 @@ DAY 2 以降の競技（M02〜M11、P02〜P10、裏ゲーム、サブゲーム�
 - 着席の絵：13 人ぶん（主人公 2、参加者 11）、正面、後ろ、左、右の 4 方向（斜めと横たわる姿は任意）。依頼の ZIP は `/mnt/project-files/map_redesign/FALSE_CROWN_seated_pose_request.zip`
 - 生活棟の個室：家具を外した背景と、寝台、机、椅子の分けた絵と配置（`docs/map_redesign.md` の最後）
 
-## 立ち絵の表情の不具合（2026-11-28、差し替えのお願い）
+## 立ち絵の表情の不具合（2026-11-28、差し替えのお願い）→ v0.26.3 で差し替え済み
 次の 21 枚は、頭の横に別の顔が半透明で重なって描かれている（桐生は背景の四角も残る）。normal は問題なし。差し替えが届くまで、画面ではこの 3 人の表情を normal で出している。
 - `characters/npc_10_kujo/portrait_{smile,anger,sad,surprise,think,smirk,wary}.png`
 - `characters/npc_07_tachibana/portrait_{smile,anger,sad,surprise,think,smirk,wary}.png`
