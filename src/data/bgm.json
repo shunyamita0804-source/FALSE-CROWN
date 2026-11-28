@@ -7,7 +7,9 @@
       "title": "Shiny Tech",
       "loop": true,
       "xfade": true,
-      "by": "incompetech"
+      "by": "incompetech",
+      "lufs": -14.0,
+      "gain": 0.355
     },
     "opening": {
       "label": "開会式・大会説明（ゲームマスターの説明の声の間は自動で音量を下げる。説明の終わりにフェードアウト）",
@@ -15,14 +17,18 @@
       "title": "Stay the Course",
       "loop": true,
       "xfade": true,
-      "by": "incompetech"
+      "by": "incompetech",
+      "lufs": -21.4,
+      "gain": 0.832
     },
     "introduction": {
       "label": "参加者の自己紹介（開会式の後。暫定でラウンジ曲。自己紹介の声の間は自動で音量を下げる）",
       "file": "B03_alt_coffee_lounge.m4a",
       "title": "Coffee_Lounge",
       "loop": true,
-      "by": "peritune"
+      "by": "peritune",
+      "lufs": -8.4,
+      "gain": 0.186
     },
     "corridor": {
       "label": "生活棟の廊下",
@@ -31,7 +37,9 @@
       "loop": true,
       "xfade": true,
       "by": "incompetech",
-      "resume": true
+      "resume": true,
+      "lufs": -15.7,
+      "gain": 0.432
     },
     "room": {
       "label": "個室",
@@ -40,7 +48,9 @@
       "loop": true,
       "xfade": true,
       "resume": true,
-      "by": "incompetech"
+      "by": "incompetech",
+      "lufs": -16.3,
+      "gain": 0.462
     },
     "living": {
       "label": "生活棟のその他の部屋（図書室など。暫定でラウンジ曲）",
@@ -48,7 +58,9 @@
       "title": "Coffee_Lounge",
       "loop": true,
       "by": "peritune",
-      "resume": true
+      "resume": true,
+      "lufs": -8.4,
+      "gain": 0.186
     },
     "common": {
       "label": "共用施設、食堂、1 階",
@@ -56,7 +68,9 @@
       "title": "TaishoRoman_Theme2",
       "loop": true,
       "by": "peritune",
-      "resume": true
+      "resume": true,
+      "lufs": -8.6,
+      "gain": 0.191
     },
     "lounge": {
       "label": "ラウンジ",
@@ -64,7 +78,9 @@
       "title": "Coffee_Lounge",
       "loop": true,
       "by": "peritune",
-      "resume": true
+      "resume": true,
+      "lufs": -8.4,
+      "gain": 0.186
     },
     "prison": {
       "label": "監獄棟",
@@ -73,7 +89,9 @@
       "loop": true,
       "xfade": true,
       "by": "peritune",
-      "resume": true
+      "resume": true,
+      "lufs": -8.1,
+      "gain": 0.18
     },
     "hidden": {
       "label": "隠し部屋、裏ゲーム",
@@ -82,42 +100,54 @@
       "loop": true,
       "xfade": true,
       "by": "peritune",
-      "resume": true
+      "resume": true,
+      "lufs": -12.4,
+      "gain": 0.295
     },
     "match_main": {
       "label": "競技説明、作戦時間、メインマッチ",
       "file": "B05_investigation2.m4a",
       "title": "Investigation2",
       "loop": true,
-      "by": "peritune"
+      "by": "peritune",
+      "lufs": -8.5,
+      "gain": 0.188
     },
     "match_prison": {
       "label": "監獄マッチ",
       "file": "B07_suspense2.m4a",
       "title": "Suspense2",
       "loop": true,
-      "by": "peritune"
+      "by": "peritune",
+      "lufs": -10.2,
+      "gain": 0.229
     },
     "final": {
       "label": "決勝戦",
       "file": "B10_taishoroman_battle.m4a",
       "title": "TaishoRoman_Battle",
       "loop": true,
-      "by": "peritune"
+      "by": "peritune",
+      "lufs": -7.6,
+      "gain": 0.17
     },
     "elimination": {
       "label": "脱落、敗退の結末",
       "file": "B11_scene_tragic.m4a",
       "title": "Scene_Tragic",
       "loop": false,
-      "by": "peritune"
+      "by": "peritune",
+      "lufs": -6.8,
+      "gain": 0.155
     },
     "ending": {
       "label": "エンディング",
       "file": "B12_piano_melancholy3.m4a",
       "title": "Piano_Melancholy3",
       "loop": true,
-      "by": "peritune"
+      "by": "peritune",
+      "lufs": -9.5,
+      "gain": 0.211
     }
   },
   "credits": {
@@ -132,5 +162,9 @@
       "license": "Licensed under Creative Commons: By Attribution 4.0 License\nhttps://creativecommons.org/licenses/by/4.0/",
       "perTitle": "“{title}” Kevin MacLeod (incompetech.com)"
     }
+  },
+  "loudness": {
+    "target": -23.0,
+    "note": "曲全体の大きさ（LUFS）を測り、全曲が target に揃う倍率を gain に入れている（scripts/level-bgm.py）。声（-19 LUFS）より小さく鳴る。"
   }
 }
