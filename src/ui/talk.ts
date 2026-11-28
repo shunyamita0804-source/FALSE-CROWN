@@ -470,7 +470,7 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
     const r0 = rel(s, npc, 'hero');
     line(r0.wary > 60 || r0.hostility > 40 ? 'greetWary' : 'greeting');
     refreshInfo();
-    const box = h('div', { class: 'dlg-box' }, h('div', { class: 'dlg-name' }, `${def.name}　${def.job}`), text);
+    const box = h('div', { class: 'dlg-box' }, h('div', { class: 'dlg-name' }, h('b', null, def.name), h('span', null, `${t('intro.age', { n: def.age })}　${def.job}`)), text);
     const el = h('div', { class: `overlay ${inMatch ? '' : 'clear'} dlg-screen` }, portrait, info, menu, box);
     document.body.classList.add('talking');
     layer = openLayer(el, { pausesClock: false, name: 'talk', onCancel: () => close() });
