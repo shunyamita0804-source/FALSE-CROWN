@@ -529,195 +529,197 @@
         "greeting": {
           "file": "01_greeting.mp3",
           "text": "おはよう。よく眠れた？",
-          "gain": 0.891,
-          "lufs": -18.0
+          "gain": 0.733,
+          "lufs": -16.3
         },
         "hello": {
           "file": "02_hello.mp3",
           "text": "どうしたの？",
-          "gain": 1.084,
-          "lufs": -19.7
+          "gain": 1.396,
+          "lufs": -21.9
         },
         "understand": {
           "file": "03_understand.mp3",
           "text": "そうだったのね。",
-          "gain": 1.245,
-          "lufs": -20.9
+          "gain": 1.514,
+          "lufs": -22.6
         },
         "accept": {
           "file": "04_accept.mp3",
           "text": "ええ、もちろんよ。",
-          "gain": 0.944,
-          "lufs": -18.5
+          "gain": 0.912,
+          "lufs": -18.2
         },
         "refuse": {
           "file": "05_refuse.mp3",
           "text": "ごめんなさい、それはできないわ。",
-          "gain": 1.0,
-          "lufs": -19.0
+          "gain": 1.047,
+          "lufs": -19.4
         },
         "thinking": {
           "file": "06_thinking.mp3",
           "text": "少し考えさせてね。",
-          "gain": 1.012,
-          "lufs": -19.1
+          "gain": 1.084,
+          "lufs": -19.7
         },
         "surprise": {
           "file": "07_surprise.mp3",
           "text": "まあ、本当に？",
-          "gain": 0.832,
-          "lufs": -17.4
+          "gain": 1.884,
+          "lufs": -24.5
         },
         "happy": {
           "file": "08_happy.mp3",
           "text": "ふふっ、よかったわ。",
-          "gain": 1.274,
-          "lufs": -21.1
+          "gain": 1.012,
+          "lufs": -19.1
         },
         "disappointed": {
           "file": "09_disappointed.mp3",
           "text": "そんな……残念ね。",
-          "gain": 1.288,
-          "lufs": -21.2
+          "gain": 2.065,
+          "lufs": -25.3
         },
         "thanks": {
           "file": "10_thanks.mp3",
           "text": "ありがとう。本当に助かったわ。",
-          "gain": 1.084,
-          "lufs": -19.7
+          "gain": 0.708,
+          "lufs": -16.0
         }
       },
       "extra": {
         "introduction": {
           "file": "11_introduction.mp3",
-          "text": "橘香織です。医師をしています。困ったことがあったら、遠慮なく相談してね。",
-          "spokenName": "橘香織",
-          "gain": 1.202,
-          "lufs": -20.6
+          "text": "ヨウコです。医師をしています。困ったことがあったら、遠慮なく相談してね。",
+          "spokenName": "ヨウコ",
+          "gain": 0.861,
+          "lufs": -17.7
         },
         "victory": {
           "file": "12_victory.mp3",
           "text": "ふぅ……なんとか勝てたわね。安心したわ。",
-          "gain": 1.23,
-          "lufs": -20.8
+          "gain": 1.084,
+          "lufs": -19.7
         },
         "defeat": {
           "file": "13_defeat.mp3",
           "text": "負けてしまったわね……次はもっと慎重に考えないと。",
-          "gain": 1.059,
-          "lufs": -19.5
+          "gain": 0.989,
+          "lufs": -18.9
         },
         "elimination": {
           "file": "14_elimination.mp3",
           "text": "ここまでみたいね……。みんな、どうか無事でいてね。",
-          "gain": 0.966,
-          "lufs": -18.7
+          "gain": 0.813,
+          "lufs": -17.2
         },
         "betrayal": {
           "file": "15_betrayal.mp3",
           "text": "どうして……？ あなたのこと、信じていたのに。",
-          "gain": 1.23,
-          "lufs": -20.8
+          "gain": 1.135,
+          "lufs": -20.1
         }
-      }
+      },
+      "source": "resources/voice_original/npc_07_tachibana.mp3（区間は docs/voice/npc_07_tachibana_lines.csv）"
     },
     "npc_08_dojima": {
       "dir": "audio/voice/npc_08_dojima",
       "clips": {
         "greeting": {
           "file": "01_greeting.mp3",
-          "text": "（文面は未確認）",
-          "gain": 0.794,
-          "lufs": -17.0
+          "text": "おはよう。調子はどうだ？",
+          "gain": 0.716,
+          "lufs": -16.1
         },
         "hello": {
           "file": "02_hello.mp3",
-          "text": "（文面は未確認）",
-          "gain": 0.767,
-          "lufs": -16.7
+          "text": "どうした？ 話なら聞くぞ。",
+          "gain": 0.966,
+          "lufs": -18.7
         },
         "understand": {
           "file": "03_understand.mp3",
-          "text": "（文面は未確認）",
-          "gain": 1.429,
-          "lufs": -22.1
+          "text": "なるほどな。",
+          "gain": 2.291,
+          "lufs": -26.2
         },
         "accept": {
           "file": "04_accept.mp3",
-          "text": "（文面は未確認）",
-          "gain": 1.245,
-          "lufs": -20.9
+          "text": "ああ、分かった。引き受けよう。",
+          "gain": 1.161,
+          "lufs": -20.3
         },
         "refuse": {
           "file": "05_refuse.mp3",
-          "text": "（文面は未確認）",
-          "gain": 0.684,
-          "lufs": -15.7
+          "text": "悪いが、それは断る。",
+          "gain": 0.813,
+          "lufs": -17.2
         },
         "thinking": {
           "file": "06_thinking.mp3",
-          "text": "（文面は未確認）",
-          "gain": 1.462,
-          "lufs": -22.3
+          "text": "ふむ……少し考えさせてくれ。",
+          "gain": 1.349,
+          "lufs": -21.6
         },
         "surprise": {
           "file": "07_surprise.mp3",
-          "text": "（文面は未確認）",
-          "gain": 0.912,
-          "lufs": -18.2
+          "text": "何だと……？",
+          "gain": 1.059,
+          "lufs": -19.5
         },
         "happy": {
           "file": "08_happy.mp3",
-          "text": "（文面は未確認）",
-          "gain": 0.692,
-          "lufs": -15.8
+          "text": "ははっ、悪くないな。",
+          "gain": 0.822,
+          "lufs": -17.3
         },
         "disappointed": {
           "file": "09_disappointed.mp3",
-          "text": "（文面は未確認）",
-          "gain": 1.567,
-          "lufs": -22.9
+          "text": "まいったな……。",
+          "gain": 2.188,
+          "lufs": -25.8
         },
         "thanks": {
           "file": "10_thanks.mp3",
-          "text": "（文面は未確認）",
-          "gain": 1.161,
-          "lufs": -20.3
+          "text": "ありがとな。助かったよ。",
+          "gain": 0.841,
+          "lufs": -17.5
         }
       },
       "extra": {
         "introduction": {
           "file": "11_introduction.mp3",
-          "text": "堂島誠司だ。昔は刑事をやっていた。まあ、よろしく頼むよ。",
-          "spokenName": "堂島誠司",
-          "gain": 0.684,
-          "lufs": -15.7
+          "text": "ヴィクターだ。昔は刑事をやっていた。まあ、よろしく頼むよ。",
+          "spokenName": "ヴィクター",
+          "gain": 0.841,
+          "lufs": -17.5
         },
         "victory": {
           "file": "12_victory.mp3",
           "text": "ふう……長年の経験も、まだ捨てたもんじゃないな。",
-          "gain": 1.175,
-          "lufs": -20.4
+          "gain": 1.216,
+          "lufs": -20.7
         },
         "defeat": {
           "file": "13_defeat.mp3",
           "text": "まいったな。どうやら俺の読みが甘かったようだ。",
-          "gain": 0.955,
-          "lufs": -18.6
+          "gain": 1.135,
+          "lufs": -20.1
         },
         "elimination": {
           "file": "14_elimination.mp3",
           "text": "俺はここまでか……。お前ら、最後まで諦めるんじゃないぞ。",
-          "gain": 0.582,
-          "lufs": -14.3
+          "gain": 0.7,
+          "lufs": -15.9
         },
         "betrayal": {
           "file": "15_betrayal.mp3",
           "text": "そうか……俺も随分と人を見る目が鈍ったもんだな。",
-          "gain": 0.966,
-          "lufs": -18.7
+          "gain": 1.365,
+          "lufs": -21.7
         }
-      }
+      },
+      "source": "resources/voice_original/npc_08_dojima.mp3（区間は docs/voice/npc_08_dojima_lines.csv）"
     },
     "npc_09_asahina": {
       "dir": "audio/voice/npc_09_asahina",

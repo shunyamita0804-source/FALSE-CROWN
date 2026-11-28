@@ -27,7 +27,7 @@ import { FieldScene } from './scenes/FieldScene';
 import { bust, face, setBust, setHeroGender } from './ui/art';
 import { alertDialog, initStage, installErrorScreen, toast, uiKey } from './ui/dom';
 import { playMatch } from './ui/matchui';
-import { playVoice } from './audio/voice';
+import { playVoice, voiceClip } from './audio/voice';
 import { drainBetrayals } from './npc/negotiation';
 import * as screens from './ui/screens';
 import { talkTo } from './ui/talk';
@@ -143,7 +143,7 @@ document.addEventListener('visibilitychange', () => {
     toast(t('update.available'), 'info', 6000);
   });
 });
-if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input, Sound, sim: { placeIn, placeHome, setPathTo, setRouteTo, gatherAt, seatActor, assignCell, standAll, furnitureOf }, rooms: ROOMS, art: { bust, setBust, face, setHeroGender } };
+if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input, Sound, sim: { placeIn, placeHome, setPathTo, setRouteTo, gatherAt, seatActor, assignCell, standAll, furnitureOf }, rooms: ROOMS, art: { bust, setBust, face, setHeroGender }, voice: { clip: voiceClip, play: playVoice } };
 void boot();
 
 if (!isNative && 'serviceWorker' in navigator) registerSW({ immediate: true });

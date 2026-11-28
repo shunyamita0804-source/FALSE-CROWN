@@ -126,6 +126,8 @@ INTRO_NOTE = {'npc_12_kuze': '元大学教授（退職済み）に統一。新�
 # 本人の予定（2026-11-28）：この 4 人は声そのものを作り直し、15 種すべてを新規収録。残り 7 人は今の声を使い続け、自己紹介だけ録り直す。
 # 職業・能力・関係・秘密は今の設定を引き継ぐ。新しい名前は npc_names.json（2026-11-28 確定）。
 NEW_VOICE = {'npc_02_kanzaki', 'npc_03_kurose', 'npc_07_tachibana', 'npc_08_dojima'}
+# 新しい声が届いて置き換えた人（docs/voice/<内部ID>_lines.csv、scripts/split-npc-voice.py）
+NEW_VOICE_DONE = {'npc_07_tachibana', 'npc_08_dojima'}
 vpath = os.path.join(OUT, 'voice_rerecord.csv')
 cnt = {}
 with open(vpath, 'w', encoding='utf-8-sig', newline='') as fp:
@@ -145,7 +147,8 @@ with open(vpath, 'w', encoding='utf-8-sig', newline='') as fp:
                 job, why = '不要', '新規収録で置き換えるので確認不要（本人、2026-11-28）'
             else:
                 job, why = '不要', ''
-            if cid in NEW_VOICE: plan = '新規収録（声を作り直す）'
+            if cid in NEW_VOICE_DONE: plan = '新規収録済み（声を作り直した、2026-11-28 受領）'
+            elif cid in NEW_VOICE: plan = '新規収録（声を作り直す）'
             elif v.get('spokenName') and re.sub(r'[\s・]+', '', v['spokenName']) == re.sub(r'[\s・]+', '', FULL.get(cid, '')): plan = '録り直し済み（新しい名前の自己紹介、2026-11-28 受領）'
             elif v.get('spokenName'): plan = '録り直し（新しい名前の自己紹介）' + (f'。{INTRO_NOTE[cid]}' if cid in INTRO_NOTE else '')
             else: plan = '今の声を使い続ける'
