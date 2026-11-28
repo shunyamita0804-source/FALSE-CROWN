@@ -5,6 +5,7 @@
  */
 import { Sound } from '../audio/audio';
 import { t } from '../i18n/i18n';
+import { emblem } from './art';
 import { L4, M01_DEMO, M01_PRACTICE, SQ } from '../matches/m01';
 import { M03_DEMO, M03_PRACTICE } from '../matches/m03';
 import { applyAct as applyRail, CITY_NAMES, EDGES, ROUNDS as M04_ROUNDS, practiceTable, routeFor } from '../matches/m04';
@@ -32,7 +33,7 @@ import { ringBoard } from './ringboard';
 import { P08_PRACTICE, type Scale } from '../matches/p08';
 import { ScaleBoard } from './scaleboard';
 import { CENTER as M09_CENTER, movesOf as m09Moves, startPieces as m09Start, type Piece as M09Piece } from '../matches/m09';
-import { pieceBoard } from './pieceboard';
+import { duelKind, pieceBoard } from './pieceboard';
 import { M09_COLORS } from './games/m09';
 import { condList } from './games/p08';
 import { P09_PRACTICE, expected as p09Expected, scoreOf as p09Score, type Mirror } from '../matches/p09';
@@ -953,7 +954,7 @@ function m10Guide(): Guide {
 export function p10Guide(h06 = false): Guide {
   const at = (x: number, y: number) => y * 5 + x;
   const centers = (extra: Record<number, string> = {}) => { const m: Record<number, string> = {}; for (const c of h06 ? [12] : P10_CENTERS) m[c] = 'center'; for (const [c, v] of Object.entries(extra)) m[Number(c)] = `${m[Number(c)] ?? ''} ${v}`; return m; };
-  const fig = (ps: P10Piece[], cell: number, marks: Record<number, string> = {}) => pieceBoard({ n: 5, cell, pieces: ps.map((p) => ({ pos: p.pos, seat: p.seat, kind: 'pawn' as const })), colors: P10_COLORS, me: 0, marks: centers(marks) });
+  const fig = (ps: P10Piece[], cell: number, marks: Record<number, string> = {}) => pieceBoard({ n: 5, cell, pieces: ps.map((p) => ({ pos: p.pos, seat: p.seat, kind: duelKind(p.seat) })), colors: P10_COLORS, me: 0, marks: centers(marks) });
   const cap = (el: HTMLElement, text: string) => h('div', { class: 'tg-fig' }, el, h('div', { class: 'tg-cap' }, text));
   const mid: P10Piece[] = [{ seat: 0, pos: at(1, 1) }, { seat: 1, pos: at(2, 1) }, { seat: 1, pos: at(4, 3) }, { seat: 0, pos: at(0, 3) }];
   const hold: P10Piece[] = [{ seat: 0, pos: at(2, 2) }, { seat: 0, pos: at(1, 2) }, { seat: 1, pos: at(3, 2) }, { seat: 1, pos: at(4, 0) }, { seat: 0, pos: at(0, 4) }];
@@ -1004,7 +1005,7 @@ export function p10Guide(h06 = false): Guide {
             draw();
             onDone();
           };
-          const board = pieceBoard({ n: 5, cell: 86, pieces: pieces.map((p) => ({ pos: p.pos, seat: p.seat, kind: 'pawn' as const })), colors: P10_COLORS, me: 0, marks: centers(marks), onCell: done ? undefined : (c) => {
+          const board = pieceBoard({ n: 5, cell: 86, pieces: pieces.map((p) => ({ pos: p.pos, seat: p.seat, kind: duelKind(p.seat) })), colors: P10_COLORS, me: 0, marks: centers(marks), onCell: done ? undefined : (c) => {
             if (pieces.some((p) => p.pos === c && p.seat === 0)) { from = c; to = undefined; Sound.se('select'); draw(); return; }
             if (!sel || !mine.some((s) => s.to === c)) return;
             if (to === c) { confirm(); return; }
@@ -1105,7 +1106,7 @@ export function tutorialScreen(matchId: string, opts: { cutNote?: string; scene?
     const render = () => {
       const isPractice = page === g.pages.length;
       clear(head);
-      head.append(h('span', { class: 'tut-id' }, `${matchId.toUpperCase()}　${g.name}`), h('b', { class: 'tut-title' }, isPractice ? t('tut.practice') : g.pages[page].title),
+      head.append(...[emblem(matchId, 'vt-emblem')].filter((x): x is HTMLImageElement => !!x), h('span', { class: 'tut-id' }, `${matchId.toUpperCase()}　${g.name}`), h('b', { class: 'tut-title' }, isPractice ? t('tut.practice') : g.pages[page].title),
         h('span', { class: 'tut-dots' }, Array.from({ length: total }, (_, i) => h('i', { class: i === page ? 'on' : i < page ? 'past' : '' }))));
       clear(fig);
       clear(text);

@@ -87,7 +87,28 @@ export const UI_ASSETS: Record<string, AssetDef> = {
   'v11/m06/card_back': { path: 'ui/v11/m06/card_back' },
   'v11/prison/compact_frame': { path: 'ui/v11/prison/compact_frame', slice: S(96) },
   'v11/hidden/challenge_frame': { path: 'ui/v11/hidden/challenge_frame', slice: S(96) },
+  // v11 追加 60 点（2026-11-28 受領）のうち、CSS から使う物
+  'v11/m06/card_face': { path: 'ui/v11/m06/card_face' },
+  'v11/bg/match_hidden': { path: 'ui/v11/bg/match_hidden' },
+  'v11/bg/match_sub': { path: 'ui/v11/bg/match_sub' },
+  'v11/bg/final_arena': { path: 'backgrounds/final_arena' },
+  'v11/s05/die_face': { path: 'ui/v11/s05/die_face' },
+  'v11/m09/center_mark': { path: 'ui/v11/m09/center_mark' },
+  'v11/p08/weight': { path: 'ui/v11/p08/weight' },
+  'v11/p08/tile': { path: 'ui/games/h05/asset_02' },
 };
+
+/**
+ * 競技の紋章（導入、説明の見出し、試合の見出しで使う）。ui/v11/emblem/<競技ID>.png を探し、
+ * 無い競技は既存の紋章で代用する（M11 は決勝紋章、裏ゲームは旧 H 系の紋章）。新しい競技は emblem/<ID>.png を置くだけ。
+ */
+const EMBLEM_FALLBACK: Record<string, string> = {
+  m11: 'ui/games/m11/asset_02', h01: 'ui/games/h01/asset_03', h02: 'ui/games/h02/asset_01', h03: 'ui/games/h03/asset_04', h04: 'ui/games/h04/asset_03',
+  h05: 'ui/games/h05/asset_01', h06: 'ui/games/h06/asset_01', h07: 'ui/games/h07/asset_03', h08: 'ui/games/h08/asset_03',
+};
+export function emblemOf(matchId: string): string | null {
+  return assetUrl(`ui/v11/emblem/${matchId}`) ?? (EMBLEM_FALLBACK[matchId] ? assetUrl(EMBLEM_FALLBACK[matchId]) : null);
+}
 
 /** 演出用の帯。band は文字を載せる帯の中心と高さ（画像の高さに対する割合）。無い素材は画像の下に文字を出す */
 export const FX_ASSETS = {
@@ -96,6 +117,11 @@ export const FX_ASSETS = {
   elimination: { path: 'ui/effects/elimination', band: null },
   discovery: { path: 'ui/effects/discovery', band: null },
   final: { path: 'ui/effects/final', band: null },
+  // v11 追加の帯（2026-11-28 受領）。band は暗い面の中心と高さを画像から測り、上下に余白を取った値
+  time_up: { path: 'ui/v11/fx/time_up', band: { y: 0.624, h: 0.2 } },
+  prison_survive: { path: 'ui/v11/fx/prison_survive', band: { y: 0.575, h: 0.19 } },
+  round_start: { path: 'ui/v11/fx/round_start', band: { y: 0.6, h: 0.2 } },
+  perfect: { path: 'ui/v11/fx/perfect', band: { y: 0.519, h: 0.21 } },
 } as const;
 export type FxName = keyof typeof FX_ASSETS;
 

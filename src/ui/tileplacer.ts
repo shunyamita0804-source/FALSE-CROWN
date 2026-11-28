@@ -7,7 +7,7 @@ import { Sound } from '../audio/audio';
 import { cellAt, rot60 } from '../matches/hex';
 import { G, SHAPES, TOWER, areaOf, beaconCell, canPlace, cellsOf, isCenter, startCell } from '../matches/m07';
 import { h } from './dom';
-import { HEX_COLORS, cellFromPoint, hexBoard, markerInner, shapeSvg } from './hexboard';
+import { HEX_COLORS, beaconInner, cellFromPoint, hexBoard, markerInner, shapeSvg } from './hexboard';
 
 export interface PlacerSel { shape?: string; rot: number; at?: number }
 export interface PlacerOpts {
@@ -57,7 +57,7 @@ export class TilePlacer {
       const own = owner[c];
       let inner = '';
       const b = beacons.get(c);
-      if (b !== undefined) inner += `<circle class="hx-beacon${b === seat ? ' mine' : ''}" r="${size * 0.5}" stroke="${HEX_COLORS[b]}"/>`;
+      if (b !== undefined) inner += beaconInner(size, HEX_COLORS[b], b === seat);
       if (starts.has(c)) inner += `<circle class="hx-start" r="${size * 0.28}"/>`;
       return { cls: `${own >= 0 ? 'own' : 'empty'}${own === seat ? ' mine' : ''}${isCenter(c) ? ' ctr' : ''}${o.fresh?.includes(c) ? ' new' : ''}`, fill: own >= 0 ? HEX_COLORS[own] : undefined, inner };
     }, { cls: o.active ? 'active' : '' });

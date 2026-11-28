@@ -4,6 +4,7 @@
  */
 import { Sound } from '../audio/audio';
 import { G, HOLE_V, flipsFor, isCenter } from '../matches/p07';
+import { assetUrl } from '../assets/registry';
 import { hexBoard } from './hexboard';
 
 export const PIECE_COLORS = ['#191b24', '#f2ecdc', '#c8423b'];
@@ -24,7 +25,14 @@ export interface FlipBoardOpts {
   onBad?: () => void;
 }
 
-export const pieceSvg = (seat: number, r: number, cls = '') => `<circle class="pc ${cls}" r="${r.toFixed(1)}" fill="${PIECE_COLORS[seat]}" stroke="${PIECE_EDGE[seat]}" stroke-width="${(r * 0.12).toFixed(1)}"/><circle class="pc-hi" r="${(r * 0.62).toFixed(1)}" cx="${(-r * 0.12).toFixed(1)}" cy="${(-r * 0.14).toFixed(1)}" fill="rgba(255,255,255,0.10)"/>`;
+/** 駒の正式素材：黒と白はミニリバーシの円盤（旧素材の再利用）、紅は v11 追加。円盤は絵の幅の約 90% */
+export const PIECE_ART = [assetUrl('ui/games/s03/asset_01'), assetUrl('ui/games/s03/asset_01_01'), assetUrl('ui/v11/p07/piece_red')];
+const ART_FILL = 0.9;
+
+export const pieceSvg = (seat: number, r: number, cls = '') => PIECE_ART[seat]
+  ? `<g class="pc art ${cls}"><image href="${PIECE_ART[seat]}" x="${(-r / ART_FILL).toFixed(1)}" y="${(-r / ART_FILL).toFixed(1)}" width="${((2 * r) / ART_FILL).toFixed(1)}" height="${((2 * r) / ART_FILL).toFixed(1)}"/></g>`
+  : pieceSvgPlain(seat, r, cls);
+const pieceSvgPlain = (seat: number, r: number, cls = '') => `<circle class="pc ${cls}" r="${r.toFixed(1)}" fill="${PIECE_COLORS[seat]}" stroke="${PIECE_EDGE[seat]}" stroke-width="${(r * 0.12).toFixed(1)}"/><circle class="pc-hi" r="${(r * 0.62).toFixed(1)}" cx="${(-r * 0.12).toFixed(1)}" cy="${(-r * 0.14).toFixed(1)}" fill="rgba(255,255,255,0.10)"/>`;
 
 export class FlipBoard {
   readonly el: HTMLElement;

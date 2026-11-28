@@ -8,6 +8,8 @@ import { ADJ, EDGES, NODES, RINGS, distMap, goalNode, ringOfNode, spokeOfNode, t
 import { h } from './dom';
 import { HEX_COLORS } from './hexboard';
 
+const GOAL_FLAG = assetUrl('ui/v11/m08/goal_flag');
+
 const PAWN = assetUrl('ui/v11/m08/pawn');
 /** 壁の正式素材（横向きの棒、256×128 で棒は 250×17）。表示の時だけ道と直角に回す（2026-11-28 本人の許可）。加工はしない */
 const WALL = assetUrl('ui/v11/m08/wall');
@@ -103,7 +105,13 @@ export function ringBoard(d: RingData, onNode?: (n: number) => void, onEdge?: (e
     const can = d.mode === 'move' && d.canMove.includes(n);
     const g = goals.get(n);
     let inner = `<circle class="rb-dot" r="15"/>`;
-    if (g !== undefined) inner += `<g class="rb-goal${d.me >= 0 && g === d.seats[d.me] ? ' mine' : ''}" style="--c:${HEX_COLORS[g]}"><circle r="21"/><path d="M-5 11 V-12 L10 -6 L-5 0"/></g>`;
+    if (g !== undefined) {
+      // ゴールの旗：正式素材（白い旗）をプレイヤー色に染める。無い時は線で描く
+      const flag = GOAL_FLAG
+        ? `<filter id="gf${g}"><feFlood flood-color="${HEX_COLORS[g]}"/><feComposite in2="SourceAlpha" operator="in"/><feComposite in="SourceGraphic" operator="arithmetic" k1="1" k2="0.25" k3="0" k4="0"/></filter><image href="${GOAL_FLAG}" x="-29" y="-33" width="58" height="58" filter="url(#gf${g})"/>`
+        : `<path d="M-5 11 V-12 L10 -6 L-5 0"/>`;
+      inner += `<g class="rb-goal${d.me >= 0 && g === d.seats[d.me] ? ' mine' : ''}" style="--c:${HEX_COLORS[g]}"><circle r="21"/>${flag}</g>`;
+    }
     if (can) inner += `<circle class="rb-can" r="27"/>`;
     if (d.selNode === n) inner += `<circle class="rb-sel" r="30"/>`;
     out.push(`<g class="rb-node${can ? ' can' : ''}" data-node="${n}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><circle class="hit" r="${ringOfNode(n) <= 1 ? 34 : 38}"/>${inner}</g>`);

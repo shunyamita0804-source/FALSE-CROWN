@@ -1,5 +1,9 @@
-/** クロス・カードのカードの描画（独自の 4 種の紋：王冠、鍵、月、星）。数字と紋は SVG と文字で描く。 */
-import { RANK_LABEL, SUITS, suitOf } from '../matches/m06';
+/**
+ * クロス・カードのカードの描画（独自の 4 種の紋：王冠、鍵、月、星）。数字は文字で描く。
+ * 紋は正式素材（ui/v11/m06/suit_*.png）、届いていなければ SVG。絵札 J・Q・K は肖像の紋（court_*.png）を添える。
+ */
+import { RANK_LABEL, rankOf, SUITS, suitOf } from '../matches/m06';
+import { v11Url } from './art';
 import { h } from './dom';
 
 export const SUIT_COLOR = ['#c9962b', '#2f7fc4', '#7a4fc0', '#c2453d'];
@@ -17,15 +21,22 @@ export function suitSvg(suit: number): string {
 }
 
 export function suitEl(suit: number, cls = ''): HTMLElement {
+  const url = v11Url(`m06/suit_${SUITS[suit]}`);
+  if (url) return h('span', { class: `xc-suit art ${cls}`, role: 'img', 'aria-label': SUIT_NAME[suit] }, h('img', { src: url, alt: '', draggable: false }));
   const el = h('span', { class: `xc-suit ${cls}` });
   el.innerHTML = suitSvg(suit);
   return el;
 }
 
+const COURT: Record<number, string> = { 11: 'j', 12: 'q', 13: 'k' };
+
 /** カード 1 枚（表）。tag を button にすると押せる */
 export function cardEl(c: number, opts: { cls?: string; button?: boolean; disabled?: boolean } = {}): HTMLElement {
   const s = suitOf(c);
-  return h(opts.button ? 'button' : 'div', { class: `xc-card ${opts.cls ?? ''}`, type: opts.button ? 'button' : undefined, 'data-card': String(c), disabled: opts.button ? !!opts.disabled : undefined, style: `--xc:${SUIT_COLOR[s]}`, 'aria-label': `${SUIT_NAME[s]}の${RANK_LABEL(c)}` },
+  const court = COURT[rankOf(c)];
+  const courtUrl = court ? v11Url(`m06/court_${court}`) : null;
+  return h(opts.button ? 'button' : 'div', { class: `xc-card ${opts.cls ?? ''}${courtUrl ? ' court' : ''}`, type: opts.button ? 'button' : undefined, 'data-card': String(c), disabled: opts.button ? !!opts.disabled : undefined, style: `--xc:${SUIT_COLOR[s]}`, 'aria-label': `${SUIT_NAME[s]}の${RANK_LABEL(c)}` },
+    courtUrl ? h('img', { class: 'xc-court', src: courtUrl, alt: '', draggable: false }) : null,
     h('b', null, RANK_LABEL(c)), suitEl(s), h('i', null, RANK_LABEL(c)));
 }
 

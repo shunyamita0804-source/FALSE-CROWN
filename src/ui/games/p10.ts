@@ -11,7 +11,7 @@ import { face } from '../art';
 import { button, h, type Child } from '../dom';
 import { HEX_COLORS } from '../hexboard';
 import type { MatchUi } from '../matchui';
-import { pieceBoard } from '../pieceboard';
+import { duelKind, pieceBoard } from '../pieceboard';
 
 interface Seen { n: number; timer?: ReturnType<typeof setTimeout>; from?: number; to?: number; key?: string }
 const SEEN = new WeakMap<object, Seen>();
@@ -96,7 +96,7 @@ export function renderP10(v: P10View, ui: MatchUi): { main: Child; side: Child }
     ui.submit(mv);
   };
   const board = pieceBoard({
-    n: 5, cell: 112, pieces: pieces.map((p) => ({ pos: p.pos, seat: p.seat, kind: 'pawn' as const })), colors: P10_COLORS, me: seat, marks,
+    n: 5, cell: 112, pieces: pieces.map((p) => ({ pos: p.pos, seat: p.seat, kind: duelKind(p.seat) })), colors: P10_COLORS, me: seat, marks,
     onCell: myTurn ? (c) => {
       const own = mine.find((p) => p.pos === c);
       if (own) { if (!steps.some((s) => s.from === c)) { Sound.se('error'); return; } St.from = St.from === c ? undefined : c; St.to = undefined; Sound.se('select'); ui.rerender(); return; }

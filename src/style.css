@@ -1790,3 +1790,58 @@ body .vt-foot .btn.btn-s { min-height: 76px; }
 
 /* 会話の立ち絵は胸から上のアップを基本にする（2026-11-28 本人の指示）。画像は加工せず、表示の倍率と位置だけを決める */
 .bust.dlg-portrait { background-size: 165% auto; background-position: 50% 0; }
+
+/* ===== v11 追加 UI 60 点（2026-11-28 受領）の組み込み ===== */
+/* 競技の紋章：試合の見出し、説明の見出し */
+.match-title { display: inline-flex; align-items: center; gap: 10px; }
+.match-emblem { width: 46px; height: 46px; flex: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6)); }
+.vt-head .vt-emblem, .tut-head .vt-emblem { width: 64px; height: 64px; align-self: center; flex: none; margin: -6px 0; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6)); }
+.tut-head { align-items: center; }
+/* 競技の背景：裏ゲーム、サブゲーム、決勝 */
+html[data-ui-assets~="v11/bg/match_hidden"] .match.venue-hidden { background: #05060c var(--asset-v11-bg-match-hidden) center / cover no-repeat; }
+html[data-ui-assets~="v11/bg/match_sub"] .match.venue-sub { background: #05060c var(--asset-v11-bg-match-sub) center / cover no-repeat; }
+html[data-ui-assets~="v11/bg/final_arena"] .match.venue-final { background: #05060c var(--asset-v11-bg-final-arena) center / cover no-repeat; }
+/* 順位のメダル（数字はプログラム） */
+.rank-medal { display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; background: center / contain no-repeat; font-family: var(--serif); font-weight: 700; font-size: 0.82em; color: var(--ivory); text-shadow: 0 1px 2px #000; padding-bottom: 6px; box-sizing: border-box; }
+.rank-plain { display: inline-block; min-width: 46px; text-align: center; }
+/* 説明の手：指先は絵の (64, 64)／256。140px で表示するので 35px ずらす */
+.vt-hand { position: absolute; left: -35px; top: -35px; width: 140px; height: 140px; z-index: 5; pointer-events: none; opacity: 0; transition: opacity 200ms, transform 380ms cubic-bezier(.3,.7,.3,1); filter: drop-shadow(4px 8px 10px rgba(0,0,0,0.55)); }
+.vt-hand.on { opacity: 1; }
+.vt-hand img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.vt-hand .pt { animation: vtHandPt 1.6s infinite; }
+.vt-hand .pr { animation: vtHandPr 1.6s infinite; }
+@keyframes vtHandPt { 0%, 55% { opacity: 1; } 60%, 88% { opacity: 0; } 93%, 100% { opacity: 1; } }
+@keyframes vtHandPr { 0%, 55% { opacity: 0; } 60%, 88% { opacity: 1; } 93%, 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .vt-hand .pt, .vt-hand .pr { animation: none; } .vt-hand .pr { opacity: 0; } }
+/* M06：札の表面、紋、絵札 */
+html[data-ui-assets~="v11/m06/card_face"] .xc-card:not(.back) { background: var(--asset-v11-m06-card-face) center / 100% 100% no-repeat; border-color: transparent; }
+.xc-suit.art img { width: 100%; height: 100%; display: block; object-fit: contain; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35)); }
+.xc-card.court .xc-court { position: absolute; inset: 22% 12% 8%; width: 76%; height: 70%; object-fit: contain; opacity: 0.34; pointer-events: none; }
+.xc-card.court b, .xc-card.court .xc-suit { position: relative; }
+.xc-card.small.court .xc-court { opacity: 0.28; } .xc-card.tiny .xc-court { display: none; }
+/* 表面の絵の縦横比（384×544）に札の寸法を合わせる（絵を伸ばさない） */
+html[data-ui-assets~="v11/m06/card_face"] .xc-card { height: 139px; }
+html[data-ui-assets~="v11/m06/card_face"] .xc-card.small { height: 88px; }
+html[data-ui-assets~="v11/m06/card_face"] .xc-card.tiny { height: 48px; }
+.hx-beacon-art { pointer-events: none; }
+.fb-chip.art { border: 0; border-radius: 0; background: center / 110% no-repeat; width: 24px; height: 24px; }
+html[data-ui-assets~="v11/m09/center_mark"] .pzb-cell.center { background: var(--asset-v11-m09-center-mark) center / 88% no-repeat, radial-gradient(circle, rgba(216,178,90,0.45), rgba(216,178,90,0.12)), #2a2f48; }
+/* P08：固定の重り（v11 追加）と数字タイル（旧 H05 のタイルを再利用）。数字はプログラム */
+html[data-ui-assets~="v11/p08/weight"] .sb-fix { width: 112px; height: 112px; border: 0; border-radius: 0; box-shadow: none; background: var(--asset-v11-p08-weight) center / contain no-repeat; color: var(--ivory); padding-top: 34px; box-sizing: border-box; text-shadow: 0 1px 2px #000; }
+html[data-ui-assets~="v11/p08/weight"] .sb-fix small { color: var(--gold2); }
+html[data-ui-assets~="v11/p08/tile"] .sb-tile { border: 0; background: var(--asset-v11-p08-tile) center / 100% 100% no-repeat; color: var(--ivory); text-shadow: 0 1px 2px #000; }
+/* S05：サイコロの面（目の点はプログラム） */
+html[data-ui-assets~="v11/s05/die_face"] .sg-die { background: var(--asset-v11-s05-die-face) center / 100% 100% no-repeat; box-shadow: none; border-radius: 0; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.45)); }
+/* M06：紋は小さい札でも形が分かる大きさに（iPhone 横で約 24pt 以上） */
+.xc-suit.art { width: 46px; height: 46px; }
+.xc-card.small .xc-suit.art { width: 30px; height: 30px; }
+.xc-card.tiny .xc-suit.art { width: 18px; height: 18px; }
+/* 説明のゲームマスター：胸から上のアップ（2026-11-28 本人の指示）。枠を胸の高さまでにして、絵は等倍率で拡大するだけ */
+.vt-wrap .bust.vt-gm { top: auto; height: 520px; background-size: 184% auto; background-position: 50% 3%; }
+/* 裏ゲーム・サブゲームの背景は家具の描き込みが多いので、文字の読みやすさのため表示の時だけ暗い幕を重ねる（絵は加工しない） */
+html[data-ui-assets~="v11/bg/match_hidden"] .match.venue-hidden { background: linear-gradient(rgba(5,6,12,0.5), rgba(5,6,12,0.5)), #05060c var(--asset-v11-bg-match-hidden) center / cover no-repeat; }
+html[data-ui-assets~="v11/bg/match_sub"] .match.venue-sub { background: linear-gradient(rgba(5,6,12,0.42), rgba(5,6,12,0.42)), #05060c var(--asset-v11-bg-match-sub) center / cover no-repeat; }
+/* 演出の帯の文字を iPhone 横でも読める大きさに（帯 520px・文字 34px ≒ 実機で約 18pt。結果画面の帯は 360px・25px） */
+.fx-pop.fx.sm .fx-art { width: 520px; } .fx-pop.fx.sm .fx-inband .fx-text { font-size: 34px; letter-spacing: 0.18em; }
+.fx.sm .fx-art { width: 360px; } .fx.sm .fx-inband .fx-text, .fx.sm .fx-text { font-size: 25px; }
+.fx-inband .fx-text { font-weight: 700; color: #f6dc9a; text-shadow: 0 0 2px #000, 0 2px 8px rgba(0,0,0,0.95); }

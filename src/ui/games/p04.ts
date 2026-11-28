@@ -1,6 +1,7 @@
 /** P04 消えた図形の画面。盤面を中央に大きく置き、変わったマスを直接タップして選ぶ。 */
 import type { CharId } from '../../data/characters';
 import { t } from '../../i18n/i18n';
+import { fxOnce } from '../art';
 import { ANSWER_MS, BOOST_COST, SIZE, type P04Move, type P04View } from '../../matches/p04';
 import { button, h, type Child } from '../dom';
 import { DiffQuiz, diffReview } from '../diffquiz';
@@ -28,6 +29,8 @@ export function renderP04(v: P04View, ui: MatchUi): { main: Child; side: Child }
 
   const mine = last && !spectator ? v.results[me][last.round] : undefined;
   const prep = v.phase === 'prep' && !spectator && !v.ready[me];
+  // 全問正解・完全一致の時だけ、短い演出の帯（ラウンドごとに 1 回）
+  if (last && mine?.perfect) fxOnce(`p04:${ui.slot.id}:${ui.state.day}:${last.round}`, 'perfect', t('fx.perfect'));
   const main = h('div', { class: 'm02-break p04-break' },
     h('div', { class: 'm01-big' }, v.phase === 'done' ? t('p01.finished') : v.isBreak ? t('p04.breakTitle', { n: v.round + 1 }) : t('m02.roundTitle', { n: v.round + 1, max: v.rounds })),
     v.phase !== 'done' ? h('div', { class: 'p02-spec' }, t('p04.spec', { size: SIZE, n: v.spec.n, s: v.showMs / 1000, k: v.spec.k })) : null,

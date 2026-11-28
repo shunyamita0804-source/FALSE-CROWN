@@ -29,7 +29,7 @@ import { ROOMS } from '../world/maps';
 import { ceremonyScreen } from './ceremony';
 import { playVoice, resetVoiceHistory, voiceClip } from '../audio/voice';
 import { introLine } from '../core/introduction';
-import { bgUrl, bust, emblemUrl, face, fxBanner, icon, logoUrl, portraitUrl, setBust, setHeroGender } from './art';
+import { bgUrl, bust, emblemUrl, face, fxBanner, icon, logoUrl, portraitUrl, rankMark, setBust, setHeroGender } from './art';
 import { alertDialog, append, button, clear, closeLayer, confirmDialog, h, openLayer, panel, toast, type Child, type Layer } from './dom';
 
 const GUIDE = Object.fromEntries((guideJson as { id: string; goal: string; practice: string; attention: string }[]).map((g) => [g.id.toLowerCase(), g]));
@@ -604,13 +604,14 @@ export function rankingScreen(v: RankingView): Promise<void> {
     const list = h('div', { class: 'rank-list' }, v.ranking.map((id, i) => {
       const cut = i >= n - v.cut;
       return h('div', { class: `rank${cut ? ' prison' : ''}${id === 'hero' ? ' me' : ''}` },
-        h('span', { class: 'no' }, i === 0 ? icon('trophy') ?? '1' : String(i + 1)), face(id), h('span', { class: 'grow' }, nameOf(s, id)),
+        h('span', { class: 'no' }, rankMark(i)), face(id), h('span', { class: 'grow' }, nameOf(s, id)),
         cut ? h('span', { class: 'st' }, icon(v.prison ? 'eliminated' : 'prison'), h('span', { class: 'tag' }, v.cutLabel)) : null,
         v.rewards && v.rewards[id] ? h('span', { class: 'good' }, '+', pieces(v.rewards[id] ?? 0)) : null,
         h('span', { class: 'pts' }, `${v.scores[id] ?? 0}${t('rank.pts')}`));
     }));
     const mine = v.ranking.indexOf('hero');
-    const fx = mine < 0 ? null : mine >= n - v.cut ? fxBanner('defeat', v.cutLabel, 'sm') : mine === 0 ? fxBanner('victory', t('rank.first'), 'sm') : null;
+    // 監獄マッチで脱落を免れた時は勝ち抜けの帯（1 位も含む）。本戦の 1 位は勝利の帯
+    const fx = mine < 0 ? null : mine >= n - v.cut ? fxBanner('defeat', v.cutLabel, 'sm') : v.prison ? fxBanner('prison_survive', t('rank.survive'), 'sm') : mine === 0 ? fxBanner('victory', t('rank.first'), 'sm') : null;
     const body = h('div', { class: 'col', style: 'gap:8px' }, fx, list, ...v.notes.map((x) => h('div', { class: 'note-box' }, x)));
     // 追加ボイス：1 位の人の勝利の声。持っていなければ、最下位の人の敗北の声（監獄マッチの最下位は、脱落の画面で鳴らす）
     // 進行の声：結果の発表（主人公が 1 位なら勝利の祝い。決勝の優勝は、このあとの戴冠で祝う）。そのあとに参加者の声
