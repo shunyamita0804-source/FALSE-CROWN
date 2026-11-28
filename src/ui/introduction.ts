@@ -113,13 +113,14 @@ export function introductionEvent(): Promise<void> {
       const meta = l.age != null ? `${t('intro.age', { n: l.age })}　${l.job ?? ''}` : t('intro.player');
       clear(profile);
       profile.className = `intro-profile on${l.id === 'hero' ? ' hero' : ''}`;
-      profile.append(
-        h('div', { class: 'intro-portrait' }, bust(l.id, 'normal', 'intro-bust')),
-        h('div', { class: 'intro-name' }, h('b', null, l.name), l.kana ? h('small', null, l.kana) : null),
-        h('div', { class: 'intro-meta' }, meta));
+      // 胸から上の絵は枠を付けず、透過のまま台詞の枠の上に立たせる
+      profile.append(bust(l.id, 'normal', 'intro-bust'));
       clear(card);
-      card.className = 'intro-card';
-      card.append(h('p', { class: 'intro-text' }, l.text), h('div', { class: 'intro-next' }, l.voice ? '♪' : '', ' ▼'));
+      card.className = 'intro-card talk';
+      // 名前と年齢・職業は、台詞の枠の上端に付けた名札にまとめる
+      card.append(
+        h('div', { class: 'intro-tab' }, h('div', { class: 'intro-name' }, h('b', null, l.name), l.kana ? h('small', null, l.kana) : null), h('span', { class: 'intro-meta' }, meta)),
+        h('p', { class: 'intro-text' }, l.text), h('div', { class: 'intro-next' }, l.voice ? '♪' : '', ' ▼'));
       const hold = () => { timer = setTimeout(next, textHoldMs(l.text)); };
       if (!l.voice) { hold(); return; }
       let started = false;
