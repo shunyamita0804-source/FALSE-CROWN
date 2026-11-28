@@ -43,7 +43,9 @@ import { renderM06 } from './games/m06';
 import { renderP06 } from './games/p06';
 import { renderP03 } from './games/p03';
 import { renderTiebreak } from './games/tiebreak';
+import { renderMk } from './games/mk';
 import { talkTo } from './talk';
+import { baseOf } from '../matches/q';
 
 export interface MatchUi {
   slot: MatchSlot;
@@ -104,6 +106,7 @@ const RENDERERS: Record<string, Renderer> = {
   p06: renderP06 as Renderer,
   p03: renderP03 as Renderer,
   tiebreak: renderTiebreak as Renderer,
+  mk: renderMk as Renderer,
 };
 
 /** 交渉時間の開始時に、NPC 同士が取引を試みる（プレイヤーも相手候補の 1 人として同じ基準で選ばれる） */
@@ -192,7 +195,7 @@ export function playMatch(slot: MatchSlot): Promise<void> {
       const done = engine.done(slot.state);
       const st = engine.stage(slot.state);
       stageEl.textContent = done ? t('match.done') : st.label;
-      const r = RENDERERS[slot.id];
+      const r = RENDERERS[baseOf(slot.id)];
       const out = r(engine.view(slot.state, heroIn ? 'hero' : 'spectator') as never, ui);
       clear(main);
       append(main, out.main);

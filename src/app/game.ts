@@ -27,7 +27,7 @@ import { isImplemented } from '../matches/registry';
 import { addInvite, clearSocial, dismissGuest, endInvite, followersOf, INVITE_TIME, isBedroom, observeAttitude, ownerOf, visitVerdict, witnessEntry } from '../npc/social';
 
 /** その日のメインマッチと監獄マッチが両方とも実装済みか */
-const dayPlayable = (day: number) => isImplemented(mainMatchId(day)) && (!prisonMatchId(day) || isImplemented(prisonMatchId(day)!));
+const dayPlayable = (day: number) => { const s = G.state; return !!s && isImplemented(mainMatchId(s, day)) && (!prisonMatchId(s, day) || isImplemented(prisonMatchId(s, day)!)); };
 import { fastForward, tickNpcs, type BrainEvent } from '../npc/brain';
 import { consumePledges, recordBetrayal, settlePlans } from '../npc/negotiation';
 import { loadMeta, saveGame, saveMeta, type Meta } from '../save/save';
@@ -336,7 +336,8 @@ export const G = {
 };
 
 export function save(): void {
-  if (G.state) saveGame(G.state);
+  // 練習卓（ui/practice.ts）は大会の写しで遊ぶので、保存しない
+  if (G.state && !G.state.flags.practiceSandbox) saveGame(G.state);
 }
 
 export function phaseName(p: Phase): string {
@@ -779,7 +780,7 @@ async function step(s: GameState): Promise<boolean> {
     case 'gatherPrison': {
       // 集合移動（本人の依頼 2026-11-28）：集合案内の後、全員が今いる場所から会場へ歩く。時計と競技の制限時間は止まったまま
       const prison = s.phase === 'gatherPrison';
-      const pid = prisonMatchId(s.day);
+      const pid = prisonMatchId(s, s.day);
       const ids = prison ? aliveIds(s).filter((p) => s.actors[p].house === 'prison') : aliveIds(s);
       if (prison && (!pid || ids.length < 2)) { enter('prison'); return true; }
       if (!s.gather || s.gather.day !== s.day || s.gather.kind !== (prison ? 'prison' : 'main') || s.gather.done) {
@@ -812,14 +813,14 @@ async function step(s: GameState): Promise<boolean> {
         if (isFinalDay(s.day)) void announce('final');
         await banner(t('banner.gather'));
       }
-      await G.ui.rulesScreen(mainMatchId(s.day), { prison: false });
+      await G.ui.rulesScreen(mainMatchId(s, s.day), { prison: false });
       // ルール説明の後の作戦時間（試作、まず M01。本人の決定 2026-11-28）
-      enter(strategyEnabled(mainMatchId(s.day)) && !isFinalDay(s.day) ? 'strategy' : 'main');
+      enter(strategyEnabled(mainMatchId(s, s.day)) && !isFinalDay(s.day) ? 'strategy' : 'main');
       return true;
     }
     case 'strategy': {
       // 作戦時間：ルール説明の後、競技の前に、会場（ホール）を歩いて相談する。古いセーブや作戦時間の無い競技はそのまま競技へ
-      const id = mainMatchId(s.day);
+      const id = mainMatchId(s, s.day);
       if (!strategyEnabled(id) || isFinalDay(s.day)) { enter('main'); return true; }
       if (!s.match || s.match.kind !== 'main' || s.match.day !== s.day) { npcRescuePromises(s); s.match = newSlot(s, id, aliveIds(s), 'main'); }
       if (!s.strategy || s.strategy.day !== s.day || s.strategy.match !== id) s.strategy = newStrategy(s, id);
@@ -841,7 +842,7 @@ async function step(s: GameState): Promise<boolean> {
       showField(false);
       void fade(false);
       Sound.bgm('match_main');
-      const id = mainMatchId(s.day);
+      const id = mainMatchId(s, s.day);
       if (!s.match || s.match.kind !== 'main' || s.match.day !== s.day) { npcRescuePromises(s); s.match = newSlot(s, id, aliveIds(s), 'main'); }
       const slot = s.match;
       const { ranking, scores, notes } = await playAndRank(slot);
@@ -908,7 +909,7 @@ async function step(s: GameState): Promise<boolean> {
       return true;
     }
     case 'prison': {
-      const id = prisonMatchId(s.day);
+      const id = prisonMatchId(s, s.day);
       const prisoners = aliveIds(s).filter((p) => s.actors[p].house === 'prison');
       if (!id || prisoners.length < 2) {
         enter('night');

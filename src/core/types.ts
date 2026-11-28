@@ -240,6 +240,8 @@ export interface GameState {
   log: { t: number; day: number; text: string; kind?: string }[];
   /** 席の予約（world/seats.ts。鍵は seatKey(部屋, 席)、値は取っている人）。古いセーブには無い */
   seatsTaken?: Record<string, CharId>;
+  /** 大会の競技の割り当て（core/lineup.ts。大会の始めに決める）。古いセーブには無い（日程表のまま） */
+  lineup?: import('./lineup').Lineup;
   /** 競技の作戦時間（ルール説明の後、開始前の相談。core/strategy.ts）。古いセーブには無い */
   strategy?: import('./strategy').StrategyState;
   /** 監獄棟の房の割り当て（world/cells.ts。人物 → cellKey(部屋, 房)）。古いセーブには無い */
