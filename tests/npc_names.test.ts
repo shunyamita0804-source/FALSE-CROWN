@@ -34,9 +34,9 @@ describe('表示名の表', () => {
     }
   });
 
-  it('英語の名前が無い時は日本語の名前を使う', () => {
-    expect(displayName('npc_02_kanzaki', 'en').name).toBe(TABLE.npc_02_kanzaki.ja.name);
-    expect(displayName('npc_02_kanzaki', 'en').kana).toBe('');
+  it('その言語の名前が無い時は日本語の名前を使う', () => {
+    expect(displayName('npc_02_kanzaki', 'ko').name).toBe(TABLE.npc_02_kanzaki.ja.name);
+    expect(displayName('npc_02_kanzaki', 'ko').kana).toBe('');
   });
 
   it('文中の差し込み：姓名は空白を詰め、呼び名はそのまま', () => {

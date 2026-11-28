@@ -182,9 +182,9 @@ const BASE: CharacterBase[] = [
     rules: { profitFirst: true },
   },
   {
-    id: 'npc_12_kuze', gender: 'm', age: 62, job: '元教授',
+    id: 'npc_12_kuze', gender: 'm', age: 62, job: '元大学教授',
     stats: st(10, 8, 9, 6, 6, 8), personality: pe(25, 60, 40, 70, 30, 95),
-    profile: '博識な元教授。古い書物や建物の構造に強い興味を示す。',
+    profile: '博識な元大学教授。古い書物や建物の構造に強い興味を示す。',
     secret: 'CROWN計画の創設者の一人。',
     palette: { hair: '#d8d4cc', skin: '#e8ccb0', coat: '#3a3a30', accent: '#b8a878', pants: '#2a2a24' },
     favoriteRooms: ['library', 'observatory', 'main_hall'],

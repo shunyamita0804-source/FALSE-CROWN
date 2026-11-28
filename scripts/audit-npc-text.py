@@ -16,6 +16,8 @@ NAMES = js('src/data/npc_names.json')['characters']
 IDS = list(NAMES)
 SHORT = {i: NAMES[i]['ja']['short'] for i in IDS}
 FULL = {i: NAMES[i]['ja']['name'] for i in IDS}
+# 改名前の名前（previous）も探す（旧名の残りを見つけるため）
+OLD = {i: NAMES[i].get('previous', {}) for i in IDS}
 
 # 人ごとの経歴（職業・秘密）に結びつく言葉。職業や秘密を変えると、書き直しが要る文
 BACKGROUND = {
@@ -84,7 +86,7 @@ for p in js('src/data/npc_profiles.json')['profiles']:
 
 def flags(r):
     t = r['text']; f = []
-    names = [w for i in IDS for w in (FULL[i].replace(' ', ''), FULL[i], SHORT[i]) if w and w in t]
+    names = [w for i in IDS for w in (FULL[i].replace(' ', ''), FULL[i], SHORT[i], OLD[i].get('name', '').replace(' ', ''), OLD[i].get('short', '')) if w and w in t]
     if names: f.append('名前:' + '・'.join(sorted(set(names), key=names.index)))
     elif re.search(r'\{(name|short|kana):', t): f.append('名前:差し込み（表から自動）')
     jp = [w for w in JAPAN_SPECIFIC if w in t]
@@ -97,7 +99,7 @@ os.makedirs(OUT, exist_ok=True)
 path = os.path.join(OUT, 'npc_text_audit.csv')
 with open(path, 'w', encoding='utf-8-sig', newline='') as fp:
     w = csv.writer(fp)
-    w.writerow(['内部ID', '今の名前', 'ファイル', '場所', '音声あり', '名前', '日本固有', '経歴（職業・秘密）', '文'])
+    w.writerow(['内部ID', '名前', 'ファイル', '場所', '音声あり', '名前', '日本固有', '経歴（職業・秘密）', '文'])
     n = {'名前': 0, '日本固有': 0, '経歴': 0}
     for r in rows:
         f = flags(r)
@@ -119,18 +121,20 @@ JOB_REVIEW = {
   ('npc_08_dojima', 'betrayal'): '「人を見る目が鈍った」（元刑事らしい言い方）',
   ('npc_12_kuze', 'victory'): '「私の仮説は」（学者らしい言い方）',
 }
+# 自己紹介の書き直しの注意
+INTRO_NOTE = {'npc_12_kuze': '元大学教授（退職済み）に統一。新しい自己紹介は過去形（例「大学で教鞭を執っておりました」）'}
 # 本人の予定（2026-11-28）：この 4 人は声そのものを作り直し、15 種すべてを新規収録。残り 7 人は今の声を使い続け、自己紹介だけ録り直す。
-# 職業・能力・関係・秘密は今の設定を引き継ぐ。新しい名前は通常絵の確認後に正式な対応表が届く（下は予定の名前）。
-NEW_VOICE = {'npc_02_kanzaki': 'レオン', 'npc_03_kurose': 'ヴィクトリア', 'npc_07_tachibana': 'ヨウコ', 'npc_08_dojima': 'ヴィクター'}
+# 職業・能力・関係・秘密は今の設定を引き継ぐ。新しい名前は npc_names.json（2026-11-28 確定）。
+NEW_VOICE = {'npc_02_kanzaki', 'npc_03_kurose', 'npc_07_tachibana', 'npc_08_dojima'}
 vpath = os.path.join(OUT, 'voice_rerecord.csv')
 cnt = {}
 with open(vpath, 'w', encoding='utf-8-sig', newline='') as fp:
     w = csv.writer(fp)
-    w.writerow(['内部ID', '今の名前', '予定の名前', '音声ファイル', '種類', '台詞', '今回の予定', '改名で録り直し', '職業・経歴を変える時', '理由'])
+    w.writerow(['内部ID', '旧名', '新しい名前', '音声ファイル', '種類', '台詞', '今回の予定', '改名で録り直し', '職業・経歴を変える時', '理由'])
     for cid, c in vo.items():
         for k, v in list(c.get('clips', {}).items()) + list(c.get('extra', {}).items()):
             text = v.get('text', '')
-            rename = '要' if v.get('spokenName') else ('未確認' if '未確認' in text else '不要')
+            rename = '要' if v.get('spokenName') else '不要'
             if v.get('spokenName'):
                 job, why = '要', f"名前「{v['spokenName']}」を名乗る（職業も言う）"
             elif (cid, k) in JOB_REQUIRED:
@@ -138,12 +142,12 @@ with open(vpath, 'w', encoding='utf-8-sig', newline='') as fp:
             elif (cid, k) in JOB_REVIEW:
                 job, why = '聞き直し', JOB_REVIEW[(cid, k)]
             elif '未確認' in text:
-                job, why = '未確認', '台本が無く、文面が分からない（耳で確かめる）'
+                job, why = '不要', '新規収録で置き換えるので確認不要（本人、2026-11-28）'
             else:
                 job, why = '不要', ''
             if cid in NEW_VOICE: plan = '新規収録（声を作り直す）'
-            elif v.get('spokenName'): plan = '録り直し（新しい名前の自己紹介）'
+            elif v.get('spokenName'): plan = '録り直し（新しい名前の自己紹介）' + (f'。{INTRO_NOTE[cid]}' if cid in INTRO_NOTE else '')
             else: plan = '今の声を使い続ける'
             cnt[plan] = cnt.get(plan, 0) + 1
-            w.writerow([cid, FULL.get(cid, ''), NEW_VOICE.get(cid, '未定'), f"{c['dir']}/{v['file']}", k, text, plan, rename, job, why])
+            w.writerow([cid, OLD.get(cid, {}).get('name', ''), FULL.get(cid, ''), f"{c['dir']}/{v['file']}", k, text, plan, rename, job, why])
 print('音声：' + '、'.join(f'{k} {v} 本' for k, v in cnt.items()) + f' → {vpath}')

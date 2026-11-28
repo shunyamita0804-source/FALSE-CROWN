@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "note": "参加者の表示名の表。キーは内部ID（npc_02_kanzaki など）で、内部ID・素材のフォルダ・音声のフォルダ・セーブデータは名前を変えても変えない。改名する時はこの表の name（姓名）、short（呼び名。会話・ログ・部屋の札・名簿に出る）、kana（自己紹介の読み）だけを書き換える。status は original（旧名のまま）、renamed（新名に差し替え済み）。en が空なら日本語の表示名を使う。文中に名前を埋める時は {name:<内部ID>}、{short:<内部ID>}、{kana:<内部ID>} と書く（fillNames が置き換える）。音声と字幕を一致させる自己紹介の台詞（voice.json、introductions.json）は、録り直した音声と一緒に書き換える（docs/npc_rename.md）。",
+  "note": "参加者の表示名の表。キーは内部ID（npc_02_kanzaki など）で、内部ID・素材のフォルダ・音声のフォルダ・セーブデータは名前を変えても変えない。改名する時はこの表の name（姓名）、short（呼び名。会話・ログ・部屋の札・名簿に出る）、kana（自己紹介の読み）だけを書き換える。status は original（旧名のまま）、renamed（新名に差し替え済み）。previous は改名前の表示名の記録（画面では使わない）。en が空なら日本語の表示名を使う。文中に名前を埋める時は {name:<内部ID>}、{short:<内部ID>}、{kana:<内部ID>} と書く（fillNames が置き換える）。音声と字幕を一致させる自己紹介の台詞（voice.json、introductions.json）は、録り直した音声と一緒に書き換える（docs/npc_rename.md）。",
   "hero": {
     "ja": {
       "m": "天城 湊",
@@ -10,103 +10,191 @@
   },
   "characters": {
     "npc_02_kanzaki": {
-      "status": "original",
+      "status": "renamed",
       "ja": {
+        "name": "レオン",
+        "short": "レオン",
+        "kana": ""
+      },
+      "en": {
+        "name": "Leon",
+        "short": "Leon"
+      },
+      "previous": {
         "name": "神崎 怜",
         "short": "神崎",
         "kana": "かんざき れい"
-      },
-      "en": {}
+      }
     },
     "npc_03_kurose": {
-      "status": "original",
+      "status": "renamed",
       "ja": {
+        "name": "ヴィクトリア",
+        "short": "ヴィクトリア",
+        "kana": ""
+      },
+      "en": {
+        "name": "Victoria",
+        "short": "Victoria"
+      },
+      "previous": {
         "name": "黒瀬 美琴",
         "short": "黒瀬",
         "kana": "くろせ みこと"
-      },
-      "en": {}
+      }
     },
     "npc_04_mido": {
-      "status": "original",
+      "status": "renamed",
       "ja": {
+        "name": "リチャード",
+        "short": "リチャード",
+        "kana": ""
+      },
+      "en": {
+        "name": "Richard",
+        "short": "Richard"
+      },
+      "previous": {
         "name": "御堂 隆臣",
         "short": "御堂",
         "kana": "みどう たかおみ"
-      },
-      "en": {}
+      }
     },
     "npc_05_shiraishi": {
-      "status": "original",
+      "status": "renamed",
       "ja": {
+        "name": "クロエ",
+        "short": "クロエ",
+        "kana": ""
+      },
+      "en": {
+        "name": "Chloe",
+        "short": "Chloe"
+      },
+      "previous": {
         "name": "白石 紗夜",
         "short": "白石",
         "kana": "しらいし さや"
-      },
-      "en": {}
+      }
     },
     "npc_06_kiryu": {
-      "status": "original",
+      "status": "renamed",
       "ja": {
+        "name": "マイク",
+        "short": "マイク",
+        "kana": ""
+      },
+      "en": {
+        "name": "Mike",
+        "short": "Mike"
+      },
+      "previous": {
         "name": "桐生 颯",
         "short": "桐生",
         "kana": "きりゅう はやて"
-      },
-      "en": {}
+      }
     },
     "npc_07_tachibana": {
-      "status": "original",
+      "status": "renamed",
       "ja": {
+        "name": "ヨウコ",
+        "short": "ヨウコ",
+        "kana": ""
+      },
+      "en": {
+        "name": "Yoko",
+        "short": "Yoko"
+      },
+      "previous": {
         "name": "橘 香織",
         "short": "橘",
         "kana": "たちばな かおり"
-      },
-      "en": {}
+      }
     },
     "npc_08_dojima": {
-      "status": "original",
+      "status": "renamed",
       "ja": {
+        "name": "ヴィクター",
+        "short": "ヴィクター",
+        "kana": ""
+      },
+      "en": {
+        "name": "Victor",
+        "short": "Victor"
+      },
+      "previous": {
         "name": "堂島 誠司",
         "short": "堂島",
         "kana": "どうじま せいじ"
-      },
-      "en": {}
+      }
     },
     "npc_09_asahina": {
-      "status": "original",
+      "status": "renamed",
       "ja": {
+        "name": "エミリー",
+        "short": "エミリー",
+        "kana": ""
+      },
+      "en": {
+        "name": "Emily",
+        "short": "Emily"
+      },
+      "previous": {
         "name": "朝比奈 ひまり",
         "short": "朝比奈",
         "kana": "あさひな ひまり"
-      },
-      "en": {}
+      }
     },
     "npc_10_kujo": {
-      "status": "original",
+      "status": "renamed",
       "ja": {
+        "name": "フェリックス",
+        "short": "フェリックス",
+        "kana": ""
+      },
+      "en": {
+        "name": "Felix",
+        "short": "Felix"
+      },
+      "previous": {
         "name": "九条 蓮司",
         "short": "九条",
         "kana": "くじょう れんじ"
-      },
-      "en": {}
+      }
     },
     "npc_11_kisaragi": {
-      "status": "original",
+      "status": "renamed",
       "ja": {
+        "name": "ロザリー",
+        "short": "ロザリー",
+        "kana": ""
+      },
+      "en": {
+        "name": "Rosalie",
+        "short": "Rosalie"
+      },
+      "previous": {
         "name": "如月 麗華",
         "short": "如月",
         "kana": "きさらぎ れいか"
-      },
-      "en": {}
+      }
     },
     "npc_12_kuze": {
-      "status": "original",
+      "status": "renamed",
       "ja": {
+        "name": "アルバート",
+        "short": "アルバート",
+        "kana": ""
+      },
+      "en": {
+        "name": "Albert",
+        "short": "Albert"
+      },
+      "previous": {
         "name": "久世 宗一郎",
         "short": "久世",
         "kana": "くぜ そういちろう"
-      },
-      "en": {}
+      }
     }
   }
 }

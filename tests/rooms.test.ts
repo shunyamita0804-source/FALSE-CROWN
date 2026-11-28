@@ -3,7 +3,7 @@ import { CLOCK, phaseDuration } from '../src/core/clock';
 import { Rng } from '../src/core/rng';
 import { adjustRel, aliveIds, aliveNpcs } from '../src/core/state';
 import { startMorning } from '../src/core/tournament';
-import { ALL_IDS } from '../src/data/characters';
+import { ALL_IDS, NPC_BY_ID } from '../src/data/characters';
 import { fastForward, tickNpcs } from '../src/npc/brain';
 import { addInvite, visitVerdict } from '../src/npc/social';
 import { canEnter, denyReason } from '../src/world/access';
@@ -53,7 +53,7 @@ describe('個室の割り当て', () => {
       expect(canEnter(s, id, homeOf(s, id))).toBe(true);
     }
     expect(plateOf(s, homeOf(s, 'hero'))).toEqual({ no: '301', owner: 'hero', away: null });
-    expect(roomTitle(s, homeOf(s, K))).toBe('302 神崎の個室');
+    expect(roomTitle(s, homeOf(s, K))).toBe(`302 ${NPC_BY_ID.npc_02_kanzaki.short}の個室`);
     expect(canEnter(s, 'hero', homeOf(s, K))).toBe(false);
     expect(knockable(s, homeOf(s, K))).toBe(true);
     expect(knockable(s, homeOf(s, 'hero'))).toBe(false);
@@ -74,7 +74,7 @@ describe('個室の割り当て', () => {
     // 生活棟の部屋：名札は残るが、誰も入れない
     expect(ownerOfRoom(s, 'bedroom_hero')).toBeNull();
     expect(awayOwner(s, 'bedroom_hero')).toBe('hero');
-    expect(roomTitle(s, `bedroom_${K}`)).toBe('302 神崎の個室（閉鎖中）');
+    expect(roomTitle(s, `bedroom_${K}`)).toBe(`302 ${NPC_BY_ID.npc_02_kanzaki.short}の個室（閉鎖中）`);
     expect(denyReason(s, `bedroom_${K}`)).toMatch(/閉鎖/);
     for (const id of ALL_IDS) expect(canEnter(s, id, 'bedroom_hero')).toBe(false);
     // 昼は格子が開いていて、房の寝台の脇まで歩ける

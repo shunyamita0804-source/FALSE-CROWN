@@ -2,14 +2,16 @@ import { describe, expect, it } from 'vitest';
 import voiceTable from '../src/data/voice.json';
 import { INTRO, departRoom, introLine, introOrder, introParticipants, markIntroduced, ringSeats, textHoldMs } from '../src/core/introduction';
 import { newGame } from '../src/core/state';
-import { NPC_IDS, fillNames, type CharId, type NpcId } from '../src/data/characters';
+import { NPC_IDS, fillNames, saysCurrentName, type CharId, type NpcId } from '../src/data/characters';
 import { ROOMS } from '../src/world/maps';
 import { collisionOf } from '../src/world/sim';
 
-const V = voiceTable as unknown as { characters: Record<string, { extra?: Record<string, { file: string; text: string; gain: number }> }> };
+const V = voiceTable as unknown as { characters: Record<string, { extra?: Record<string, { file: string; text: string; gain: number; spokenName?: string }> }> };
 /** 検査用：管理表に自己紹介の声がある人は、その台詞と音源を返す */
 const voiceOf = (id: string) => {
   const c = V.characters[id]?.extra?.introduction;
+  // 本物の voiceClip と同じく、名乗っている名前が今の表示名と違う古い声は使わない
+  if (c?.spokenName && !saysCurrentName(id, c.spokenName)) return null;
   return c ? { url: `x/${c.file}`, gain: c.gain, text: c.text } : null;
 };
 
