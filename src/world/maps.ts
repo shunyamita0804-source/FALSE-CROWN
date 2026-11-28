@@ -8,6 +8,10 @@
  * 接続関係は正式素材に描かれた出入口（下中央の出口、上中央の通路、階段、昇降機、廊下の両端）に合わせている。
  */
 import { applyFurniture, type GateFn } from './furnitureGrid';
+import { furnitureId } from './furniture';
+import freedTable from '../data/furniture_freed.json';
+
+const FREED = (freedTable as unknown as { rooms: Record<string, string[]> }).rooms;
 
 export type Theme = 'living' | 'common' | 'arena' | 'prison' | 'secret' | 'garden';
 export type Side = 'top' | 'bottom' | 'left' | 'right';
@@ -386,6 +390,19 @@ export function buildCollision(room: RoomDef, _flags?: Record<string, unknown>, 
   };
   for (const r of room.walk) fill(r, false);
   for (const r of room.block) fill(r, true);
+  // 建物改修で背景から家具が消えたマスは、前の当たり判定（block）を外す（床の範囲の中だけ。新しい家具は下の applyFurniture）
+  const freed = FREED[furnitureId(room.id)];
+  if (freed) {
+    // 今の床とつながるマスだけを外す（離れた 1 マスの床を作らない）
+    const cand = new Set(freed.filter((k) => { const [x, y] = k.split(',').map(Number); return g[y]?.[x] && room.walk.some((r) => x >= r[0] && x <= r[2] && y >= r[1] && y <= r[3]); }));
+    for (let grew = true; grew;) {
+      grew = false;
+      for (const k of cand) {
+        const [x, y] = k.split(',').map(Number);
+        if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => g[y + dy]?.[x + dx] === false)) { g[y][x] = false; cand.delete(k); grew = true; }
+      }
+    }
+  }
   const starts = room.doors.flatMap((d) => d.tiles);
   applyFurniture(g, { id: room.id, starts, protect: [...starts, ...room.inspects.map((i) => ({ x: i.x, y: i.y })), ...room.spots] }, gateOpen);
   return g;

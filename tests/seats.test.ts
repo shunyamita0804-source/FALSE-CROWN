@@ -3,7 +3,8 @@ import { aliveIds } from '../src/core/state';
 import { eliminate, gatherAt } from '../src/core/tournament';
 import { ALL_IDS, type CharId } from '../src/data/characters';
 import { tickNpcs } from '../src/npc/brain';
-import { FURNITURE, seatsOf } from '../src/world/furniture';
+import { furnitureOf, seatsOf } from '../src/world/furniture';
+import { ROOMS } from '../src/world/maps';
 import { freeSeats, releaseSeat, reserveSeat, seatOf, seatTaker, sitDown, seatTile } from '../src/world/seats';
 import { collisionOf, moveActor, nearbyAction, placeIn, setPathTo } from '../src/world/sim';
 import { freshState } from './helpers';
@@ -17,7 +18,7 @@ describe('席（建物改修の家具）', () => {
     expect(seatsOf('main_arena').filter((s) => s.role === 'player').length).toBe(12);
     const s = freshState(1);
     const bad: string[] = [];
-    for (const room of Object.keys(FURNITURE)) {
+    for (const room of Object.keys(ROOMS).filter((id) => furnitureOf(id))) {
       const g = collisionOf(s, room);
       for (const seat of seatsOf(room)) { if (seat.cell) continue; const t = seatTile(seat); if (g[t.y]?.[t.x] !== false) bad.push(`${room}:${seat.id} (${t.x},${t.y})`); }
     }

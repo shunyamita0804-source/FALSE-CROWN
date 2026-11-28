@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """建物改修の納品物（第1〜3部）を取り込み、1 つの形にそろえる。
-使い方: python3 -I scripts/import-redesign.py <第1部のフォルダ> <第2部のフォルダ> <第3部のフォルダ>
+使い方: python3 -I scripts/import-redesign.py <第1部のフォルダ> <第2部のフォルダ> <第3部のフォルダ> [追加の納品のフォルダ…]
+- 追加の納品（生活棟の個室など）は、第3部と同じ形の placement.json で受け取る（docs/private_room_spec.md）
 - 背景（家具を外した絵）を public/assets/maps/ の同じ名前へ複写する（絵は加工しない）
 - 家具の絵を public/assets/props/redesign/ へ複写する（加工しない）
 - 配置、席、当たり判定、房を src/data/furniture.json に書く（座標はマップの原寸ピクセル、左上が原点）
@@ -164,6 +165,9 @@ def part3(d, out, copied):
             pg = c.get('polygon') or c.get('collisionPolygon')
             if pg:
                 r['colliders'].append({'id': c.get('objectId') or c.get('wallId') or c.get('id'), 'poly': poly(pg), **({'when': c['enabledWhen']} if c.get('enabledWhen') else {})})
+        for it in m.get('interactions', []):
+            r['anchors'].append({'id': it['interactionId'], 'kind': {'rest': 'lie', 'bed': 'lie'}.get(it.get('interactionType'), it.get('interactionType')), 'x': it['x'], 'y': it['y'],
+                                 'ax': it.get('approachX', it['x']), 'ay': it.get('approachY', it['y']), **({'facing': facing(it['facing'])} if it.get('facing') else {})})
         for w in m.get('walkableRegions', []):
             pg = w.get('polygon') if isinstance(w, dict) else w
             if pg:
@@ -175,12 +179,13 @@ def part3(d, out, copied):
 
 
 def main():
-    if len(sys.argv) != 4:
+    if len(sys.argv) < 4:
         sys.exit(__doc__)
     out, copied = {}, set()
     part1(sys.argv[1], out, copied)
     part2(sys.argv[2], out, copied)
-    part3(sys.argv[3], out, copied)
+    for d in sys.argv[3:]:
+        part3(d, out, copied)
     data = {
         'note': '建物改修の家具、席、当たり判定（scripts/import-redesign.py が作る。手で直さない）。座標はマップの原寸ピクセル。hip は席の腰の位置、a は立つ位置（足元）。',
         'rooms': dict(sorted(out.items())),
