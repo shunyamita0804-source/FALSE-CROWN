@@ -10,7 +10,7 @@ import { addInfo, adjustRel, aliveIds, knows, learn, log, shortName, transfer } 
 import type { CharId, NpcId } from '../data/characters';
 import { t } from '../i18n/i18n';
 import { saveMeta } from '../save/save';
-import { CLUES } from '../story/clues';
+import { CLUES, activeClue } from '../story/clues';
 import { ROOMS, ROOM_IDS } from '../world/maps';
 import { assetUrl } from '../assets/registry';
 import { face } from './art';
@@ -31,7 +31,7 @@ const rewardKey = (id: string, day: number) => `sub:${id}:${day}`;
 function nextHint(): string | null {
   const s = G.state!;
   for (const c of CLUES) {
-    if (knows(s, 'hero', c.id) || (c.fromDay && s.day < c.fromDay)) continue;
+    if (activeClue(s.flags, c.event) !== c || knows(s, 'hero', c.id) || (c.fromDay && s.day < c.fromDay)) continue;
     const room = ROOM_IDS.find((r) => ROOMS[r].inspects?.some((i) => i.event === c.event));
     if (!room || s.flags[`hint:${c.id}`]) continue;
     s.flags[`hint:${c.id}`] = true;

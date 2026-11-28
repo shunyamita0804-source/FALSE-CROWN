@@ -30,6 +30,8 @@ import { ROOMS, isRetired } from '../world/maps';
 import { ceremonyScreen } from './ceremony';
 import { renderRelations } from './relations';
 import { renderItems } from './items';
+import { hasOddNotes, renderOddTab } from './backgames';
+import { isLegacyLayout } from '../story/backgames';
 import { playVoice, resetVoiceHistory, voiceClip } from '../audio/voice';
 import { introLine } from '../core/introduction';
 import { bgUrl, bust, emblemUrl, face, fxBanner, icon, logoUrl, portraitUrl, rankMark, setBust, setHeroGender } from './art';
@@ -291,9 +293,9 @@ export function hudLog(text: string): void {
 
 // ---------------- 手帳（メニュー） ----------------
 
-type Tab = 'status' | 'items' | 'relations' | 'people' | 'deals' | 'info' | 'files' | 'history' | 'rules' | 'map' | 'system';
+type Tab = 'status' | 'items' | 'relations' | 'people' | 'deals' | 'info' | 'odd' | 'files' | 'history' | 'rules' | 'map' | 'system';
 
-const TAB_ICONS: Record<Tab, string> = { status: 'rank', items: 'inventory', relations: 'alliance', people: 'participant_list', deals: 'contract', info: 'evidence', files: 'document', history: 'document', rules: 'help', map: 'map', system: 'settings' };
+const TAB_ICONS: Record<Tab, string> = { status: 'rank', items: 'inventory', relations: 'alliance', people: 'participant_list', deals: 'contract', info: 'evidence', odd: 'help', files: 'document', history: 'document', rules: 'help', map: 'map', system: 'settings' };
 
 export function openMenu(initial: Tab = 'status'): void {
   const s = G.state;
@@ -310,8 +312,10 @@ export function openMenu(initial: Tab = 'status'): void {
   const render = () => {
     clear(tabs);
     // 「資料」の欄は、裏ルートで何か手に入れてから出す（序盤から匂わせない）
-    const hasFiles = Object.values(s.actors.hero.items).some((n) => n > 0);
-    for (const k of ['status', 'items', 'relations', 'people', 'deals', 'info', ...(hasFiles ? ['files'] : []), 'history', 'rules', 'map', 'system'] as Tab[]) {
+    const hasFiles = isLegacyLayout(s) && Object.values(s.actors.hero.items).some((n) => n > 0);
+    // 「気になること」の欄は、裏ゲームの手掛かりか錠に気づいてから出す
+    const hasOdd = !isLegacyLayout(s) && hasOddNotes(s);
+    for (const k of ['status', 'items', 'relations', 'people', 'deals', 'info', ...(hasOdd ? ['odd'] : []), ...(hasFiles ? ['files'] : []), 'history', 'rules', 'map', 'system'] as Tab[]) {
       tabs.append(h('button', { class: `tab${tab === k ? ' on' : ''}`, type: 'button', onclick: () => { tab = k; Sound.se('page'); render(); } }, icon(TAB_ICONS[k]), t(`menu.${k}`)));
     }
     clear(body);
@@ -413,6 +417,8 @@ function renderTab(s: GameState, tab: Tab, close: () => void, rerender: () => vo
         hasGuide(id) ? button([icon('help'), t('rules.replayTut')], () => void (reviewVoiced(id, sceneFor(id)) ?? tutorialScreen(id, { scene: sceneFor(id) })), { small: true, cls: 'nb-tut' }) : null), ...MATCHES[id].rules.map((r) => h('div', { class: 'small', style: 'margin-top:4px' }, `・${r}`)))),
         h('div', { class: 'entry' }, h('b', { class: 'gold' }, TIEBREAK.name), ...TIEBREAK.rules.map((r) => h('div', { class: 'small', style: 'margin-top:4px' }, `・${r}`)))];
     }
+    case 'odd':
+      return renderOddTab(s, rerender);
     case 'files': {
       // 裏ルートで手に入れた持ち物、手紙、資料。持っているものだけ、文を読み返せる
       const has = (id: string) => (hero.items[id] ?? 0) > 0;

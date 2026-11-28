@@ -122,6 +122,8 @@ export interface P10Cfg {
   endBonus: number;
   /** 何巡ごとに休憩を入れるか（0 は休憩なし） */
   breakEvery: number;
+  /** CPU が近づきたいマス（省略時は盤の真ん中。点の入るマスが中央でない競技で使う） */
+  aiTargets?: number[];
   summary: string;
   rules: string[];
 }
@@ -141,7 +143,7 @@ export function makeP10(cfg: P10Cfg): MatchEngine<P10State, P10Move, P10View> {
     const left = cfg.rounds - s.round;
     for (const p of s.pieces) {
       const [x, y] = xy(p.pos);
-      const d = Math.abs(x - 2) + Math.abs(y - 2);
+      const d = cfg.aiTargets ? Math.min(...cfg.aiTargets.map((c) => { const [a, b] = xy(c); return Math.abs(x - a) + Math.abs(y - b); })) : Math.abs(x - 2) + Math.abs(y - 2);
       const w = 2.0 + (d <= 1 ? Math.min(left, 4) * 0.55 : d === 2 ? 0.35 : 0);
       v += p.seat === 0 ? w : -w;
     }
@@ -337,19 +339,32 @@ export const P10 = makeP10({
   ],
 });
 
-/** H06 影の対戦者の最初の配置：左右の端の列の、上、中、下 */
-export const h06Start = (): Piece[] => [0, 2, 4].flatMap((y) => [{ seat: 0, pos: at(0, y) }, { seat: 1, pos: at(N - 1, y) }]);
-export const H06_ROUNDS = 15;
+/**
+ * H06 影の対戦者（監獄棟の裏ゲーム。第零牢で仮面の対戦者と 1 対 1）。
+ * P10 と同じ駒の動き（1 マス、飛び越えて取る）のまま、盤面と目標を変える：
+ * - 盤面：駒 3 個ずつの矢じりの形（端の 2 個と、1 列内側の真ん中の 1 個）
+ * - 目標：点の入るマスは中央ではなく「合図のマス」（上の端と下の端の真ん中の 2 か所）。中央の取り合いではなく、上下へ散る勝負になる
+ * - 生き残り：終わった時に残っている駒 1 個につき 2 点（取られない形を保つほど有利）
+ * - 12 巡の 1 ゲーム。休憩なし
+ */
+export const h06Start = (): Piece[] => [
+  { seat: 0, pos: at(0, 1) }, { seat: 0, pos: at(0, 3) }, { seat: 0, pos: at(1, 2) },
+  { seat: 1, pos: at(N - 1, 1) }, { seat: 1, pos: at(N - 1, 3) }, { seat: 1, pos: at(N - 2, 2) },
+];
+/** 合図のマス（上の端の真ん中、下の端の真ん中） */
+export const H06_SIGNALS = [at(2, 0), at(2, N - 1)];
+export const H06_ROUNDS = 12;
+export const H06_KEEP = 2;
 
 export const H06 = makeP10({
-  id: 'h06', name: '影の対戦者', kind: 'hidden', rounds: H06_ROUNDS, games: 1, centers: [at(2, 2)], start: h06Start, endBonus: 1, breakEvery: 0,
-  summary: '仮面の対戦者との 5×5 の盤面の勝負。駒 3 個ずつ。敵を飛び越えて取り、中央のマスを占める。',
+  id: 'h06', name: '影の対戦者', kind: 'hidden', rounds: H06_ROUNDS, games: 1, centers: H06_SIGNALS, start: h06Start, endBonus: H06_KEEP, breakEvery: 0, aiTargets: H06_SIGNALS,
+  summary: '仮面の対戦者との 5×5 の盤面の勝負。駒 3 個ずつ。上下の端の「合図のマス」を押さえ、駒を残す。',
   rules: [
-    '5×5 の盤面です。左右の端の列に、駒を 3 個ずつ置いて始めます。',
+    '5×5 の盤面です。駒 3 個ずつ、矢じりの形に並べて始めます。',
     '手番に、駒 1 個を、縦か横へ 1 マス動かします。',
     `隣に敵の駒があり、その先のマスが空いていれば、飛び越えて取れます（${CAP_PTS} 点）。飛び越しは 1 手に 1 回です。`,
-    `巡（2 人が 1 手ずつ）の終わりに、中央の 1 マスにいる駒に ${CENTER_PTS} 点が入ります。`,
-    `${H06_ROUNDS} 巡、またはどちらかの駒が無くなるまで。終わった時に残っている駒 1 個につき 1 点が入ります。`,
+    `巡（2 人が 1 手ずつ）の終わりに、上の端と下の端の真ん中にある「合図のマス」にいる駒 1 個につき ${CENTER_PTS} 点が入ります。`,
+    `${H06_ROUNDS} 巡、またはどちらかの駒が無くなるまで。終わった時に残っている駒 1 個につき ${H06_KEEP} 点が入ります。`,
     '1 手 15 秒。パスは、動かせる手が無い時と、時間切れの時だけです。',
     '合計点の多い方が勝ち。同点の時は、もう一度勝負します。',
     'ピースで買える補助はありません。仮面の対戦者も、あなたと同じ決まりで動きます。',

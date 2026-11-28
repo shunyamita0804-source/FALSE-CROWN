@@ -108,8 +108,16 @@ describe('1日の進行（自動対戦）', () => {
     await autoAdvance(s, 2, 'morning', { free: true });
     const total = Object.values(s.actors).reduce((a, x) => a + x.pieces, 0);
     const granted = 5 + 3 + 3 + 2 + 2 + 2 + 1 + 1;
-    expect(total).toBeLessThanOrEqual(36 + granted);
-    expect(total).toBeGreaterThanOrEqual(36 + granted - 20);
+    // 主催者との出入り（報酬、M01 のヒントの購入など）と、脱落者から回収した分で、合計がちょうど合う
+    let fromHost = 0, toHost = 0, recovered = 0;
+    for (const f of s.facts) {
+      const d = f.data as { from?: string; to?: string; amount?: number; pieces?: number } | undefined;
+      if (f.type === 'transfer' && d?.from === 'host') fromHost += d.amount ?? 0;
+      if (f.type === 'transfer' && d?.to === 'host') toHost += d.amount ?? 0;
+      if (f.type === 'eliminated') recovered += d?.pieces ?? 0;
+    }
+    expect(total).toBe(36 + fromHost - toHost - recovered);
+    expect(fromHost).toBeLessThanOrEqual(granted);
     for (const a of Object.values(s.actors)) expect(a.pieces).toBeGreaterThanOrEqual(0);
   });
 });

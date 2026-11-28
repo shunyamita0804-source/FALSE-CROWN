@@ -13,7 +13,7 @@ import { fitCameraToReference, type LogicalView } from '../display/viewport';
 import { t } from '../i18n/i18n';
 import { Input } from '../input/InputState';
 import { anyModal } from '../ui/dom';
-import { ROOMS, doorApproach, doorDir, propVisible, type DoorDef, type InspectDef, type RoomDef } from '../world/maps';
+import { ROOMS, doorApproach, inspectsOf, doorDir, propVisible, type DoorDef, type InspectDef, type RoomDef } from '../world/maps';
 import { PROPS } from '../world/props';
 import { furnitureOf, seatDepth, type Facing, type FurnitureProp, type Seat } from '../world/furniture';
 import { DIRS, actorsIn, drainDoorPasses, facingTile, nearbyAction, stepToward } from '../world/sim';
@@ -401,7 +401,7 @@ export class FieldScene extends Phaser.Scene {
       this.marks.push(lab);
     }
     // 遊べる卓など、家具ごと光らせて目立たせる所
-    for (const ins of room.inspects) {
+    for (const ins of inspectsOf(room, s.flags)) {
       const prop = ins.glow ? furnitureOf(room.id)?.props.find((p) => p.id === ins.glow) : undefined;
       if (!prop) continue;
       const g = this.add.graphics().setDepth(prop.depth + 6).setBlendMode(Phaser.BlendModes.ADD);
@@ -415,7 +415,7 @@ export class FieldScene extends Phaser.Scene {
       this.marks.push(g);
     }
     // 調査地点の目印
-    for (const ins of room.inspects) {
+    for (const ins of inspectsOf(room, s.flags)) {
       if (ins.glow) continue;
       const m = this.add.image((ins.x + 0.5) * TILE, (ins.y + 0.3) * TILE, 'mark').setDisplaySize(30, 30).setDepth(8600).setAlpha(0.8).setBlendMode(Phaser.BlendModes.ADD);
       this.tweens.add({ targets: m, alpha: 0.25, scale: m.scale * 0.7, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
@@ -579,7 +579,7 @@ export class FieldScene extends Phaser.Scene {
       const ay = a.step ? a.step.y : a.pos.y;
       if ((ax === f.x && ay === f.y) || (a.pos.x === f.x && a.pos.y === f.y)) return { kind: 'npc', id: a.id };
     }
-    for (const ins of room.inspects) {
+    for (const ins of inspectsOf(room, s.flags)) {
       const df = Math.abs(ins.x - f.x) + Math.abs(ins.y - f.y);
       const dh = Math.abs(ins.x - hero.pos.x) + Math.abs(ins.y - hero.pos.y);
       if (df <= 1 || dh <= 1) return { kind: 'inspect', ins };

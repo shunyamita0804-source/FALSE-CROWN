@@ -2012,3 +2012,11 @@ body.touch .rl-seg { min-height: 76px; }
 .match-side:has(.mk-talk) { width: 520px; }
 .match-body:has(.mk-talk) .mk-row { grid-template-columns: 110px 64px 190px 96px 56px 1fr 0px; }
 .match-side:has(.mk-talk) .mk-face { width: 76px; }
+/* H06 影の対戦者：第零牢の卓（P10 と見分けやすく、暗い紫の盤と、合図のマスの菱形の印） */
+.pz7.h06 .pzb { border-color: rgba(185,163,239,0.75); box-shadow: 0 8px 28px rgba(40,20,80,0.6); }
+.pz7.h06 .pzb-cell.center { background: radial-gradient(circle, rgba(176,140,230,0.7), rgba(120,90,190,0.25)), #241f3a; box-shadow: inset 0 0 0 3px #b9a3ef; }
+.pz7.h06 .pzb-cell.center::after { content: '◆'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(236,226,255,0.35); font-size: 1.6em; pointer-events: none; }
+/* 手帳「気になること」：食い違う手掛かり、図形の下の数字 */
+.bg-clue.miss { color: #ff9f8f; }
+.bg-slots .sg-slot span { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.05; }
+.bg-slots .sg-slot small { font-size: 0.55em; color: var(--gold2, #e8c97a); }
