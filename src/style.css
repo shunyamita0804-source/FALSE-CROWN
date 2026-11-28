@@ -1954,3 +1954,43 @@ body.touch .rl-seg { min-height: 76px; }
 .rl-dialog { width: min(1120px, 100%); }
 .rl-detail-scroll { max-height: 400px; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: 6px; }
 .rl-detail h4 { margin: 6px 0 0; }
+
+/* 市場予測（試作）。設計寸法は約 1560×720 */
+.mk-main { display: flex; flex-direction: column; gap: 10px; width: 100%; min-height: 0; }
+.mk-top { display: flex; align-items: center; gap: 14px; }
+.mk-coins { display: flex; flex-direction: column; align-items: center; padding: 4px 14px; border-radius: 10px; background: rgba(0,0,0,0.35); border: 1px solid rgba(216,178,90,0.4); }
+.mk-coins small { color: var(--ivory-dim); font-size: 0.8em; } .mk-coins b { font-size: 1.7em; color: var(--gold2); font-family: var(--serif); }
+.mk-board { display: flex; flex-direction: column; gap: 4px; }
+.mk-row { display: grid; grid-template-columns: 120px 74px 200px 110px 76px 1fr 250px; align-items: center; gap: 8px; padding: 1px 10px; border-radius: 10px; background: rgba(20,26,50,0.78); border: 1px solid rgba(216,178,90,0.22); min-height: 78px; }
+.mk-row.head { min-height: 0; background: none; border: none; color: var(--ivory-dim); font-size: 0.85em; padding: 0 10px; }
+.mk-name { font-family: var(--serif); font-size: 1.2em; color: var(--gold2); }
+.mk-price { font-size: 2em; font-weight: 700; text-align: center; }
+.mk-move { display: flex; align-items: center; gap: 8px; font-size: 1.15em; color: var(--ivory-dim); }
+.mk-move .mk-spark { color: #8fb0ff; } .mk-move b { min-width: 2.2em; } .mk-move .mk-fac { font-size: 0.72em; color: var(--ivory-dim); white-space: nowrap; }
+.mk-hold, .mk-net { text-align: center; font-size: 1.2em; }
+.mk-row .up, .mk-move.up, .mk-chip.up { color: #9fe8a8; } .mk-row .down, .mk-move.down, .mk-chip.down { color: #ff9f8f; }
+.mk-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.mk-chip { display: inline-flex; align-items: baseline; gap: 4px; padding: 3px 9px; border-radius: 999px; background: rgba(255,255,255,0.08); font-weight: 700; font-size: 1.05em; }
+.mk-chip small { font-weight: 400; font-size: 0.72em; color: var(--ivory-dim); }
+.mk-chip.own { border: 1px solid rgba(216,178,90,0.7); } .mk-chip.shown { border: 1px solid rgba(143,176,255,0.7); }
+.mk-chip.said { border: 1px dashed rgba(255,255,255,0.4); font-style: italic; } .mk-chip.said.liar { opacity: 0.55; text-decoration: line-through; }
+.mk-chip.unknown { color: var(--ivory-dim); }
+.mk-step { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+.mk-step .btn { min-width: 76px; min-height: 76px; font-size: 1.6em; }
+.mk-step b { min-width: 76px; text-align: center; }
+.mk-last { display: flex; flex-direction: column; gap: 4px; padding: 8px 12px; border-radius: 10px; background: rgba(0,0,0,0.3); }
+.mk-factors { display: flex; flex-wrap: wrap; gap: 14px; } .mk-factors small { color: var(--ivory-dim); }
+.mk-note { padding: 6px 12px; }
+.mk-talk { display: flex; flex-direction: column; gap: 8px; }
+.mk-say { display: flex; align-items: center; gap: 8px; } .mk-say .face { width: 34px; height: 34px; flex: none; }
+.mk-say .mk-who { flex: none; font-size: 0.85em; color: var(--gold2); }
+.mk-got { margin-left: auto; color: #8fb0ff; font-weight: 700; }
+.mk-offer { display: flex; flex-direction: column; gap: 6px; padding: 8px; border-radius: 10px; border: 1px solid rgba(216,178,90,0.55); background: rgba(216,178,90,0.08); }
+.mk-faces { display: flex; flex-wrap: wrap; gap: 6px; }
+.mk-face { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 84px; min-height: 84px; padding: 4px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.04); color: var(--ivory); }
+.mk-face .face { width: 44px; height: 44px; } .mk-face small { font-size: 0.75em; } .mk-face .mk-fa { color: var(--gold2); font-weight: 700; }
+.mk-face.sel { border-color: var(--gold2); background: rgba(216,178,90,0.18); } .mk-face.partner { box-shadow: inset 0 0 0 2px rgba(143,176,255,0.6); } .mk-face.liar { opacity: 0.6; }
+/* 市場予測：相談の間は、右の欄を広げる（相談が主な操作になるため） */
+.match-side:has(.mk-talk) { width: 520px; }
+.match-body:has(.mk-talk) .mk-row { grid-template-columns: 110px 64px 190px 96px 56px 1fr 0px; }
+.match-side:has(.mk-talk) .mk-face { width: 76px; }

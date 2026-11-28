@@ -11,15 +11,18 @@ import { dailyDecay } from '../npc/brain';
 import { ROOMS } from '../world/maps';
 import { placeHome, placeIn } from '../world/sim';
 import { releaseSeat, seatPlayers } from '../world/seats';
+import { mainOf, prisonOf } from './lineup';
 import { aliveIds, fact, log, nameOf, publish, rel, transfer } from './state';
 import type { DayRecord, GameState } from './types';
 
-export function mainMatchId(day: number): string {
-  return scheduleFor(day).main;
+/** その日のメインマッチ（大会の始めに決めた割り当て。古いセーブは日程表のまま） */
+export function mainMatchId(state: GameState, day: number): string {
+  return mainOf(state, day);
 }
 
-export function prisonMatchId(day: number): string | null {
-  return scheduleFor(day).prisonGame;
+/** その日の監獄マッチ（決勝の日は null） */
+export function prisonMatchId(state: GameState, day: number): string | null {
+  return prisonOf(state, day);
 }
 
 /** メインマッチの確定順位から棟分けと報酬を適用する */
@@ -54,7 +57,7 @@ export function applyMainResult(state: GameState, ranking: CharId[], scores: Par
     value: 0,
     tags: ['result', 'main'],
   });
-  state.board.push({ day: state.day, text: nPrison ? `DAY${state.day} メインマッチ「${sch.main.toUpperCase()}」　監獄棟：${prison.map((id) => nameOf(state, id)).join('、')}` : `DAY${state.day} 決勝「${sch.main.toUpperCase()}」　優勝：${nameOf(state, ranking[0])}` });
+  state.board.push({ day: state.day, text: nPrison ? `DAY${state.day} メインマッチ「${mainOf(state, state.day).toUpperCase()}」　監獄棟：${prison.map((id) => nameOf(state, id)).join('、')}` : `DAY${state.day} 決勝「${mainOf(state, state.day).toUpperCase()}」　優勝：${nameOf(state, ranking[0])}` });
   fact(state, 'main_result', ranking, `DAY${state.day} メイン結果`, { ranking, scores });
   return { living, prison, rewards };
 }
@@ -104,13 +107,12 @@ export function eliminate(state: GameState, id: CharId): void {
 
 /** 1 日の終わり：履歴を残し、翌朝へ */
 export function endDay(state: GameState): string[] {
-  const sch = scheduleFor(state.day);
   const rec: DayRecord = {
     day: state.day,
-    main: sch.main,
+    main: mainOf(state, state.day),
     mainRanking: state.today.mainRanking ?? [],
     mainScores: state.today.mainScores ?? {},
-    prisonGame: sch.prisonGame,
+    prisonGame: prisonOf(state, state.day),
     prisonRanking: state.today.prisonRanking ?? [],
     prisonScores: state.today.prisonScores ?? {},
     eliminated: Object.values(state.actors).filter((a) => a.eliminatedDay === state.day).map((a) => a.id),

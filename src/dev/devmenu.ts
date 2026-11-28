@@ -61,13 +61,15 @@ export function devMenu(): Promise<GameState | null> {
       closeLayer(layer);
       resolve(s);
     };
-    const startAt = async (day: number, phase: Phase, heroHouse?: 'prison' | 'living') => {
-      let s = fresh();
+    const startAt = async (day: number, phase: Phase, heroHouse?: 'prison' | 'living', mainOverride?: string) => {
+      // 試作の競技を、その日のメインマッチに差し替えて試す（その大会の割り当てだけを変える）
+      const fresh2 = () => { const x = fresh(); if (mainOverride && x.lineup) x.lineup.main[day - 1] = mainOverride; return x; };
+      let s = fresh2();
       s.phase = 'morning';
       let ok = await autoAdvance(s, day, phase, { free: day < 8 });
       // 終盤の日は、主人公が自動対戦で残っている大会が出るまで作り直す（補正なし。残れた大会を選ぶだけ）
       for (let i = 0; !ok && day >= 8 && i < 80; i++) {
-        s = fresh();
+        s = fresh2();
         s.phase = 'morning';
         ok = await autoAdvance(s, day, phase, { free: false });
       }
@@ -182,6 +184,8 @@ export function devMenu(): Promise<GameState | null> {
             done(s);
           }, { small: true }),
         ),
+        h('h4', { class: 'gold' }, '新しいメインマッチの試作：市場予測（その日のメインを差し替え。ルール説明 → 作戦時間 → 競技）'),
+        h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' }, [[1, 12], [3, 10], [5, 8], [7, 6], [9, 4], [10, 3]].map(([d, n]) => button(`DAY${d}（${n} 人）で市場予測`, () => void startAt(d, 'rules', undefined, 'mk'), { small: true }))),
         h('h4', { class: 'gold' }, '任意の時点から開始（そこまでは自動対戦）'),
         ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter((d) => isImplemented(scheduleFor(d).main) && (!scheduleFor(d).prisonGame || isImplemented(scheduleFor(d).prisonGame!))).map((d) =>
           h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' },

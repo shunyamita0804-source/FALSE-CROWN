@@ -17,6 +17,7 @@ import { face } from './art';
 import { alertDialog, append, button, clear, closeLayer, h, openLayer, panel, type Layer } from './dom';
 import { playMatch } from './matchui';
 import { tutorialScreen } from './tutorial';
+import { practiceScreen } from './practice';
 
 export const SUB_IDS = ['s01', 's02', 's03', 's04', 's05', 's06'] as const;
 /** 1 局で進む時間（分） */
@@ -113,6 +114,8 @@ export function subGamesScreen(): Promise<void> {
       const here = aliveIds(s).filter((x): x is NpcId => x !== 'hero' && s.actors[x].pos.room === s.actors.hero.pos.room);
       if (!game) {
         append(body, [h('div', { class: 'small dim' }, t('subhub.lead', { n: SUB_MINUTES })),
+          // 練習卓：メインから移した競技や、大会で見た競技を CPU と練習する（記録に残らない）
+          h('div', { class: 'row' }, button(t('practice.open'), () => { closeLayer(layer); void practiceScreen().then(resolve); }, { small: true, cls: 'practice-open' })),
           // 相手がいない時の案内は、一覧の下に隠れないよう先に出す
           here.length ? null : h('div', { class: 'note-box' }, t('subhub.nobody')),
           h('div', { class: 'subhub-grid' }, SUB_IDS.map((id) => {

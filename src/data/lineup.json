@@ -1,0 +1,36 @@
+{
+  "note": "大会の競技の割り当て（docs/lineup.md）。大会の始めに全日程を決めてセーブに残す。mode: fixed は CONFIG.schedule の並びのまま、draw は人数に合う候補から重複なしで抽選。players はその競技に出られる人数。family が同じ競技は同じ大会に 1 回だけ（メインと監獄版の重複を避ける）。新しいメインが揃うまでメインは fixed（M02・M03・M05 も当面はメインに残る）。M04 は 6・9 人（3 人卓）、M06 は 5〜7 人、M07 は 3・6 人まで確かめた（tests/expand.test.ts）。",
+  "main": {
+    "mode": "fixed",
+    "pool": [
+      { "id": "m01", "players": [8, 9, 10, 11, 12], "family": "piece" },
+      { "id": "m02", "players": [11], "family": "flag" },
+      { "id": "m03", "players": [10], "family": "link" },
+      { "id": "m04", "players": [6, 9], "family": "rail" },
+      { "id": "m05", "players": [8], "family": "number" },
+      { "id": "m06", "players": [5, 6, 7], "family": "card" },
+      { "id": "m07", "players": [3, 6], "family": "hex" },
+      { "id": "m08", "players": [5], "family": "barricade" },
+      { "id": "m09", "players": [4], "family": "kings" },
+      { "id": "m10", "players": [3], "family": "triangle" }
+    ]
+  },
+  "prison": {
+    "mode": "draw",
+    "pool": [
+      { "id": "p01", "players": [2, 3, 4], "family": "chain" },
+      { "id": "p02", "players": [2, 3, 4], "family": "memory" },
+      { "id": "p03", "players": [2, 3, 4], "family": "speed" },
+      { "id": "p04", "players": [2, 3, 4], "family": "diff" },
+      { "id": "p05", "players": [2, 3], "family": "twentyone" },
+      { "id": "p06", "players": [2, 3, 4], "family": "path" },
+      { "id": "p07", "players": [3], "family": "flip" },
+      { "id": "p08", "players": [2, 3, 4], "family": "scale" },
+      { "id": "p09", "players": [2, 3, 4], "family": "mirror" },
+      { "id": "p10", "players": [2], "family": "lastmove" },
+      { "id": "q02", "players": [2, 3, 4], "family": "flag" },
+      { "id": "q03", "players": [3, 4], "family": "link" },
+      { "id": "q05", "players": [2, 4], "family": "number" }
+    ]
+  }
+}

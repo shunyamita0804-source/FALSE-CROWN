@@ -5,17 +5,17 @@
 import { G } from '../app/game';
 import { aliveIds } from '../core/state';
 import { isFinalDay } from '../core/tournament';
-import { scheduleFor } from '../data/config';
+import { mainOf } from '../core/lineup';
 import type { TutCtx } from './voicetut';
 
 export function sceneFor(matchId: string, players?: string[]): TutCtx {
   const s = G.state;
   if (!s) return {};
   const who = players ?? aliveIds(s);
-  if (scheduleFor(s.day).main !== matchId) return { players: who };
+  if (mainOf(s, s.day) !== matchId) return { players: who };
   if (isFinalDay(s.day)) return { order: 'final', players: who };
   // メインマッチの順番：DAY 1 から今日までに、メインマッチがある日の数
   let n = 0;
-  for (let d = 1; d <= s.day; d++) if (scheduleFor(d).main) n++;
+  for (let d = 1; d <= s.day; d++) if (mainOf(s, d)) n++;
   return { order: n, players: who };
 }

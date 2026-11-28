@@ -13,6 +13,7 @@ import { activeDeals, nameOf, shortName } from '../core/state';
 import type { GameState } from '../core/types';
 import { DEFAULT_HERO_NAMES, NPC_BY_ID, NPC_IDS, type CharId, type NpcId } from '../data/characters';
 import { CONFIG, scheduleFor, type Difficulty } from '../data/config';
+import { mainOf, prisonOf } from '../core/lineup';
 import guideJson from '../data/match_guide.json';
 import { getLang, LANGS, setLang, t, type Lang } from '../i18n/i18n';
 import { CATALOG, isImplemented, MATCHES } from '../matches/registry';
@@ -325,7 +326,7 @@ function renderTab(s: GameState, tab: Tab, close: () => void, rerender: () => vo
     case 'status': {
       const sch = scheduleFor(s.day);
       const alive = Object.values(s.actors).filter((a) => a.alive);
-      const main = CATALOG.find((c) => c.id === sch.main);
+      const main = CATALOG.find((c) => c.id === mainOf(s, s.day));
       return [
         h('div', { class: 'row', style: 'gap:16px;align-items:flex-start' },
           face('hero', 'lg'),
@@ -401,8 +402,8 @@ function renderTab(s: GameState, tab: Tab, close: () => void, rerender: () => vo
     }
     case 'rules': {
       // 今日の競技を先に、そのあと前の日の競技（いつでも見直せるように）
-      const days = Array.from({ length: s.day }, (_, i) => scheduleFor(s.day - i));
-      const ids = [...new Set(days.flatMap((sch) => [sch.main, sch.prisonGame] as (string | null)[]))].filter((x): x is string => !!x && isImplemented(x));
+      const days = Array.from({ length: s.day }, (_, i) => s.day - i);
+      const ids = [...new Set(days.flatMap((d) => [mainOf(s, d), prisonOf(s, d)]))].filter((x): x is string => !!x && isImplemented(x));
       return [button([icon('help'), t('rules.ceremony')], () => void ceremonyScreen({ review: true }), { small: true }), h('div', { class: 'text' }, t('rules.core')), ...ids.map((id) => h('div', { class: 'entry' }, h('div', { class: 'row', style: 'gap:10px;align-items:center' }, h('b', { class: 'gold grow' }, `${id.toUpperCase()}　${MATCHES[id].name}`),
         // いつでも説明を見直せる（音声付きの説明は声つき、それ以外は図と練習）
         hasGuide(id) ? button([icon('help'), t('rules.replayTut')], () => void (reviewVoiced(id, sceneFor(id)) ?? tutorialScreen(id, { scene: sceneFor(id) })), { small: true, cls: 'nb-tut' }) : null), ...MATCHES[id].rules.map((r) => h('div', { class: 'small', style: 'margin-top:4px' }, `・${r}`)))),
@@ -673,7 +674,7 @@ export async function endingScreen(id: string): Promise<void> {
 export function boardScreen(): Promise<void> {
   const s = G.state!;
   const sch = scheduleFor(s.day);
-  const main = CATALOG.find((c) => c.id === sch.main);
+  const main = CATALOG.find((c) => c.id === mainOf(s, s.day));
   return alertDialog(t('board.title'), h('div', { class: 'col', style: 'gap:6px' }, [
     h('div', { class: 'entry' }, t('board.today', { day: s.day, name: main?.name ?? '', n: sch.prison })),
     h('div', { class: 'entry' }, t('board.alive'), '：', Object.values(s.actors).filter((a) => a.alive).map((a) => shortName(s, a.id)).join('、')),

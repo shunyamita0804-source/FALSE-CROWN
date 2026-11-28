@@ -1,5 +1,6 @@
 import { ALL_IDS, NPC_BY_ID, type CharId, type NpcId } from '../data/characters';
 import { CONFIG, type Difficulty } from '../data/config';
+import { drawLineup } from './lineup';
 import { Rng } from './rng';
 import type { Actor, Deal, Fact, GameState, Info, Known, Relation } from './types';
 
@@ -72,6 +73,7 @@ export function newGame(opts: { gender: 'm' | 'f'; name: string; seed?: number; 
     relEvents: [],
     board: [],
     log: [],
+    lineup: drawLineup(seed),
   };
   return state;
 }
