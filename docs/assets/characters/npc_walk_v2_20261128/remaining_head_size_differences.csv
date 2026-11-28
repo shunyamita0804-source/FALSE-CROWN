@@ -1,0 +1,5 @@
+﻿id,name,direction,sole_min,sole_max,head_width_min,head_width_max,idle_head_width,max_idle_width_delta,head_center_max_delta,all_frames_distinct
+npc_04_mido,リチャード,down,240,240,88,89,83,6,0.5,True
+npc_04_mido,リチャード,up,240,240,77,78,83,6,0.5,True
+npc_06_kiryu,マイク,up,240,240,101,103,96,7,0.5,True
+npc_10_kujo,フェリックス,up,240,240,79,81,85,6,0.5,True
