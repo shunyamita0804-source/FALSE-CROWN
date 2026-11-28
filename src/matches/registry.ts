@@ -34,6 +34,8 @@ import { S03 } from './s03';
 import { S04 } from './s04';
 import { S05 } from './s05';
 import { S06 } from './s06';
+import { Q02, Q03, Q05 } from './q';
+import { MK } from './mk';
 
 /** 実装済みの競技。未実装の競技は IMPLEMENTED に含めない（完成扱いしない）。 */
 export const MATCHES: Record<string, MatchEngine> = {
@@ -72,6 +74,10 @@ export const MATCHES: Record<string, MatchEngine> = {
   s04: S04,
   s05: S05,
   s06: S06,
+  q02: Q02,
+  q03: Q03,
+  q05: Q05,
+  mk: MK,
 };
 
 export interface CatalogEntry {
@@ -118,6 +124,12 @@ export const CATALOG: CatalogEntry[] = [
   { id: 's04', name: '記憶カード', group: 'sub', players: '2人' },
   { id: 's05', name: 'ダイスパズル', group: 'sub', players: '2人' },
   { id: 's06', name: 'ミニジグソー', group: 'sub', players: '1〜2人' },
+  // v11 の 35 競技の後に足した物（docs/lineup.md）。監獄版は元の競技と同じ大会には出ない
+  { id: 'q02', name: 'フラッグ・フラッシュ（監獄版）', group: 'prison', players: '2〜4人' },
+  { id: 'q03', name: 'ツイン・リンク（監獄版）', group: 'prison', players: '3〜4人' },
+  { id: 'q05', name: 'ナンバー・リレー（監獄版）', group: 'prison', players: '2・4人' },
+  // 新しいメインマッチの試作（new_main_matches の設計案。仮名）。日程にはまだ入れない
+  { id: 'mk', name: '市場予測（試作）', group: 'main', players: '3〜12人' },
 ];
 
 /**

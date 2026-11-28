@@ -27,9 +27,20 @@
     "p07": { "window": "between", "pre": { "slots": 0 } },
     "p08": { "window": "none", "pre": { "slots": 0 } },
     "p09": { "window": "none", "pre": { "slots": 0 } },
-    "p10": { "window": "between", "pre": { "slots": 0 } }
+    "p10": { "window": "between", "pre": { "slots": 0 } },
+    "q02": { "window": "between", "pre": { "slots": 0 } },
+    "q03": { "window": "between", "pre": { "slots": 0 } },
+    "q05": { "window": "between", "pre": { "slots": 0 } },
+    "mk": { "window": "between", "pre": { "slots": 4, "slotMs": 30000 }, "breakTalk": false, "seek": 7, "topics": ["coop", "consult", "info", "tips", "rescue", "promises"] }
   },
   "tips": {
+    "mk": [
+      "自分の札だけで決めず、見せ合いで札を増やすと読みが確かになる。ただし見せた相手も同じ物を買うかもしれない。",
+      "皆が同じ物を買うと約定が上がる。人気の銘柄は、知っている人が多いと思って控えめに。",
+      "口で聞いた話は、期の終わりに要因が全部出るので確かめられる。外れた相手の話は次から割り引いて聞く。",
+      "売り買いの差の数字は、ほかの人が何を読んだかの手掛かりになる。",
+      "最後の期は、持ち物が最後の値段で数えられる。下がりそうな物は手放しておく。"
+    ],
     "m01": [
       "角と端から埋めるといい。角のマスに入る片は限られるから、先に決まる。",
       "一番大きい片の置き場所を先に決めると、残りの片の行き先が絞れる。",

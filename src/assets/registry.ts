@@ -110,7 +110,9 @@ const EMBLEM_FALLBACK: Record<string, string> = {
   h05: 'ui/games/h05/asset_01', h06: 'ui/games/h06/asset_01', h07: 'ui/games/h07/asset_03', h08: 'ui/games/h08/asset_03',
 };
 export function emblemOf(matchId: string): string | null {
-  return assetUrl(`ui/v11/emblem/${matchId}`) ?? (EMBLEM_FALLBACK[matchId] ? assetUrl(EMBLEM_FALLBACK[matchId]) : null);
+  // 監獄版（q02 など）は元の競技の紋章を使う
+  const id = /^q\d\d$/.test(matchId) ? `m${matchId.slice(1)}` : matchId;
+  return assetUrl(`ui/v11/emblem/${id}`) ?? (EMBLEM_FALLBACK[id] ? assetUrl(EMBLEM_FALLBACK[id]) : null);
 }
 
 /** 演出用の帯。band は文字を載せる帯の中心と高さ（画像の高さに対する割合）。無い素材は画像の下に文字を出す */

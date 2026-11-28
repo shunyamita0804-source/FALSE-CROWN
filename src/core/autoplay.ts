@@ -47,7 +47,7 @@ export async function autoAdvance(s: GameState, untilDay: number, untilPhase: Ph
         s.phase = 'morning';
         break;
       case 'morning':
-        if (!isImplemented(mainMatchId(s.day))) return false;
+        if (!isImplemented(mainMatchId(s, s.day))) return false;
         startMorning(s);
         free(phaseDuration('morning'));
         s.phase = 'rules';
@@ -60,7 +60,7 @@ export async function autoAdvance(s: GameState, untilDay: number, untilPhase: Ph
         s.phase = 'main';
         break;
       case 'main': {
-        const r = await rank(s, mainMatchId(s.day), aliveIds(s), 'main');
+        const r = await rank(s, mainMatchId(s, s.day), aliveIds(s), 'main');
         applyMainResult(s, r.ranking, r.scores);
         s.phase = 'reward';
         break;
@@ -77,7 +77,7 @@ export async function autoAdvance(s: GameState, untilDay: number, untilPhase: Ph
         s.phase = 'prison';
         break;
       case 'prison': {
-        const id = prisonMatchId(s.day);
+        const id = prisonMatchId(s, s.day);
         const prisoners = aliveIds(s).filter((p) => s.actors[p].house === 'prison');
         if (id && prisoners.length >= 2) {
           if (!isImplemented(id)) return false;

@@ -25,6 +25,8 @@ export interface TalkRule {
   /** 組（M01 の 4 人組など）ごとに相談室を割り当てる */
   groupRooms?: boolean;
   topics?: string[];
+  /** 組の無い競技で、誰とでも相談したい度合い（市場予測なら、見せ合いの相手を探す）。相談の点に足す */
+  seek?: number;
   /** 専用室（出題室、任務室） */
   procedure?: string;
 }
@@ -137,7 +139,8 @@ export function consultScore(state: GameState, slot: MatchSlot | null, a: CharId
   const r = rel(state, a, b);
   const per = a === 'hero' ? null : NPC_BY_ID[a as NpcId].personality;
   const mate = groupOf(slot, a).includes(b) ? 12 : 0;
-  return -6 + mate + (pledged(state, a, b) ? 8 : 0) + (allied(state, a, b) ? 10 : 0) + r.like * 0.3 + r.trust * 0.2 - r.wary * 0.15 - r.hostility * 0.5 + (per ? (per.loyalty - 50) / 10 : 0);
+  const seek = slot ? talkRule(slot.id).seek ?? 0 : 0;
+  return -6 + mate + seek + (pledged(state, a, b) ? 8 : 0) + (allied(state, a, b) ? 10 : 0) + r.like * 0.3 + r.trust * 0.2 - r.wary * 0.15 - r.hostility * 0.5 + (per ? (per.loyalty - 50) / 10 : 0);
 }
 
 /** guest（NPC）が host の「相談しよう」に応じるか */
