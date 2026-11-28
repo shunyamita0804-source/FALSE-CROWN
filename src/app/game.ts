@@ -933,7 +933,7 @@ async function step(s: GameState): Promise<boolean> {
         for (const id of aliveIds(s)) {
           s.actors[id].house = null;
           s.actors[id].goal = undefined;
-          placeIn(s, id, id === 'hero' ? 'living_hallway' : 'living_lounge');
+          placeIn(s, id, id === 'hero' ? 'living_hallway' : 'dining');
         }
         s.phaseLeft = phaseDuration('night');
       }

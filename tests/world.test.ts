@@ -1,6 +1,6 @@
 import { isPrivateRoom } from '../src/world/rooms';
 import { describe, expect, it } from 'vitest';
-import { ROOMS, ROOM_IDS, buildCollision } from '../src/world/maps';
+import { ROOMS, ROOM_IDS, buildCollision, isRetired } from '../src/world/maps';
 import { freshState } from './helpers';
 import { collisionOf, enterDoor, moveActor, placeIn, setPathTo, setRouteTo } from '../src/world/sim';
 
@@ -32,6 +32,8 @@ describe('施設マップ（正式素材に合わせた判定データ）', () =
       for (let y = 0; y < room.h; y++) for (let x = 0; x < room.w; x++) if (!grid[y][x]) free++;
       if (seen.size !== free) problems.push(`${id}: 孤立した床がある（到達 ${seen.size} / 床 ${free}）`);
       for (const d of room.doors) {
+        // 通常の動線から外した部屋（RETIRED_ROOMS）の扉は片道（移し先へ出るだけ）なので、戻りの扉は見ない
+        if (isRetired(id) && !isRetired(d.to)) continue;
         for (const t of d.tiles) if (grid[t.y]?.[t.x] !== false) problems.push(`${id}.${d.id}: 扉の手前 (${t.x},${t.y}) が歩けない`);
         const v = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[d.dir];
         for (const t of d.tiles) if (grid[t.y + v[1]]?.[t.x + v[0]] === false) problems.push(`${id}.${d.id}: 扉の先 (${t.x + v[0]},${t.y + v[1]}) が床になっている`);
@@ -50,13 +52,15 @@ describe('施設マップ（正式素材に合わせた判定データ）', () =
     const seen = new Set(['bedroom_hero']);
     const q = ['bedroom_hero'];
     while (q.length) for (const d of ROOMS[q.pop()!].doors) if (!seen.has(d.to)) { seen.add(d.to); q.push(d.to); }
-    expect(ROOM_IDS.filter((r) => !seen.has(r))).toEqual([]);
+    expect(ROOM_IDS.filter((r) => !seen.has(r) && !isRetired(r))).toEqual([]);
+    // 外した部屋へは、どの扉からも行けない
+    expect(ROOM_IDS.filter((r) => seen.has(r) && isRetired(r))).toEqual([]);
   });
 
   it('隠し区画は解錠フラグなしでは入れない', () => {
     const locks = Object.fromEntries(ROOM_IDS.flatMap((id) => ROOMS[id].doors.filter((d) => d.lock).map((d) => [`${id}>${d.to}`, d.lock])));
     expect(locks).toMatchObject({
-      'library>secret_study': 'h01_open', 'observatory>moon_casino': 'h02_open', 'bathroom>mirror_room': 'h03_open',
+      'library>secret_study': 'h01_open', 'observatory>moon_casino': 'h02_open',
       'prison_cells>cell_zero': 'h04_open', 'underground_passage>maze_entry': 'h05_cleared', 'black_door>research_lab': 'h06_open', 'isolation>core': 'h07_cleared',
     });
   });
@@ -85,7 +89,7 @@ describe('施設内の歩行（実際の移動処理で確認）', () => {
     placeIn(s, 'hero', 'bedroom_hero');
     const failed: string[] = [];
     for (const id of ROOM_IDS) {
-      if (isPrivateRoom(id) && id !== 'bedroom_hero') continue;
+      if ((isPrivateRoom(id) && id !== 'bedroom_hero') || isRetired(id)) continue;
       const room = ROOMS[id];
       for (const ins of room.inspects) if (!walk(s, 'hero', id, { x: ins.x, y: ins.y })) failed.push(`${id}:${ins.id}`);
       for (const sp of room.spots) if (!walk(s, 'hero', id, sp)) failed.push(`${id}:spot(${sp.x},${sp.y})`);
@@ -100,7 +104,7 @@ describe('施設内の歩行（実際の移動処理で確認）', () => {
     for (const a of Object.values(s.actors)) if (a.id !== 'hero') placeIn(s, a.id, `bedroom_${a.id}`);
     const bad: string[] = [];
     for (const id of ROOM_IDS) {
-      if (isPrivateRoom(id) && id !== 'bedroom_hero') continue;
+      if ((isPrivateRoom(id) && id !== 'bedroom_hero') || isRetired(id)) continue;
       for (const d of ROOMS[id].doors) {
         if (isPrivateRoom(d.to) && d.to !== 'bedroom_hero') continue;
         const hero = s.actors.hero;

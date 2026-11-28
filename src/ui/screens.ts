@@ -25,7 +25,7 @@ import { describeDeal } from '../npc/negotiation';
 import { attitudeStep } from '../npc/social';
 import { deleteSave, exportSave, hasSave, importSave, saveMeta } from '../save/save';
 import { canEnter } from '../world/access';
-import { ROOMS } from '../world/maps';
+import { ROOMS, isRetired } from '../world/maps';
 import { ceremonyScreen } from './ceremony';
 import { renderRelations } from './relations';
 import { renderItems } from './items';
@@ -427,7 +427,7 @@ function renderTab(s: GameState, tab: Tab, close: () => void, rerender: () => vo
       // 立ち入ったことのある部屋と、通常の案内図にある部屋だけを表示する（隠し区画は発見するまで載せない）
       const floors = ['3F', '2F', '1F', 'B1', 'B2'] as const;
       return floors.map((f) => {
-        const rooms = Object.values(ROOMS).filter((r) => r.floor === f && !isPrivateRoom(r.id) && (r.area !== 'secret' || !!s.flags[`visited_${r.id}`]));
+        const rooms = Object.values(ROOMS).filter((r) => r.floor === f && !isPrivateRoom(r.id) && !isRetired(r.id) && (r.area !== 'secret' || !!s.flags[`visited_${r.id}`]));
         if (!rooms.length) return null;
         return h('div', { class: 'map-floor' }, h('b', null, f), h('div', { class: 'map-rooms' }, rooms.map((r) => {
           const here = hero.pos.room === r.id;

@@ -7,7 +7,7 @@ import { ALL_IDS, type CharId } from '../data/characters';
 import { CONFIG } from '../data/config';
 import type { Actor, Dir, GameState } from '../core/types';
 import { canEnter, passFn } from './access';
-import { ROOMS, buildCollision, doorApproach, doorAt, doorDir, findDoor, type DoorDef } from './maps';
+import { RETIRED_ROOMS, ROOMS, buildCollision, isRetired, doorApproach, doorAt, doorDir, findDoor, type DoorDef } from './maps';
 import { findPath, nearestFree, roomRoute } from './path';
 import { cellOf, cellSpots, gateOpen, seatAllowed, type CellRef } from './cells';
 import { gateKey } from './furnitureGrid';
@@ -346,7 +346,24 @@ export function relocateStranded(state: GameState): boolean {
   for (const id of ALL_IDS) {
     const a = state.actors[id];
     if (!a?.alive) continue;
-    if (ROOMS[a.pos.room] && !/^cell_p\d+$/.test(a.pos.room)) continue;
+    // 新しい館の構成で外した部屋（RETIRED_ROOMS）にいる人は、決めた移し先へ。入れない時は寝起きする場所へ
+    if (ROOMS[a.pos.room] && isRetired(a.pos.room)) {
+      const dest = RETIRED_ROOMS[a.pos.room];
+      if (canEnter(state, id, dest)) placeIn(state, id, dest); else placeHome(state, id);
+      a.goal = undefined;
+      moved = true;
+      continue;
+    }
+    // 行き先が外した部屋になっている予定は取り消す（外した部屋へは歩いて行けない）
+    const goalRoom = (a.goal as { room?: string } | undefined)?.room;
+    if (goalRoom && isRetired(goalRoom)) { a.goal = undefined; a.path = []; a.route = []; }
+    if (a.route?.some((r) => isRetired(r))) { a.path = []; a.route = []; }
+    if (ROOMS[a.pos.room] && !/^cell_p\d+$/.test(a.pos.room)) {
+      // 自分の寝起きする場所へ歩いて戻れない所（入れない部屋に囲まれた所）に残っている人も、寝起きする場所へ移す
+      const home = homeOf(state, id);
+      if (a.pos.room !== home && ROOMS[home] && roomRoute(a.pos.room, home, passFn(state, id)) === null) { placeHome(state, id); a.goal = undefined; moved = true; }
+      continue;
+    }
     placeHome(state, id);
     moved = true;
   }
