@@ -59,9 +59,9 @@ export const UI_ASSETS: Record<string, AssetDef> = {
   'panel/window': { path: 'ui/panel/window', slice: S(96) },
   'panel/dialogue': { path: 'ui/panel/dialogue', slice: S(56) },
   'panel/nameplate': { path: 'ui/panel/nameplate', slice: S(44, 40) },
-  // 自己紹介の名札と台詞の枠（制作者の別作品「ミストラルモンスターズ バトルカード オンライン」から流用。加工なし）
-  'talk/intro_window': { path: 'ui/talk/intro_window', slice: S(60, 140) },
-  'talk/intro_name_plate': { path: 'ui/talk/intro_name_plate', slice: S(50, 70) },
+  // 会話の台詞の枠と名札（全画面共通。制作者の別作品「ミストラルモンスターズ バトルカード オンライン」から流用。加工なし）
+  'talk/window': { path: 'ui/talk/window', slice: S(60, 140) },
+  'talk/name_plate': { path: 'ui/talk/name_plate', slice: S(50, 70) },
   'panel/negotiation': { path: 'ui/panel/negotiation', slice: S(100) },
   // 左右の端だけを固定し、中央（4 区画の仕切りを含む）を横に伸ばす
   'panel/hud': { path: 'ui/panel/hud', slice: S(0, 70) },
