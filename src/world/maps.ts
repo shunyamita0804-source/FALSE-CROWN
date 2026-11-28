@@ -125,7 +125,7 @@ const ROOMS_SRC: RoomSrc[] = [
     id: 'living_hallway', name: '生活棟 廊下', floor: '3F', area: 'living', theme: 'living', w: 30, h: 12, image: 'maps/3f/living_hallway',
     walk: [[0,4,29,7]],
     block: [],
-    doors: [...BEDROOM_OWNERS.map((o, i) => D(`room${i}`, i < 6 ? 'up' : 'down', BEDROOM_DOOR_X[i % 6], i < 6 ? 4 : 7, 2, `bedroom_${o}`, 'out', 'door', '個室')),D('to_library','left',0,4,4,'library','to_hall','open','図書室'),D('to_lounge','right',29,4,4,'living_lounge','to_hall','open','生活棟ラウンジ')],
+    doors: [...BEDROOM_OWNERS.map((o, i) => D(`room${i}`, i < 6 ? 'up' : 'down', BEDROOM_DOOR_X[i % 6], i < 6 ? 4 : 7, 2, `bedroom_${o}`, 'out', 'door', '個室')),D('to_library','left',0,4,4,'library','to_hall','open','図書室'),D('to_lounge','right',29,4,4,'dining','from_hall','open','リビング')],
     inspects: [{id:'hall_plate',x:5,y:4,text:'各扉に参加者の名札が掛かっている。裏には部屋番号が刻まれている。',event:'nameplates'}],
     spots: S([[10,5],[15,6],[24,6],[10,6],[15,5]]),
   },
@@ -150,8 +150,8 @@ const ROOMS_SRC: RoomSrc[] = [
     id: 'game_room', name: '遊戯室', floor: '3F', area: 'living', theme: 'living', w: 24, h: 16, image: 'maps/3f/game_room',
     walk: [[1,4,22,14],[11,2,12,3],[11,15,12,15]],
     block: [[3,4,6,5],[1,4,2,4],[17,4,21,5],[22,4,22,4],[3,7,6,9],[17,7,21,9],[4,11,7,12],[5,13,6,13],[10,11,13,12],[17,11,19,12],[2,13,3,13],[1,12,1,13],[20,13,21,13],[22,12,22,13],[9,14,10,14],[13,14,14,14]],
-    doors: [D('to_hall','down',11,15,2,'common_hall','to_game','open','昇降機（2F 共用棟）'),D('to_obs','up',11,2,2,'observatory','to_game','open','展望室')],
-    inspects: [{id:'game_sub',x:7,y:8,text:'盤と駒が揃った卓。誰かと対局できそうだ。',event:'sub_games',area:[3,7,6,9],glow:'game_table_l'},{id:'game_sub_r',x:16,y:8,text:'盤と駒が揃った卓。誰かと対局できそうだ。',event:'sub_games',area:[17,7,20,9],glow:'game_table_r'},{id:'game_shelf',x:8,y:4,text:'棚には各国のボードゲーム。一つだけ、王冠の刻印がある箱が空だった。',event:'game_box'}],
+    doors: [D('to_hall','down',11,15,2,'dining','to_game','open','リビング')],
+    inspects: [{id:'game_obs_closed',x:11,y:3,text:'奥の扉は閉ざされている。この先は使われていないようだ。'},{id:'game_sub',x:7,y:8,text:'盤と駒が揃った卓。誰かと対局できそうだ。',event:'sub_games',area:[3,7,6,9],glow:'game_table_l'},{id:'game_sub_r',x:16,y:8,text:'盤と駒が揃った卓。誰かと対局できそうだ。',event:'sub_games',area:[17,7,20,9],glow:'game_table_r'},{id:'game_shelf',x:8,y:4,text:'棚には各国のボードゲーム。一つだけ、王冠の刻印がある箱が空だった。',event:'game_box'}],
     spots: S([[12,8],[9,9],[15,9],[8,6],[15,6]]),
   },
   {
@@ -172,10 +172,10 @@ const ROOMS_SRC: RoomSrc[] = [
     spots: S([[11,6],[9,6],[18,6],[10,8],[17,8]]),
   },
   {
-    id: 'dining', name: '食堂', floor: '2F', area: 'common', theme: 'common', w: 30, h: 20, image: 'maps/2f/dining',
+    id: 'dining', name: 'リビング', floor: '3F', area: 'living', theme: 'common', w: 30, h: 20, image: 'maps/2f/dining',
     walk: [[1,4,28,17],[1,1,2,3],[28,1,28,3],[14,18,15,19]],
     block: [[10,4,19,5],[8,4,8,4],[21,4,21,4],[5,4,7,4],[4,4,4,4],[22,4,24,4],[25,4,26,4],[4,5,6,7],[4,9,6,11],[24,5,26,7],[24,9,26,11],[10,8,13,11],[16,8,19,11],[3,14,8,16],[21,14,26,16],[1,15,1,17],[28,15,28,17],[12,17,13,17],[16,17,18,17]],
-    doors: [D('to_hall','down',14,19,2,'common_hall','to_dining','double','廊下'),D('to_lounge','up',1,1,2,'common_lounge','to_dining','open','共用ラウンジ'),D('to_garden','up',28,1,1,'garden','to_dining','open','庭園')],
+    doors: [D('from_hall','up',1,1,2,'living_hallway','to_lounge','open','生活棟 廊下'),D('to_game','up',28,1,1,'game_room','to_hall','open','遊戯室'),D('stairs','down',14,19,2,'main_hall','stairs_l','stairs_down','1F 中央ホール'),D('to_bath','right',28,9,2,'bathroom','to_hall','door','シャワー・トイレ')],
     inspects: [{id:'dining_buffet',x:14,y:6,text:'配膳台には温かい料理が並ぶ。好きな時間に食べられるようだ。奥は厨房で、台の向こうへは入れない。',event:'dining_meal'}],
     spots: S([[8,9],[21,9],[7,6],[22,6],[7,10],[22,10],[9,13],[20,13]]),
   },
@@ -196,20 +196,19 @@ const ROOMS_SRC: RoomSrc[] = [
     spots: S([[13,8],[10,11],[17,11],[9,7],[18,7]]),
   },
   {
-    id: 'bathroom', name: '浴室', floor: '2F', area: 'common', theme: 'common', w: 22, h: 16, image: 'maps/2f/bathroom',
-    overlay: { image: 'maps/2f/bathroom_unlocked_overlay', flag: 'h03_open' },
+    id: 'bathroom', name: 'シャワー・トイレ', floor: '3F', area: 'living', theme: 'common', w: 22, h: 16, image: 'maps/2f/bathroom',
     walk: [[1,4,20,14],[10,15,11,15]],
     block: [[8,6,13,9],[1,10,3,13],[4,11,4,13],[16,10,20,13],[1,4,1,4],[20,4,20,4],[8,14,9,14],[12,14,13,14]],
-    doors: [D('to_garden','down',10,15,2,'garden','to_bath','door','庭園'),D('secret','up',18,4,2,'mirror_room','from_bath','hidden','鏡の間','h03_open')],
-    inspects: [{id:'bath_mirror',x:16,y:4,text:'曇った鏡に、左右が逆になった記号が浮かんでいる。誰かの悪戯だろうか。',event:'h03_mirror'},{id:'bath_sink',x:4,y:5,text:'洗面台。石けん置きの下に、小さなメモが挟まっている。',event:'h03_sink'}],
+    doors: [D('to_hall','down',10,15,2,'dining','to_bath','door','リビング')],
+    inspects: [{id:'bath_toilet',x:1,y:9,text:'トイレの扉。中は小さな個室に分かれている。'},{id:'bath_mirror',x:16,y:4,text:'曇った鏡に、左右が逆になった記号が浮かんでいる。誰かの悪戯だろうか。',event:'h03_mirror'},{id:'bath_sink',x:4,y:5,text:'洗面台。石けん置きの下に、小さなメモが挟まっている。',event:'h03_sink'}],
     spots: S([[7,10],[6,7],[15,7],[10,5],[7,12]]),
   },
   {
     id: 'main_hall', name: '中央ホール', floor: '1F', area: 'ground', theme: 'arena', w: 32, h: 22, image: 'maps/1f/main_hall',
     walk: [[1,7,30,18],[15,19,16,21]],
     block: [[1,9,1,12],[30,9,30,12],[4,8,7,11],[24,8,27,11],[3,14,8,18],[1,16,2,18],[24,14,29,18],[30,16,30,18]],
-    doors: [D('stairs_l','up',2,7,2,'common_hall','stairs_down','stairs_up','2F 共用棟'),D('stairs_r','up',28,7,2,'common_hall','stairs_down','stairs_up','2F 共用棟'),D('to_shop','left',1,7,2,'shop','to_hall','open','交換所'),D('to_infirmary','right',30,7,2,'infirmary','to_hall','open','医務室'),D('to_arena','left',1,13,2,'main_arena','to_hall','open','大会競技場'),D('to_b1','right',30,13,2,'prison_hallway','stairs_up','iron','地下 監獄棟'),D('to_entrance','down',15,21,2,'entrance','to_hall','double','玄関')],
-    inspects: [{id:'hall_board',x:23,y:7,text:'大会の掲示台。',event:'board'},{id:'hall_emblem',x:16,y:12,text:'床に描かれた王冠の紋章。中心だけ、石の色がわずかに違う。',event:'hall_emblem'}],
+    doors: [D('stairs_l','up',2,7,2,'dining','stairs','stairs_up','3F 生活棟'),D('stairs_r','up',28,7,2,'dining','stairs','stairs_up','3F 生活棟'),D('to_arena','left',1,13,2,'main_arena','to_hall','open','大会競技場'),D('to_b1','right',30,13,2,'prison_cells','to_hall','iron','地下 監獄棟')],
+    inspects: [{id:'hall_shop',x:1,y:8,text:'交換所の窓口。ピースと引き換えに品物を受け取れる。',event:'shop'},{id:'hall_infirmary',x:30,y:8,text:'医務室の扉。今は閉まっている。'},{id:'hall_entrance',x:15,y:20,text:'正面玄関へ続く扉。大会期間中は施錠されている。表示板には残り日数が出ている。',event:'entrance_lock'},{id:'hall_board',x:23,y:7,text:'大会の掲示台。',event:'board'},{id:'hall_emblem',x:16,y:12,text:'床に描かれた王冠の紋章。中心だけ、石の色がわずかに違う。',event:'hall_emblem'}],
     spots: S([[16,9],[11,13],[20,13],[16,15],[10,9],[21,9],[13,17],[18,17],[9,13],[22,13],[19,17],[12,8]]),
   },
   {
@@ -258,15 +257,15 @@ const ROOMS_SRC: RoomSrc[] = [
     overlay: { image: 'maps/b1/prison_cells_unlocked_overlay', flag: 'h04_open' },
     walk: [[1,5,26,12],[13,13,14,17]],
     block: [[1,5,1,5],[1,6,1,8],[1,9,1,11],[2,10,3,11],[26,5,26,6],[25,7,26,8],[26,9,26,12]],
-    doors: [D('to_hall','down',13,17,2,'prison_hallway','to_cells','iron','通路'),D('secret','up',13,5,2,'cell_zero','from_cells','hidden','第零牢','h04_open')],
-    inspects: [{id:'cells_wall',x:12,y:5,text:'通路脇の石壁に、数字の列が浅く刻まれている。過去の参加者の落書きらしい。',event:'h04_wall'}],
+    doors: [D('to_hall','down',13,17,2,'main_hall','to_b1','iron','1F 中央ホール'),D('to_arena','up',24,5,2,'prison_arena','to_hall','iron','監獄マッチ会場'),D('secret','up',13,5,2,'cell_zero','from_cells','hidden','第零牢','h04_open')],
+    inspects: [{id:'cells_wash',x:2,y:9,text:'壁際の棚にタオルと水差し。ここで顔を洗い、身支度を整えるらしい。'},{id:'cells_wall',x:12,y:5,text:'通路脇の石壁に、数字の列が浅く刻まれている。過去の参加者の落書きらしい。',event:'h04_wall'}],
     spots: S([[8,8],[19,8],[12,9],[5,9],[20,9],[11,8],[16,8]]),
   },
   {
     id: 'prison_arena', name: '監獄マッチ会場', floor: 'B1', area: 'prison', theme: 'prison', w: 24, h: 18, image: 'maps/b1/prison_arena',
     walk: [[1,4,22,15],[11,16,12,17]],
     block: [[9,4,14,4],[7,6,16,6],[7,7,7,12],[16,7,16,12],[8,12,10,12],[13,12,15,12],[2,6,4,7],[2,12,4,13],[19,6,21,7],[20,12,21,13],[9,15,10,15],[13,15,14,15]],
-    doors: [D('to_hall','down',11,17,2,'prison_hallway','to_arena','iron','通路')],
+    doors: [D('to_hall','down',11,17,2,'prison_cells','to_arena','iron','共同牢')],
     inspects: [{id:'parena_table',x:11,y:11,text:'鉄柵に囲まれた競技区画。ここでの勝負に負けると、大会から脱落となる。',event:'prison_table'}],
     spots: S([[9,8],[14,8],[9,10],[14,10],[5,9],[18,9],[15,14]]),
   },
@@ -287,7 +286,7 @@ const ROOMS_SRC: RoomSrc[] = [
     spots: S([[10,7],[20,8],[15,6]]),
   },
   {
-    id: 'secret_study', name: '秘密の書斎', floor: 'B2', area: 'secret', theme: 'secret', w: 20, h: 14, image: 'maps/b2/secret_study',
+    id: 'secret_study', name: '秘密の書斎', floor: '3F', area: 'secret', theme: 'secret', w: 20, h: 14, image: 'maps/b2/secret_study',
     walk: [[1,4,18,11],[9,12,10,12]],
     block: [[1,5,3,8],[7,5,12,8],[16,5,18,9],[1,11,4,11],[15,11,18,11]],
     doors: [D('from_library','down',9,12,2,'library','secret','hidden','図書室')],
@@ -311,7 +310,7 @@ const ROOMS_SRC: RoomSrc[] = [
     spots: S([[12,12],[9,8],[14,8]]),
   },
   {
-    id: 'cell_zero', name: '第零牢', floor: 'B2', area: 'secret', theme: 'prison', w: 18, h: 14, image: 'maps/b2/cell_zero',
+    id: 'cell_zero', name: '第零牢', floor: 'B1', area: 'secret', theme: 'prison', w: 18, h: 14, image: 'maps/b2/cell_zero',
     walk: [[1,4,16,11],[8,12,9,12]],
     block: [[2,6,4,8],[13,6,16,8],[1,10,1,11],[2,11,3,11],[16,10,16,11],[16,4,16,5]],
     doors: [D('from_cells','down',8,12,2,'prison_cells','secret','hidden','共同牢')],
@@ -381,6 +380,32 @@ const ROOMS_SRC: RoomSrc[] = [
 const ROOMS_LIST: RoomDef[] = ROOMS_SRC.map((r) => ({ ...r, props: r.props ?? [], ambient: r.image ? 1 : 0.62 }));
 
 export const ROOMS: Record<string, RoomDef> = Object.fromEntries(ROOMS_LIST.map((r) => [r.id, r]));
+
+/**
+ * 新しい館の構成（2026-11-28 本人承認。/mnt/project-files/facility_layout/facility_layout_plan.md）で、
+ * 通常の動線から外した部屋。部屋の定義と絵は残す（古いセーブと開発者メニューのため）が、どの扉からもつながっていない。
+ * 値は、古いセーブでその部屋にいた人を移す先（生活棟側の移し先。監獄棟の人は共同牢、B2 は入口の部屋）。
+ */
+export const RETIRED_ROOMS: Record<string, string> = {
+  living_lounge: 'dining', common_hall: 'dining', common_lounge: 'dining', garden: 'dining',
+  observatory: 'game_room', shop: 'main_hall', infirmary: 'main_hall', entrance: 'main_hall',
+  prison_hallway: 'prison_cells', old_archive: 'prison_cells', underground_passage: 'prison_cells',
+  moon_casino: 'game_room', mirror_room: 'bathroom', maze_entry: 'prison_cells', black_door: 'prison_cells',
+  research_lab: 'prison_cells', surveillance: 'prison_cells', records_vault: 'prison_cells', isolation: 'prison_cells', core: 'prison_cells',
+};
+export const isRetired = (roomId: string): boolean => roomId in RETIRED_ROOMS;
+
+// 外した部屋の扉のうち、使い続ける部屋へ出るものは、移し先の部屋の扉へ出す（開発者メニューで入っても、出れば通常の動線へ戻れる。片道）
+for (const [id, dest] of Object.entries(RETIRED_ROOMS)) {
+  for (const d of ROOMS[id].doors) {
+    if (isRetired(d.to)) continue;
+    const back = ROOMS[d.to]?.doors.find((x) => x.id === d.toDoor);
+    if (back?.to === id) continue;
+    d.to = dest;
+    d.toDoor = ROOMS[dest].doors[0].id;
+    d.lock = undefined;
+  }
+}
 export const ROOM_IDS = ROOMS_LIST.map((r) => r.id);
 
 /**
