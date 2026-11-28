@@ -221,7 +221,8 @@ export function hudShow(v: boolean): void {
   const skip = button(t('hud.skip'), async () => {
     if (await confirmDialog(t('hud.skipTitle'), t('hud.skipText'), { ok: t('hud.skipOk'), cancel: t('common.cancel') })) G.skipFree();
   }, { small: true, kind: 'ghost' });
-  const pad = h('div', { class: 'touch-pad' }, (['up', 'down', 'left', 'right'] as const).map((d) => h('button', { class: d, type: 'button', 'data-key': d, 'aria-label': d }, { up: '▲', down: '▼', left: '◀', right: '▶' }[d])));
+  // 移動は画面左下の固定式アナログスティック（倒した方向へ歩く。中央の小さな範囲は反応しない）
+  const pad = h('div', { class: 'touch-stick', 'data-stick': '1', 'aria-label': t('hud.stick') }, h('div', { class: 'stick-base' }, h('div', { class: 'stick-knob' })));
   const actBtn = h('button', { type: 'button', 'data-key': 'a' }, h('span', { class: 'act-label' }, ''));
   const act = h('div', { class: 'touch-act' }, actBtn);
   const el = h('div', null,

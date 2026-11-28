@@ -17,6 +17,7 @@ function walkRight(frameMs: number[], totalMs: number): { dist: number; gaps: nu
   while (t < totalMs - 1e-6) {
     const dt = Math.min(frameMs[i++ % frameMs.length], totalMs - t);
     hero.intent = 'right';
+    hero.intentV = { x: 1, y: 0 };
     if (!hero.step) tryStep(s, hero, 'right');
     moveActor(s, hero, dt, speedOf('hero'));
     // 押し続けている間に「歩いていない」フレームが挟まらないこと
@@ -45,9 +46,11 @@ describe('歩行', () => {
     for (const a of Object.values(s.actors)) if (a.id !== 'hero') placeIn(s, a.id, 'main_hall');
     placeIn(s, 'hero', 'living_hallway', { x: 2, y: 5 });
     hero.intent = 'right';
+    hero.intentV = { x: 1, y: 0 };
     tryStep(s, hero, 'right');
     moveActor(s, hero, 100, speedOf('hero'));
     hero.intent = undefined;
+    hero.intentV = undefined;
     for (let k = 0; k < 60; k++) moveActor(s, hero, 1000 / 60, speedOf('hero'));
     expect(hero.step).toBeUndefined();
     expect(hero.pos.x).toBe(3);

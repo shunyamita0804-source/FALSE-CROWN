@@ -16,7 +16,8 @@ import { anyModal } from '../ui/dom';
 import { ROOMS, doorApproach, doorDir, propVisible, type DoorDef, type InspectDef, type RoomDef } from '../world/maps';
 import { PROPS } from '../world/props';
 import { furnitureOf, seatDepth, type Facing, type FurnitureProp, type Seat } from '../world/furniture';
-import { DIRS, actorsIn, drainDoorPasses, facingTile, nearbyAction, tryStep } from '../world/sim';
+import { DIRS, actorsIn, drainDoorPasses, facingTile, nearbyAction, stepToward } from '../world/sim';
+import { face4, keysVector, type Vec } from '../input/stick';
 import { WALK_LINGER_MS, walkFrame } from '../world/walk';
 import standAlign from '../data/stand_align.json';
 
@@ -611,6 +612,7 @@ export class FieldScene extends Phaser.Scene {
   }
 
   private pushKey = '';
+  private prevHeld: Dir | undefined;
   private pushMs = 0;
 
   update(_time: number, delta: number): void {
@@ -635,23 +637,31 @@ export class FieldScene extends Phaser.Scene {
     G.perf.h = this.scale.gameSize.height;
     const control = G.fieldActive && !anyModal() && !G.heroBusy;
     if (control) {
-      // 4 方向移動：押している方向へ 1 タイルずつ進む
-      const dirs: Dir[] = ['up', 'down', 'left', 'right'];
-      const held = dirs.find((d) => Input.isDown(d));
-      // 押している方向は「意図」として渡し、1 マス歩き終えた瞬間に次の 1 マスへ途切れずに進ませる
+      // 移動：スティック（スマホ）かキーボードの方向キー。斜めにも 1 マスずつ進む。速さは一定
+      const v: Vec | null = Input.stickVector() ?? keysVector(Input.isDown('up'), Input.isDown('down'), Input.isDown('left'), Input.isDown('right'));
+      const held: Dir | undefined = v ? face4(v, hero.pos.dir) : undefined;
+      const fresh = !!held && held !== this.prevHeld;
+      this.prevHeld = held;
+      // 押している向きは「意図」として渡し、1 マス歩き終えた瞬間に次の 1 マスへ途切れずに進ませる
       hero.intent = held;
-      if (!held) G.doorHold = false;
-      if (held) {
+      hero.intentV = v ?? undefined;
+      if (!v) G.doorHold = false;
+      if (v && held) {
         hero.path = [];
         hero.route = [];
         if (!hero.step) {
           const before = hero.pos.dir;
-          if (!tryStep(s, hero, held)) {
-            // 壁に向かって押した：扉なら通る
+          if (!stepToward(s, hero, v)) {
+            // 壁に向かって押した：扉なら通る（斜めに押した時は、縦横どちらかの成分が扉の向きなら通る）
             const room = ROOMS[hero.pos.room];
-            const door = room.doors.find((d) => doorDir(d) === held && doorApproach(room, d).some((t) => t.x === hero.pos.x && t.y === hero.pos.y));
-            if (door && !G.doorHold && (before === held || Input.justPressed(held))) G.interact({ kind: 'door', door }, true);
-            else if (!door) {
+            const comps = new Set<Dir>([held]);
+            if (Math.abs(v.x) > 0.38) comps.add(v.x > 0 ? 'right' : 'left');
+            if (Math.abs(v.y) > 0.38) comps.add(v.y > 0 ? 'down' : 'up');
+            const door = room.doors.find((d) => comps.has(doorDir(d)) && doorApproach(room, d).some((t) => t.x === hero.pos.x && t.y === hero.pos.y));
+            if (door && !G.doorHold && (before === doorDir(door) || fresh || comps.size > 1)) {
+              hero.pos.dir = doorDir(door);
+              G.interact({ kind: 'door', door }, true);
+            } else if (!door) {
               // 人に道を塞がれている：同じ方向へ押し続けると、相手と場所を入れ替わって通り抜ける（閉じ込められないようにする）
               const dd = DIRS[held];
               const tx = hero.pos.x + dd.dx;
@@ -664,6 +674,7 @@ export class FieldScene extends Phaser.Scene {
                 blocker.step = { x: hero.pos.x, y: hero.pos.y, p: 0 };
                 blocker.pos.dir = held === 'up' ? 'down' : held === 'down' ? 'up' : held === 'left' ? 'right' : 'left';
                 blocker.path = [];
+                hero.pos.dir = held;
                 hero.step = { x: tx, y: ty, p: 0 };
                 this.pushMs = 0;
               }
@@ -677,7 +688,13 @@ export class FieldScene extends Phaser.Scene {
       }
       if (Input.justPressed('start') || Input.justPressed('b')) G.openMenu();
     }
-    if (!control) hero.intent = undefined;
+    if (!control) {
+      hero.intent = undefined;
+      hero.intentV = undefined;
+      this.prevHeld = undefined;
+      // 画面の切り替え（扉）や会話の間は、スティックの指を解除する。触れ直すまで動かない
+      if (Input.stickActive()) Input.releaseStick();
+    }
     G.tick(dt);
     if (hero.pos.room !== this.roomId) this.buildRoom();
     this.updateDoors();

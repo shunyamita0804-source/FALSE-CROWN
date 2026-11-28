@@ -5,6 +5,7 @@
  */
 import { anyModal, uiKey, type NavKey } from '../ui/dom';
 import { TouchTracker } from './TouchTracker';
+import { StickTracker, type Vec } from './stick';
 
 export type ButtonName = 'up' | 'down' | 'left' | 'right' | 'a' | 'b' | 'start';
 
@@ -33,6 +34,10 @@ class InputStateImpl {
   private readonly touch = new TouchTracker<ButtonName>();
   /** 指ごとの、押し始めたボタン要素。要素が画面から消えたら解除する */
   private readonly touchEl = new Map<number, HTMLElement>();
+  /** 画面左下のアナログスティック（床の移動だけに使う） */
+  private readonly stick = new StickTracker();
+  private stickEl: HTMLElement | null = null;
+  private stickVec: Vec | null = null;
   private shown = new Set<ButtonName>();
   private prev = new Set<ButtonName>();
   private curr = new Set<ButtonName>();
@@ -80,7 +85,46 @@ class InputStateImpl {
   releaseTouch(): void {
     this.touch.clear();
     this.touchEl.clear();
+    this.releaseStick();
     this.paint();
+  }
+
+  /** スティックを離した状態にする（画面の切り替えや会話の開始で呼ぶ。もう一度触れ直すまで動かない） */
+  releaseStick(): void {
+    this.stick.clear();
+    this.stickEl = null;
+    this.stickVec = null;
+    this.paintStick();
+  }
+
+  /** スティックの土台（円）の中心と半径（画面上の px） */
+  private stickGeom(el: HTMLElement): { cx: number; cy: number; r: number } {
+    const base = el.querySelector<HTMLElement>('.stick-base') ?? el;
+    const b = base.getBoundingClientRect();
+    return { cx: b.left + b.width / 2, cy: b.top + b.height / 2, r: b.width / 2 };
+  }
+
+  private paintStick(): void {
+    document.querySelectorAll<HTMLElement>('[data-stick]').forEach((el) => {
+      const on = this.stick.active && el === this.stickEl;
+      el.classList.toggle('pressed', on);
+      el.classList.toggle('moving', on && !!this.stick.vector);
+      const knob = el.querySelector<HTMLElement>('.stick-knob');
+      if (!knob) return;
+      if (!on) {
+        knob.style.transform = '';
+        return;
+      }
+      // 画面は縮小して表示されるので、画面上の px を設計寸法へ戻してから動かす
+      const rect = el.getBoundingClientRect();
+      const k = rect.width > 0 ? el.offsetWidth / rect.width : 1;
+      const o = this.stick.knob;
+      knob.style.transform = `translate(${(o.x * k).toFixed(1)}px, ${(o.y * k).toFixed(1)}px)`;
+    });
+  }
+
+  private outside(e: PointerEvent): boolean {
+    return e.clientX < 0 || e.clientY < 0 || e.clientX >= window.innerWidth || e.clientY >= window.innerHeight;
   }
 
   private keyAt(x: number, y: number): { el: HTMLElement; name: ButtonName } | null {
@@ -103,6 +147,17 @@ class InputStateImpl {
   private listenTouch(): void {
     const opt = { capture: true, passive: false } as const;
     document.addEventListener('pointerdown', (e) => {
+      const st = e.target instanceof Element ? e.target.closest<HTMLElement>('[data-stick]') : null;
+      if (st) {
+        e.preventDefault();
+        if (anyModal()) return;
+        const g = this.stickGeom(st);
+        if (this.stick.down(e.pointerId, e.clientX - g.cx, e.clientY - g.cy, g.r)) {
+          this.stickEl = st;
+          this.paintStick();
+        }
+        return;
+      }
       const el = e.target instanceof Element ? e.target.closest<HTMLElement>('[data-key]') : null;
       if (!el) return;
       e.preventDefault();
@@ -117,6 +172,14 @@ class InputStateImpl {
       this.paint();
     }, opt);
     document.addEventListener('pointermove', (e) => {
+      if (this.stick.tracking(e.pointerId)) {
+        // 画面の外まで指が出たら解除する（戻ってきても、触れ直すまで動かない）
+        if ((e.pointerType === 'mouse' && e.buttons === 0) || this.outside(e) || !this.stickEl) return this.releaseStick();
+        const g = this.stickGeom(this.stickEl);
+        this.stick.move(e.pointerId, e.clientX - g.cx, e.clientY - g.cy, g.r);
+        this.paintStick();
+        return;
+      }
       if (!this.touch.tracking(e.pointerId)) return;
       // マウスはボタンを離した状態で動いたら解除する
       if (e.pointerType === 'mouse' && e.buttons === 0) return this.endTouch(e.pointerId);
@@ -137,11 +200,12 @@ class InputStateImpl {
       window.addEventListener(type, sync);
     }
     document.addEventListener('contextmenu', (e) => {
-      if (e.target instanceof Element && e.target.closest('[data-key]')) e.preventDefault();
+      if (e.target instanceof Element && e.target.closest('[data-key],[data-stick]')) e.preventDefault();
     });
   }
 
   private endTouch(id: number): void {
+    if (this.stick.tracking(id)) this.releaseStick();
     this.touch.up(id);
     this.touchEl.delete(id);
     this.paint();
@@ -149,6 +213,7 @@ class InputStateImpl {
 
   /** 押し始めたボタンが画面から消えた指を解除する */
   private pruneTouch(): void {
+    if (this.stickEl && (!this.stickEl.isConnected || this.stickEl.getClientRects().length === 0 || getComputedStyle(this.stickEl).visibility === 'hidden')) this.releaseStick();
     if (this.touchEl.size === 0) return;
     for (const [id, el] of [...this.touchEl]) {
       if (!el.isConnected || el.getClientRects().length === 0) this.endTouch(id);
@@ -161,10 +226,12 @@ class InputStateImpl {
     this.curr = new Set<ButtonName>();
     // 会話やメニューが開いたら、画面上のボタンは離したものとして扱う
     if (anyModal()) {
-      if (this.touch.size > 0) this.releaseTouch();
+      if (this.touch.size > 0 || this.stick.active) this.releaseTouch();
+      this.stickVec = null;
       return;
     }
     this.pruneTouch();
+    this.stickVec = this.stick.vector;
     const held = this.touch.held();
     for (const name of Object.keys(KEYMAP) as ButtonName[]) {
       if (this.swallow.has(name)) continue;
@@ -178,6 +245,16 @@ class InputStateImpl {
 
   justPressed(name: ButtonName): boolean {
     return this.curr.has(name) && !this.prev.has(name);
+  }
+
+  /** スティックの入力（無反応領域の内側、触れていない、会話やメニューの間は null） */
+  stickVector(): Vec | null {
+    return this.stickVec;
+  }
+
+  /** スティックに指が触れている（検証用） */
+  stickActive(): boolean {
+    return this.stick.active;
   }
 
   /** いま押されている画面上のボタン（検証用） */
