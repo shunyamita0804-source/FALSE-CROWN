@@ -296,10 +296,10 @@
       "extra": {
         "introduction": {
           "file": "11_intro.mp3",
-          "text": "御堂隆臣だ。会社を経営している。勝負に参加する以上、頂点を目指すつもりだ。",
-          "spokenName": "御堂隆臣",
-          "gain": 0.832,
-          "lufs": -17.4
+          "text": "リチャードだ。会社を経営している。勝負に参加する以上、頂点を目指すつもりだ。",
+          "spokenName": "リチャード",
+          "gain": 0.785,
+          "lufs": -16.9
         },
         "victory": {
           "file": "12_victory.mp3",
@@ -394,10 +394,10 @@
       "extra": {
         "introduction": {
           "file": "11_introduction.mp3",
-          "text": "白石紗夜です。心理学を学んでいます。人の考え方や行動に興味があるんです。よろしくお願いしますね。",
-          "spokenName": "白石紗夜",
-          "gain": 1.023,
-          "lufs": -19.2
+          "text": "クロエです。心理学を学んでいます。人の考え方や行動に興味があるんです。よろしくお願いしますね。",
+          "spokenName": "クロエ",
+          "gain": 0.861,
+          "lufs": -17.7
         },
         "victory": {
           "file": "12_victory.mp3",
@@ -492,10 +492,10 @@
       "extra": {
         "introduction": {
           "file": "11_introduction.mp3",
-          "text": "桐生颯。プロゲーマーやってる。こういう勝負なら、誰にも負ける気しないけどね。",
-          "spokenName": "桐生颯",
-          "gain": 0.582,
-          "lufs": -14.3
+          "text": "マイク。プロゲーマーやってる。こういう勝負なら、誰にも負ける気しないけどね。",
+          "spokenName": "マイク",
+          "gain": 0.589,
+          "lufs": -14.4
         },
         "victory": {
           "file": "12_victory.mp3",
@@ -786,10 +786,10 @@
       "extra": {
         "introduction": {
           "file": "11_introduction.mp3",
-          "text": "朝比奈ひまりです！ 大学生です。ちょっと緊張してるけど、みんなよろしくね！",
-          "spokenName": "朝比奈ひまり",
-          "gain": 0.861,
-          "lufs": -17.7
+          "text": "エミリーです！ 大学生です。ちょっと緊張してるけど、みんなよろしくね！",
+          "spokenName": "エミリー",
+          "gain": 0.902,
+          "lufs": -18.1
         },
         "victory": {
           "file": "12_victory.mp3",
@@ -884,10 +884,10 @@
       "extra": {
         "introduction": {
           "file": "11_introduction.mp3",
-          "text": "九条蓮司だ。職業はギャンブラー。せっかくの大会だ、楽しませてもらうよ。",
-          "spokenName": "九条蓮司",
-          "gain": 0.724,
-          "lufs": -16.2
+          "text": "フェリックスだ。職業はギャンブラー。せっかくの大会だ、楽しませてもらうよ。",
+          "spokenName": "フェリックス",
+          "gain": 0.733,
+          "lufs": -16.3
         },
         "victory": {
           "file": "12_victory.mp3",
@@ -982,10 +982,10 @@
       "extra": {
         "introduction": {
           "file": "11_intro.mp3",
-          "text": "如月麗華よ。女優をしているわ。ふふ、退屈しない大会になるといいわね。",
-          "spokenName": "如月麗華",
-          "gain": 1.072,
-          "lufs": -19.6
+          "text": "ロザリーよ。女優をしているわ。ふふ、退屈しない大会になるといいわね。",
+          "spokenName": "ロザリー",
+          "gain": 1.084,
+          "lufs": -19.7
         },
         "victory": {
           "file": "12_victory.mp3",
@@ -1080,10 +1080,10 @@
       "extra": {
         "introduction": {
           "file": "11_introduction.mp3",
-          "text": "久世宗一郎と申します。大学で教鞭を執っております。実に興味深い大会だね。",
-          "spokenName": "久世宗一郎",
-          "gain": 0.912,
-          "lufs": -18.2
+          "text": "アルバートと申します。以前は大学で教鞭を執っておりました。実に興味深い大会だね。",
+          "spokenName": "アルバート",
+          "gain": 0.861,
+          "lufs": -17.7
         },
         "victory": {
           "file": "12_victory.mp3",
