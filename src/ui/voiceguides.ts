@@ -18,6 +18,8 @@ import { AID_COST as M04_AID_COST, applyAct as applyRail, BREAK_EVERY as M04_BRE
 import { Sound } from '../audio/audio';
 import { CARD_MAX, CORRECT, EXTRA_COST, EXTRA_MAX, M05_PRACTICE, PER_CARD, PREP_MS as M05_PREP_MS, ROUNDS as M05_ROUNDS, SOLVE_MS, TEAM_BONUS, TIME_MAX, type Tok } from '../matches/m05';
 import { ExprPad, exprEl } from './exprpad';
+import { AID_COST as M06_AID_COST, BREAK_MS as M06_BREAK_MS, FLUSH_PTS, MATCH_PTS, ROUNDS as M06_ROUNDS, TOP_PTS, TRIPLE_PTS, matchesIn } from '../matches/m06';
+import { cardBack, cardEl } from './cards';
 import { RailMap, SEAT_COLORS, type RailMapData } from './railmap';
 import { LinkBoard } from './linkboard';
 import { boardFigure, MemQuiz } from './memquiz';
@@ -639,5 +641,149 @@ function m05Voiced(ctx: TutCtx = {}): VoicedGuide {
   };
 }
 
+/**
+ * M06 クロス・カード。個人戦。収録の「参加者7人」は 7 人の時だけ使い、違えば字幕だけにする。
+ * 終了時のボーナスの点は、声では「画面のボーナス欄」を案内している（数は図に出す）。
+ */
+function m06Voiced(ctx: TutCtx = {}): VoicedGuide {
+  const players = playersOf(ctx);
+  const cd = (rank: number, suit: number) => suit * 13 + rank - 1;
+  const hand0 = [cd(4, 0), cd(9, 3), cd(2, 1), cd(12, 2), cd(6, 0)];
+  const field0 = [cd(9, 2), cd(3, 3), cd(13, 0), cd(5, 1), cd(7, 2)];
+  const row = (cards: number[], mark: number[] = [], k = '') => h('div', { class: 'xc-row mini', 'data-k': k }, cards.map((c) => cardEl(c, { cls: `small${mark.includes(c) ? ' sel' : ''}` })));
+  const lbl = (text: string, el: HTMLElement) => h('div', { class: 'row', style: 'gap:10px;align-items:center' }, h('span', { class: 'xc-lbl' }, text), el);
+  const tg = (k: string) => h('span', { class: 'xc-target', 'data-k': k }, t(`m06.tg.${k}`));
+  return {
+    name: 'クロス・カード',
+    steps: [
+      { id: 'title', title: t('vt.m06.title'), build: () => ({ el: titleCard('06', 'クロス・カード', 'CROSS CARD') }) },
+      {
+        id: 'format', title: t('vt.m06.format'),
+        facts: { players: players.length },
+        alt: () => ({ text: t('vt.m06.formatAlt', { n: players.length, rounds: M06_ROUNDS }) }),
+        build: () => {
+          const el = col(h('div', { class: 'row vt-order', style: 'gap:6px;flex-wrap:wrap;justify-content:center' }, players.map((id) => face(id))), factRow(fact('rounds', String(M06_ROUNDS), t('vt.m02.rounds'))),
+            h('div', { class: 'col', style: 'gap:8px' }, lbl(t('m06.field'), row(field0, [], 'field')), lbl(t('m06.hand'), row(hand0, [], 'hand'))));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '.vt-order') }, { at: 0.3, run: () => focus(el, '[data-f="rounds"]') }, { at: 0.6, run: () => focus(el, '[data-k="hand"]') }, { at: 0.8, run: () => focus(el, '[data-k="field"]') }] };
+        },
+      },
+      {
+        id: 'cards', title: t('vt.m06.cards'),
+        build: () => {
+          const el = col(row([cd(1, 0), cd(1, 1), cd(1, 2), cd(1, 3)], [], 'suits'), row([cd(1, 0), cd(7, 0), cd(11, 0), cd(12, 0), cd(13, 0)], [], 'ranks'),
+            h('div', { class: 'col', style: 'gap:8px' }, lbl(t('m06.hand'), row(hand0, [], 'hand')), lbl(t('m06.field'), h('div', { class: 'row', style: 'gap:6px' }, row(field0, [], 'field'), cardBack('small')))));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-k="suits"]') }, { at: 0.25, run: () => focus(el, '[data-k="ranks"]') }, { at: 0.6, run: () => focus(el, '[data-k="hand"]') }, { at: 0.8, run: () => focus(el, '[data-k="field"]') }] };
+        },
+      },
+      {
+        id: 'exchange', title: t('vt.m06.exchange'),
+        build: () => {
+          const el = col(lbl(t('m06.field'), row(field0, [cd(9, 2)], 'field')), h('span', { class: 'tg-arrow' }, '⇅'), lbl(t('m06.hand'), row(hand0, [cd(4, 0)], 'hand')), cap('pass', t('vt.m06.passNote')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-k="hand"]') }, { at: 0.2, run: () => focus(el, '[data-k="field"]') }, { at: 0.45, run: () => focus(el, '[data-k="pass"]') }] };
+        },
+      },
+      {
+        id: 'target', title: t('vt.m06.target'),
+        build: () => {
+          const el = h('div', { class: 'row', style: 'gap:18px;align-items:flex-start' },
+            ...[['pair', [cd(9, 3), cd(9, 2)]], ['suit', [cd(4, 0), cd(12, 0)]], ['run', [cd(6, 0), cd(7, 2)]]].map(([k, cs]) => h('div', { class: 'col', style: 'gap:8px;align-items:center' }, tg(k as string), row(cs as number[]))));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '.xc-target') }, { at: 0.35, run: () => focus(el, '[data-k="pair"]') }, { at: 0.5, run: () => focus(el, '[data-k="suit"]') }, { at: 0.65, run: () => focus(el, '[data-k="run"]') }] };
+        },
+      },
+      {
+        id: 'submit', title: t('vt.m06.submit'),
+        build: () => {
+          const el = col(tg('pair'), h('div', { class: 'row', style: 'gap:8px' }, cardBack('small'), cardBack('small')), cap('max', t('vt.m06.upTo2')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-k="max"]') }, { at: 0.6, run: () => focus(el, '[data-k="pair"]') }] };
+        },
+      },
+      {
+        id: 'scoring', title: t('vt.m06.scoring'),
+        build: () => {
+          const el = col(h('div', { class: 'm01-score' }, chip('ok', t('vt.m06.done'), `+${MATCH_PTS}`), h('span', { class: 'plus' }, '+'), chip('top', t('vt.m06.top'), `+${TOP_PTS}`)), cap('top', t('vt.m06.topNote')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-k="ok"]') }, { at: 0.6, run: () => focus(el, '.tg-cap[data-k="top"]') }] };
+        },
+      },
+      {
+        id: 'refill', title: t('vt.m06.refill'),
+        build: () => {
+          const el = col(h('div', { class: 'row', style: 'gap:22px;align-items:center' }, h('div', { class: 'col', style: 'gap:6px;align-items:center', 'data-k': 'disc' }, h('small', null, t('vt.m06.discard')), row([cd(9, 3), cd(9, 2)])), h('div', { class: 'col', style: 'gap:6px;align-items:center', 'data-k': 'deck' }, h('small', null, t('vt.m06.deck')), cardBack('small'))),
+            cap('last', t('vt.m06.lastNote')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-k="disc"]') }, { at: 0.3, run: () => focus(el, '[data-k="deck"]') }, { at: 0.85, run: () => focus(el, '[data-k="last"]') }] };
+        },
+      },
+      {
+        id: 'final_bonus', title: t('vt.m06.bonus'),
+        build: () => {
+          const el = h('div', { class: 'col', style: 'gap:12px;align-items:center' },
+            h('div', { class: 'row', style: 'gap:14px;align-items:center', 'data-k': 'tri' }, row([cd(8, 0), cd(8, 1), cd(8, 3)]), h('b', { class: 'gold' }, `+${TRIPLE_PTS}`)),
+            h('div', { class: 'row', style: 'gap:14px;align-items:center', 'data-k': 'fl' }, row([cd(2, 2), cd(5, 2), cd(10, 2), cd(13, 2)]), h('b', { class: 'gold' }, `+${FLUSH_PTS}`)),
+            cap('both', t('vt.m06.both')));
+          return { el, cues: [{ at: 0.2, run: () => focus(el, '[data-k="tri"]') }, { at: 0.4, run: () => focus(el, '[data-k="fl"]') }, { at: 0.7, run: () => focus(el, '[data-k="both"]') }] };
+        },
+      },
+      {
+        id: 'negotiation', title: t('vt.m06.talk'),
+        build: () => {
+          const el = col(factRow(fact('break', String(M06_BREAK_MS / 1000), t('vt.m06.breakSec'))), cap('talk', t('vt.m06.talkNote')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-f="break"]') }, { at: 0.75, run: () => focus(el, '[data-k="talk"]') }] };
+        },
+      },
+      {
+        id: 'piece_help', title: t('vt.m06.aid'),
+        build: () => {
+          const el = col(h('div', { class: 'row', style: 'gap:14px;align-items:center' }, row([cd(2, 1)], [], 'old'), h('span', { class: 'tg-arrow' }, '⇄'), h('div', { 'data-k': 'deck' }, cardBack('small'))),
+            h('div', { class: 'm01-score' }, chip('cost', t('vt.m04.aidChip'), String(M06_AID_COST))), cap('once', t('vt.m06.aidNote')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-k="cost"]') }, { at: 0.25, run: () => focus(el, '[data-k="deck"]') }, { at: 0.6, run: () => focus(el, '[data-k="once"]') }] };
+        },
+      },
+      {
+        id: 'ranking', title: t('vt.m02.tie'),
+        build: () => {
+          const el = h('div', { class: 'col vt-tiers', style: 'gap:8px;align-items:stretch' },
+            ['tie1', 'tie2', 'tie3', 'tie4'].map((k, i) => h('div', { class: 'tg-cap', 'data-k': k }, `${i + 1}. ${t(`vt.m06.${k}`)}`)));
+          return { el, cues: [{ at: 0.02, run: () => focus(el, '[data-k="tie1"]') }, { at: 0.2, run: () => focus(el, '[data-k="tie2"]') }, { at: 0.55, run: () => focus(el, '[data-k="tie3"]') }] };
+        },
+      },
+      {
+        // 収録に無い段階（字幕と札だけ）。tutorial.ts の練習と同じ
+        id: 'practice', title: t('tut.practice'), text: t('tut.m06.practice'),
+        build: () => {
+          let finish: () => void = () => undefined;
+          const task = new Promise<void>((res) => { finish = res; });
+          const box = h('div', { class: 'xc prac' });
+          let hand = [...hand0];
+          let field = [...field0];
+          let sh: number | undefined;
+          let sf: number | undefined;
+          let msg = t('m06.swapHow');
+          let done = false;
+          const draw = (): void => {
+            const mk = (c: number, sel: boolean, on: () => void) => { const el = cardEl(c, { button: true, disabled: done, cls: `small${sel ? ' sel' : ''}` }); el.addEventListener('click', on); return el; };
+            const swap = button(t('m06.swap'), () => {
+              const nh = hand.map((c) => (c === sh ? sf! : c));
+              if (!matchesIn('pair', nh).length) { msg = t('tut.m06.pracNg'); sh = sf = undefined; draw(); return; }
+              field = field.map((c) => (c === sf ? sh! : c));
+              hand = nh;
+              sh = sf = undefined;
+              done = true;
+              msg = t('tut.m06.pracDone');
+              draw();
+              finish();
+            }, { kind: 'primary', disabled: done || sh === undefined || sf === undefined });
+            box.replaceChildren(
+              h('div', { class: 'xc-head' }, h('span', { class: 'small dim' }, t('m06.targetIs')), h('span', { class: 'xc-target big' }, t('m06.tg.pair'))),
+              h('div', { class: 'xc-row' }, h('span', { class: 'xc-lbl' }, t('m06.field')), field.map((c) => mk(c, sf === c, () => { sf = sf === c ? undefined : c; draw(); }))),
+              h('div', { class: 'xc-row hand' }, h('span', { class: 'xc-lbl' }, t('m06.hand')), hand.map((c) => mk(c, sh === c, () => { sh = sh === c ? undefined : c; draw(); }))),
+              h('div', { class: 'xc-foot' }, h('span', { class: 'small xc-note' }, msg), swap));
+          };
+          draw();
+          return { el: box, task, prompt: t('tut.m06.practice'), final: true };
+        },
+      },
+    ],
+  };
+}
+
 /** 競技 ID → 説明。ctx はその場の順番と参加者（無ければ収録どおりの場面とみなす） */
-export const VOICED: Record<string, (ctx?: TutCtx) => VoicedGuide> = { m01: m01Voiced, m02: m02Voiced, m03: m03Voiced, m04: m04Voiced, m05: m05Voiced };
+export const VOICED: Record<string, (ctx?: TutCtx) => VoicedGuide> = { m01: m01Voiced, m02: m02Voiced, m03: m03Voiced, m04: m04Voiced, m05: m05Voiced, m06: m06Voiced };
