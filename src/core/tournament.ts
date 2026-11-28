@@ -23,7 +23,7 @@ export function prisonMatchId(day: number): string | null {
 }
 
 /** メインマッチの確定順位から棟分けと報酬を適用する */
-export function applyMainResult(state: GameState, ranking: CharId[], scores: Partial<Record<CharId, number>>): { living: CharId[]; prison: CharId[]; rewards: Partial<Record<CharId, number>> } {
+export function applyMainResult(state: GameState, ranking: CharId[], scores: Partial<Record<CharId, number>>): { living: CharId[]; prison: CharId[]; rewards: Partial<Record<CharId, number>>; balances: Partial<Record<CharId, number>> } {
   const sch = scheduleFor(state.day);
   if (ranking.length !== aliveIds(state).length) throw new Error('順位の人数が生存者数と一致しません');
   const nPrison = sch.prison;
@@ -39,7 +39,12 @@ export function applyMainResult(state: GameState, ranking: CharId[], scores: Par
       rewards[id] = r;
       if (r > 0) transfer(state, 'host', id, r, `DAY${state.day} メインマッチ報酬`);
     });
+    // 監獄棟へ行く人の獲得は 0（結果画面で「+0」と出すため、明示して入れておく）
+    for (const id of prison) rewards[id] = 0;
   }
+  // 報酬を受け取った直後の残高（結果画面用）。このあと救いのメダルで棟が変わっても、報酬と残高は変えない
+  const balances: Partial<Record<CharId, number>> = {};
+  for (const id of ranking) balances[id] = state.actors[id].pieces;
   for (const id of living) state.actors[id].house = 'living';
   for (const id of prison) state.actors[id].house = 'prison';
   // 棟分けに合わせて個室を割り当て直す（監獄棟は順位の良い順に空き部屋へ。生活棟へ戻った人は元の部屋）
@@ -56,7 +61,7 @@ export function applyMainResult(state: GameState, ranking: CharId[], scores: Par
   });
   state.board.push({ day: state.day, text: nPrison ? `DAY${state.day} メインマッチ「${sch.main.toUpperCase()}」　監獄棟：${prison.map((id) => nameOf(state, id)).join('、')}` : `DAY${state.day} 決勝「${sch.main.toUpperCase()}」　優勝：${nameOf(state, ranking[0])}` });
   fact(state, 'main_result', ranking, `DAY${state.day} メイン結果`, { ranking, scores });
-  return { living, prison, rewards };
+  return { living, prison, rewards, balances };
 }
 
 /** 棟別の初期位置へ移動 */
