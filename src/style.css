@@ -2020,3 +2020,11 @@ body.touch .rl-seg { min-height: 76px; }
 .bg-clue.miss { color: #ff9f8f; }
 .bg-slots .sg-slot span { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.05; }
 .bg-slots .sg-slot small { font-size: 0.55em; color: var(--gold2, #e8c97a); }
+
+/* 集合移動中（ui/gather.ts） */
+.gather-panel { min-width: 560px; }
+.gather-dest { font-size: 1.05em; color: var(--gold2); }
+.gather-next { font-size: 0.98em; }
+.gather-count { font-size: 0.9em; }
+.strat-time.low { color: #ff9b7a; }
+.gather-talk .gather-talk-menu { justify-content: flex-end; }

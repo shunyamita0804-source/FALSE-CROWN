@@ -257,6 +257,8 @@ export function hudUpdate(): void {
   e.timer.textContent = fmtClock(clockMinutes(s));
   const next = curfew ? null : nextSchedule(s);
   e.phase.textContent = curfew ? t('sched.sleepHint') : next ? t('hud.next', { what: t(`sched.${next.item.key}`), at: fmtClock(next.item.at), n: next.inMin }) : '';
+  // 集合移動中：時計は止まっている。次の予定の代わりに集合中と出す
+  if (G.gather) e.phase.textContent = t('gather.hud');
   const low = free && !curfew && !!next?.item.hard && next.inMin <= 10;
   e.timer.classList.toggle('low', low);
   e.phase.classList.toggle('low', low);
