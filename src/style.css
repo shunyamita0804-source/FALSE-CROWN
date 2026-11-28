@@ -1763,7 +1763,7 @@ body .vt-foot .btn.btn-s { min-height: 76px; }
 .intro-head span { color: var(--ivory-dim); }
 .intro-profile { display: none; }
 /* 本人の指示（2026-11-28）：人物の絵に枠は付けない。透過の胸上の絵を、台詞の枠の左上に立たせる */
-.intro-profile.on { display: block; align-self: flex-start; margin: 0 0 -44px -44px; height: 300px; pointer-events: none; position: relative; z-index: 0; }
+.intro-profile.on { display: block; align-self: flex-start; margin: 0 0 -22px -44px; height: 280px; pointer-events: none; position: relative; z-index: 0; }
 .intro-profile .intro-bust { height: 100%; width: auto; aspect-ratio: 1 / 1; background-size: 125% auto; background-position: 50% 2%; filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55)); -webkit-mask-image: linear-gradient(#000 88%, transparent); mask-image: linear-gradient(#000 88%, transparent); animation: intro-in 260ms ease-out; }
 /* 名前と年齢・職業：1 行の名札。台詞の枠の上の縁の左寄りに半分かぶせる（会話の .dlg-name と同じ形。下の「会話表示の統一」） */
 .intro-tab { display: none; }
@@ -1902,3 +1902,7 @@ html[data-ui-assets~="talk/window"] .dlg-next { right: -40px; bottom: -14px; }
 .dlg-screen .dlg-box { z-index: 1; }
 .bust.dlg-portrait { z-index: 0; bottom: calc(60px + var(--safe-bottom)); -webkit-mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%); mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%); }
 
+/* 会話の人物は小さめにして上半身まで見せる（2026-11-28 本人の指示「顔がアップすぎる」）。絵全体を枠の後ろまで下ろし、胸から上が枠の上に出る */
+.bust.bust-art.dlg-portrait { top: auto; height: 360px; bottom: calc(150px + var(--safe-bottom)); }
+/* 台詞の枠は 2〜3 行が収まる高さにとどめ、人物の上半身が見える余白を残す */
+html[data-ui-assets~="talk/window"] .dlg-box { min-height: 96px; }
