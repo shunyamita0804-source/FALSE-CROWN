@@ -103,4 +103,4 @@ DAY 2 以降の競技（M02〜M11、P02〜P10、裏ゲーム、サブゲーム�
 - `characters/npc_10_kujo/portrait_{smile,anger,sad,surprise,think,smirk,wary}.png`
 - `characters/npc_07_tachibana/portrait_{smile,anger,sad,surprise,think,smirk,wary}.png`
 - `characters/npc_06_kiryu/portrait_{smile,anger,sad,surprise,think,smirk,wary}.png`
-見比べの画像：`/mnt/project-files/portrait_defects/portrait_defects.png`。差し替えが届いたら `src/ui/art.ts` の `BROKEN_EXPR` から外す。
+見比べの画像：`/mnt/project-files/portrait_defects/portrait_defects.png`。描き直しの依頼 ZIP（プロンプト、参照画像、寸法）：`/mnt/project-files/portrait_defects/FALSE_CROWN_portrait_redraw_request.zip`。差し替えが届いたら `src/ui/art.ts` の `BROKEN_EXPR` から外す。
