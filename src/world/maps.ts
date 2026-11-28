@@ -7,6 +7,8 @@
  * - doors: 出入口。tiles は扉の手前の床、dir はそこから進む向き
  * 接続関係は正式素材に描かれた出入口（下中央の出口、上中央の通路、階段、昇降機、廊下の両端）に合わせている。
  */
+import { applyFurniture, type GateFn } from './furnitureGrid';
+
 export type Theme = 'living' | 'common' | 'arena' | 'prison' | 'secret' | 'garden';
 export type Side = 'top' | 'bottom' | 'left' | 'right';
 export type DoorDir = 'up' | 'down' | 'left' | 'right';
@@ -109,26 +111,6 @@ function bedroom(owner: string, i: number): RoomSrc {
   };
 }
 
-/** 監獄棟の個室の扉（共同牢の背景に描かれた 11 区画の格子の前）。[x, 上の列か下の列か] */
-const CELL_DOORS: [number, 'up' | 'down'][] = [[2, 'up'], [6, 'up'], [9, 'up'], [17, 'up'], [21, 'up'], [2, 'down'], [6, 'down'], [9, 'down'], [17, 'down'], [21, 'down'], [24, 'down']];
-const cellId = (i: number) => `cell_p${String(i + 1).padStart(2, '0')}`;
-
-/**
- * 監獄棟の個室。内部の正式な背景画像がまだ無いため、既存の部品（寝台、小机、照明）をプログラムで並べた仮の部屋。
- * 正式画像が届いたら image を指定するだけで差し替わる（必要な画像は docs/assets/needed_art.md）。
- */
-function cell(i: number): RoomSrc {
-  const id = cellId(i);
-  return {
-    id, name: '監獄棟の個室', floor: 'B1', area: 'prison', theme: 'prison', w: 12, h: 10, image: '', floorStyle: 'concrete',
-    walk: [[1, 3, 10, 8], [5, 9, 6, 9]],
-    block: [[1, 3, 2, 5], [8, 3, 9, 4], [7, 8, 9, 8]],
-    doors: [D('out', 'down', 5, 9, 2, 'prison_cells', `cell${i}`, 'iron', '共同牢')],
-    props: [{ type: 'bed_prison', x: 1, y: 3 }, { type: 'small_table', x: 8, y: 3 }, { type: 'cold_lamp', x: 5, y: 1 }, { type: 'bench', x: 7, y: 8 }],
-    inspects: [{ id: `bed_${id}`, x: 3, y: 4, text: '硬い寝台。薄い毛布が 1 枚たたんである。', event: 'rest_bed' }],
-    spots: S([[3, 6], [4, 7], [7, 6]]),
-  };
-}
 
 const ROOMS_SRC: RoomSrc[] = [
   {
@@ -145,7 +127,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,24,16],[12,17,13,17]],
     block: [[3,4,4,4],[6,4,9,5],[16,4,19,5],[22,4,23,4],[1,6,2,8],[1,9,2,12],[4,6,8,8],[4,9,8,11],[11,6,14,8],[17,6,21,8],[17,9,21,11],[23,6,24,8],[23,9,24,12],[11,12,14,14],[9,13,10,14],[15,13,16,14],[3,14,6,15],[1,14,1,15],[20,14,22,15],[24,14,24,15],[10,16,11,16],[14,16,15,16]],
     doors: [D('to_hall','down',12,17,2,'living_hallway','to_library','door','廊下'),D('secret','up',12,4,2,'secret_study','from_library','hidden','隠し書斎','h01_open')],
-    inspects: [{id:'lib_shelf_order',x:10,y:4,text:'背表紙の番号が不揃いに並んでいる。並べ替えると何かの順番になりそうだ。',event:'h01_shelf'},{id:'lib_diary',x:12,y:9,text:'机の上に古い詩集。「王は六つの数を愛した」という一節に栞が挟んである。',event:'h01_diary'},{id:'lib_rules',x:19,y:14,text:'過去の大会規則の写本。頭脳戦の歴史が綴られている。',event:'lib_rulebook'}],
+    inspects: [{id:'lib_shelf_order',x:10,y:4,text:'背表紙の番号が不揃いに並んでいる。並べ替えると何かの順番になりそうだ。',event:'h01_shelf'},{id:'lib_diary',x:12,y:9,text:'机の上に古い詩集。「王は六つの数を愛した」という一節に栞が挟んである。',event:'h01_diary'},{id:'lib_rules',x:18,y:14,text:'過去の大会規則の写本。頭脳戦の歴史が綴られている。',event:'lib_rulebook'}],
     spots: S([[12,10],[10,5],[15,10],[9,12],[16,12]]),
   },
   {
@@ -187,7 +169,7 @@ const ROOMS_SRC: RoomSrc[] = [
     block: [[10,4,19,5],[8,4,8,4],[21,4,21,4],[5,4,7,4],[4,4,4,4],[22,4,24,4],[25,4,26,4],[4,5,6,7],[4,9,6,11],[24,5,26,7],[24,9,26,11],[10,8,13,11],[16,8,19,11],[3,14,8,16],[21,14,26,16],[1,15,1,17],[28,15,28,17],[12,17,13,17],[16,17,18,17]],
     doors: [D('to_hall','down',14,19,2,'common_hall','to_dining','double','廊下'),D('to_lounge','up',1,1,2,'common_lounge','to_dining','open','共用ラウンジ'),D('to_garden','up',28,1,1,'garden','to_dining','open','庭園')],
     inspects: [{id:'dining_buffet',x:14,y:6,text:'配膳台には温かい料理が並ぶ。好きな時間に食べられるようだ。奥は厨房で、台の向こうへは入れない。',event:'dining_meal'}],
-    spots: S([[9,9],[20,9],[7,6],[22,6],[7,10],[22,10],[9,13],[20,13]]),
+    spots: S([[8,9],[21,9],[7,6],[22,6],[7,10],[22,10],[9,13],[20,13]]),
   },
   {
     id: 'garden', name: '屋内庭園', floor: '2F', area: 'common', theme: 'garden', w: 28, h: 20, image: 'maps/2f/garden',
@@ -228,7 +210,7 @@ const ROOMS_SRC: RoomSrc[] = [
     block: [[12,5,19,6],[3,5,5,5],[26,5,28,5],[24,5,24,5],[10,8,22,13],[9,10,9,11],[2,16,7,18],[1,18,1,19],[4,19,5,19],[24,16,29,18],[26,19,27,19],[30,18,30,19],[1,19,14,19],[17,19,30,19]],
     doors: [D('to_hall','down',15,21,2,'main_hall','to_arena','double','中央ホール')],
     inspects: [{id:'arena_judge',x:16,y:7,text:'審判台。進行役のオブザーバーがここに立つ。台の裏に小さな鍵穴がある。',event:'arena_judge'}],
-    spots: S([[11,14],[13,14],[15,14],[17,14],[19,14],[21,14],[11,7],[13,7],[15,7],[17,7],[19,7],[21,7]]),
+    spots: S([[11,14],[13,14],[15,14],[17,14],[19,14],[22,14],[11,7],[13,7],[15,7],[17,7],[19,7],[21,7]]),
   },
   {
     id: 'shop', name: '交換所', floor: '1F', area: 'ground', theme: 'arena', w: 20, h: 14, image: 'maps/1f/shop',
@@ -267,7 +249,7 @@ const ROOMS_SRC: RoomSrc[] = [
     overlay: { image: 'maps/b1/prison_cells_unlocked_overlay', flag: 'h04_open' },
     walk: [[1,5,26,12],[13,13,14,17]],
     block: [[1,5,1,5],[1,6,1,8],[1,9,1,11],[2,10,3,11],[26,5,26,6],[25,7,26,8],[26,9,26,12]],
-    doors: [D('to_hall','down',13,17,2,'prison_hallway','to_cells','iron','通路'),D('secret','up',13,5,2,'cell_zero','from_cells','hidden','第零牢','h04_open'),...CELL_DOORS.map(([x, dir], i) => D(`cell${i}`, dir, x, dir === 'up' ? 5 : 12, 2, cellId(i), 'out', 'iron', '個室'))],
+    doors: [D('to_hall','down',13,17,2,'prison_hallway','to_cells','iron','通路'),D('secret','up',13,5,2,'cell_zero','from_cells','hidden','第零牢','h04_open')],
     inspects: [{id:'cells_wall',x:12,y:5,text:'通路脇の石壁に、数字の列が浅く刻まれている。過去の参加者の落書きらしい。',event:'h04_wall'}],
     spots: S([[8,8],[19,8],[12,9],[5,9],[20,9],[11,8],[16,8]]),
   },
@@ -324,7 +306,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,16,11],[8,12,9,12]],
     block: [[2,6,4,8],[13,6,16,8],[1,10,1,11],[2,11,3,11],[16,10,16,11],[16,4,16,5]],
     doors: [D('from_cells','down',8,12,2,'prison_cells','secret','hidden','共同牢')],
-    inspects: [{id:'zero_letters',x:5,y:7,text:'「挑戦状」と書かれた封筒の束。以前の参加者が残したものらしい。',event:'h04_game'}],
+    inspects: [{id:'zero_letters',x:6,y:7,text:'「挑戦状」と書かれた封筒の束。以前の参加者が残したものらしい。',event:'h04_game'}],
     spots: S([[9,6],[11,9],[11,5]]),
   },
   {
@@ -385,7 +367,6 @@ const ROOMS_SRC: RoomSrc[] = [
     spots: S([[14,10],[10,12],[17,12]]),
   },
   ...BEDROOM_OWNERS.map((o, i) => bedroom(o, i)),
-  ...CELL_DOORS.map((_, i) => cell(i)),
 ];
 
 const ROOMS_LIST: RoomDef[] = ROOMS_SRC.map((r) => ({ ...r, props: r.props ?? [], ambient: r.image ? 1 : 0.62 }));
@@ -393,14 +374,20 @@ const ROOMS_LIST: RoomDef[] = ROOMS_SRC.map((r) => ({ ...r, props: r.props ?? []
 export const ROOMS: Record<string, RoomDef> = Object.fromEntries(ROOMS_LIST.map((r) => [r.id, r]));
 export const ROOM_IDS = ROOMS_LIST.map((r) => r.id);
 
-/** 部屋ごとの衝突グリッド（true = 通行不可） */
-export function buildCollision(room: RoomDef, _flags?: Record<string, unknown>): boolean[][] {
+/**
+ * 部屋ごとの衝突グリッド（true = 通行不可）。
+ * 床（walk）と壁際の物（block）の上に、建物改修の家具（data/furniture.json）を重ねる。
+ * gateOpen は房の扉が開いているか（world/cells.ts）。渡さない時は、扉は最初の状態。
+ */
+export function buildCollision(room: RoomDef, _flags?: Record<string, unknown>, gateOpen?: GateFn): boolean[][] {
   const g: boolean[][] = Array.from({ length: room.h }, () => Array.from({ length: room.w }, () => true));
   const fill = (r: Rect, v: boolean) => {
     for (let y = Math.max(0, r[1]); y <= Math.min(room.h - 1, r[3]); y++) for (let x = Math.max(0, r[0]); x <= Math.min(room.w - 1, r[2]); x++) g[y][x] = v;
   };
   for (const r of room.walk) fill(r, false);
   for (const r of room.block) fill(r, true);
+  const starts = room.doors.flatMap((d) => d.tiles);
+  applyFurniture(g, { id: room.id, starts, protect: [...starts, ...room.inspects.map((i) => ({ x: i.x, y: i.y })), ...room.spots] }, gateOpen);
   return g;
 }
 

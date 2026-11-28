@@ -1,4 +1,7 @@
+import { writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { FURNITURE } from '../src/world/furniture.ts';
+import { furnitureTiles } from '../src/world/furnitureGrid.ts';
 import { ROOMS, buildCollision } from '../src/world/maps.ts';
 
 /** 館内マップの点検（2026-11-28）。出入口のまわりと、NPC のたまり場の決まり */
@@ -22,6 +25,21 @@ function reach(room: (typeof rooms)[number]): Set<string> {
     }
   }
   return seen;
+}
+
+/** 確認図（scripts/collision-review.py）のために、マスの表を書き出す。DUMP_GRID=書き出し先 を付けた時だけ */
+const dumpTo = process.env.DUMP_GRID;
+if (dumpTo) {
+  const out: Record<string, unknown> = {};
+  for (const id of Object.keys(FURNITURE)) {
+    const r = ROOMS[id];
+    const ft = furnitureTiles(id);
+    out[id] = {
+      grid: buildCollision(r), doors: r.doors.map((d) => ({ id: d.id, dir: d.dir, tiles: d.tiles })), inspects: r.inspects.map((i) => ({ id: i.id, x: i.x, y: i.y })),
+      spots: r.spots, approach: ft.approach.map((t) => [t.x, t.y]), gates: Object.fromEntries(ft.gates.map((g) => [g.prop, g.initial === 'open'])), overlay: r.overlay?.image,
+    };
+  }
+  writeFileSync(dumpTo, JSON.stringify(out));
 }
 
 describe('館内マップの点検', () => {
