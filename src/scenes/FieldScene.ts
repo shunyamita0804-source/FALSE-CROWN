@@ -14,7 +14,7 @@ import { Input } from '../input/InputState';
 import { anyModal } from '../ui/dom';
 import { ROOMS, doorApproach, doorDir, propVisible, type DoorDef, type InspectDef, type RoomDef } from '../world/maps';
 import { PROPS } from '../world/props';
-import { furnitureOf, type FurnitureProp } from '../world/furniture';
+import { furnitureOf, seatDepth, type Facing, type FurnitureProp } from '../world/furniture';
 import { DIRS, actorsIn, drainDoorPasses, facingTile, tryStep } from '../world/sim';
 import { WALK_LINGER_MS, walkFrame } from '../world/walk';
 import standAlign from '../data/stand_align.json';
@@ -24,6 +24,14 @@ const STAND_ALIGN = standAlign as Record<string, Record<string, { x: number; y: 
 /** 仮素材テクスチャの解像度倍率（論理 64px/タイル に対して） */
 const TEX = 1.5;
 const DIR_ROW: Record<Dir, number> = { down: 0, up: 1, left: 2, right: 3 };
+/** 席の向き → 立ち絵の向き（斜めは左右に寄せる） */
+const SEAT_DIR: Record<Facing, Dir> = { N: 'up', S: 'down', E: 'right', W: 'left', NE: 'right', SE: 'right', NW: 'left', SW: 'left' };
+/**
+ * 座っている人の仮の描き方（正式の着席の絵が届くまで）。立ち絵の腰の線（セル内 y）を席の腰の位置に合わせ、
+ * 腿から下を表示の時だけ隠す（絵は加工しない）。家具の前の絵が、その上に重なる。
+ */
+const SEAT_HIP_Y = 82;
+const SEAT_CROP_Y = 96;
 
 
 interface ActorView {
@@ -413,6 +421,27 @@ export class FieldScene extends Phaser.Scene {
       }
       const px = (tx + 0.5) * TILE;
       const py = (ty + 1) * TILE - 10;
+      // 座っている人：席の腰の位置に、席の向きで描く（仮。正式の着席の絵が届いたら差し替える）
+      const seat = a.seat && a.seat.room === this.roomId ? furnitureOf(this.roomId)?.seats.find((q) => q.id === a.seat!.id) : undefined;
+      if (seat) {
+        const folder = charFolder(a.id, s.hero.gender);
+        const standKey = `stand:${folder}`;
+        const key = this.textures.exists(standKey) ? standKey : `char:${folder}`;
+        if (v.sprite.texture.key !== key) v.sprite.setTexture(key);
+        const row = DIR_ROW[SEAT_DIR[seat.facing] ?? 'down'];
+        v.sprite.setFrame(key === standKey ? row : row * 4 + 1);
+        v.sprite.setOrigin(0.5, SEAT_HIP_Y / CHAR_H).setDisplaySize(CHAR_W * CHAR_SCALE, CHAR_H * CHAR_SCALE);
+        v.sprite.setCrop(0, 0, CHAR_W, SEAT_CROP_Y);
+        v.sprite.setPosition(seat.hip[0], seat.hip[1]).setDepth(seatDepth(this.roomId, seat));
+        v.shadow.setVisible(false);
+        v.label.setPosition(seat.hip[0], seat.hip[1] - (SEAT_HIP_Y - 8) * CHAR_SCALE).setDepth(8700);
+        if (a.bubble && a.bubble.until > s.simTime) v.bubble.setText(a.bubble.text).setPosition(seat.hip[0], seat.hip[1] - (SEAT_HIP_Y + 4) * CHAR_SCALE).setDepth(8701).setVisible(true);
+        else v.bubble.setVisible(false);
+        v.lastX = NaN;
+        continue;
+      }
+      if (v.sprite.isCropped) v.sprite.setCrop();
+      v.shadow.setVisible(true);
       v.sprite.setPosition(px, py);
       v.shadow.setPosition(px, py - 2);
       // 歩行アニメーションは主人公と NPC で共通。進んだ距離でコマを送るので、移動速度と足の動きが常に一致する。
