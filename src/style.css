@@ -2042,3 +2042,5 @@ body.touch .rl-seg { min-height: 76px; }
 .gather-count { font-size: 0.9em; }
 .strat-time.low { color: #ff9b7a; }
 .gather-talk .gather-talk-menu { justify-content: flex-end; }
+/* 結果の順位表：枠の飾り（border-image の太い縁）を含めて画面の高さに収める（iPhone 横で上の縁が 8px はみ出していた） */
+.overlay.result-bg > .panel, .overlay.prison-bg > .panel { box-sizing: border-box; max-height: 100%; }
