@@ -67,4 +67,5 @@ npc_02_kanzaki レオン／npc_03_kurose ヴィクトリア／npc_04_mido リチ
 
 - 依頼 ZIP：共有フォルダ `walk_sit_request/FALSE_CROWN_walk_sit_request_20261128.zip`（基準座標、表示倍率、ファイル構成、正式通常絵と旧素材の参照）。
 - 2 倍の解像度（`walk@2x.png` など、1 コマ 192×256）を推奨。`BootScene` は `@2x` があればそちらを読む（表示の大きさと基準点は比率なので同じ）。
+- 主人公男女は 2026-11-28 に受領し組み込み済み（v0.28.9、`walk@2x.png`・`stand@2x.png`・`sit@2x.png`。補正を外し、`scripts/check-hero-sprites.cjs` で確認）。
 - 届いたら：加工せず置く → `src/data/stand_align.json` のその人の補正を外す（旧デザイン用）→ 足元・中心軸・止まった時の跳ね・小物の一致を測ってから公開。
