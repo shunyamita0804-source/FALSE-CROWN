@@ -141,7 +141,7 @@ document.addEventListener('visibilitychange', () => {
     toast(t('update.available'), 'info', 6000);
   });
 });
-if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input, Sound, sim: { placeIn, placeHome, setPathTo, setRouteTo, gatherAt, seatActor, assignCell, standAll, furnitureOf }, rooms: ROOMS, art: { bust, setBust, face } };
+if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input, Sound, sim: { placeIn, placeHome, setPathTo, setRouteTo, gatherAt, seatActor, assignCell, standAll, furnitureOf }, rooms: ROOMS, art: { bust, setBust, face, setHeroGender } };
 void boot();
 
 if (!isNative && 'serviceWorker' in navigator) registerSW({ immediate: true });

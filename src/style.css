@@ -1855,5 +1855,5 @@ html[data-ui-assets~="v11/bg/match_sub"] .match.venue-sub { background: linear-g
 
 /* 胸から上の新しい立ち絵（data/portraits.json の bust）。絞らずに絵全体を出し、下端をそろえる。どの表情も同じ寸法・同じ位置 */
 .bust.bust-art { background-size: contain !important; background-position: 50% 100% !important; }
-/* 顔アイコン：立ち絵の上側（頭から肩）を丸く切り取って見せる。画像は加工しない */
-.face.face-bust { display: inline-block; flex: none; background-repeat: no-repeat; background-size: 175% auto; background-position: 50% 8%; }
+/* 顔アイコン：人物ごとの切り抜き（data/portraits.json の face）。大きさと位置は art.ts の faceCropCss が書く */
+.face.face-crop { display: inline-block; flex: none; background-repeat: no-repeat; }
