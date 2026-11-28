@@ -8,6 +8,7 @@ import { availableAssets, CHAR_H, CHAR_W } from '../assets/registry';
  * - キャラクター静止: `stand:<フォルダ>`（96×128 の 4 コマ。下・上・左・右）
  * - 着席（届いた人だけ）: `sit:<フォルダ>`（96×128 の 4 コマ。正面・後ろ・左・右。腰はマスの (48, 90)）、
  *   斜め `sitd:<フォルダ>`（右下・左下・右上・左上）。無い人は FieldScene が立ち絵で仮に描く
+ * どれも 2 倍の解像度（`<名前>@2x.png`、1 コマ 192×256、基準点も 2 倍）を置けば、そちらを使う。
  * UI 用の画像（立ち絵・顔）は DOM 側が URL で直接参照する。
  */
 const SHEET_KEY: Record<string, string> = { walk: 'char', stand: 'stand', sit: 'sit', sit_diag: 'sitd' };
@@ -19,10 +20,17 @@ export class BootScene extends Phaser.Scene {
 
   preload(): void {
     this.load.setBaseURL(import.meta.env.BASE_URL);
-    for (const file of availableAssets()) {
+    // 2 倍の解像度の絵（<名前>@2x.png、1 コマ 192×256）があれば、そちらを優先して読む。
+    // 表示の大きさと基準点（足元・腰）は比率で決めているので、コマの画素数が違っても同じ位置・同じ大きさに出る
+    const files = availableAssets();
+    const has2x = new Set(files.map((f) => f.replace(/\.(png|webp|jpg)$/i, '')).filter((p) => p.endsWith('@2x')));
+    for (const file of files) {
       const path = file.replace(/\.(png|webp|jpg)$/i, '');
-      const m = /^characters\/([^/]+)\/(walk|stand|sit|sit_diag)$/.exec(path);
-      if (m) this.load.spritesheet(`${SHEET_KEY[m[2]]}:${m[1]}`, `assets/${file}`, { frameWidth: CHAR_W, frameHeight: CHAR_H });
+      const m = /^characters\/([^/]+)\/(walk|stand|sit|sit_diag)(@2x)?$/.exec(path);
+      if (!m) continue;
+      const k = m[3] ? 2 : 1;
+      if (k === 1 && has2x.has(`${path}@2x`)) continue;
+      this.load.spritesheet(`${SHEET_KEY[m[2]]}:${m[1]}`, `assets/${file}`, { frameWidth: CHAR_W * k, frameHeight: CHAR_H * k });
     }
   }
 
