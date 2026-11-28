@@ -31,6 +31,7 @@ import { playVoice, voiceClip } from './audio/voice';
 import { drainBetrayals } from './npc/negotiation';
 import * as screens from './ui/screens';
 import { talkTo } from './ui/talk';
+import { openStrategyRoom, runStrategy } from './ui/strategy';
 import { makerSplash } from './ui/splash';
 
 if (window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window) document.body.classList.add('touch');
@@ -65,6 +66,8 @@ G.ui = {
   ceremony: ceremonyScreen,
   handout: handoutScreen,
   introduction: introductionEvent,
+  strategy: runStrategy,
+  strategyRoom: openStrategyRoom,
 };
 
 // UI の操作音（ボタンの種類で音を変える）

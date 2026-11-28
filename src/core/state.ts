@@ -204,6 +204,11 @@ export function allied(state: GameState, a: CharId, b: CharId, kinds: Deal['kind
   );
 }
 
+/** 2 人の間に有効な緩い約束（「次は協力しよう」）があるか */
+export function pledged(state: GameState, a: CharId, b: CharId): Deal | undefined {
+  return allied(state, a, b, ['pledge']);
+}
+
 export function piecesOf(state: GameState, id: CharId): number {
   return state.actors[id].pieces;
 }

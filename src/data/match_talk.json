@@ -1,0 +1,44 @@
+{
+  "note": "rooms の wait は、組分けの発表の後に組ごとに集まる位置（相談室の近く）。競技ごとの会話の決まり（docs/venue_talk.md、仕様書 venue_design/venue_talk_design.md の 2 章）。window: pre_only（開始前のみ）/ between（ラウンド間も）/ during（手番の待ちも）/ none（相談不可。休憩は雑談だけ）。pre.slots が 0 の競技は、まだ作戦時間を使わない（M01 の試作の確認後に広げる）。breakTalk: 休憩の会話メニューを新しい形にするか。",
+  "strategy": { "maxMs": 120000 },
+  "rooms": [
+    { "id": "A", "name": "相談室 A", "x": 1, "y": 7, "spot": [[1, 6], [2, 6], [1, 8], [2, 8], [2, 7]], "wait": [[4, 6], [5, 6], [4, 8], [5, 8]], "dir": "left" },
+    { "id": "B", "name": "相談室 B", "x": 1, "y": 13, "spot": [[1, 12], [2, 12], [1, 14], [2, 14], [2, 13]], "wait": [[4, 12], [5, 12], [4, 14], [5, 14]], "dir": "left" },
+    { "id": "C", "name": "相談室 C", "x": 30, "y": 7, "spot": [[30, 6], [29, 6], [30, 8], [29, 8], [29, 7]], "wait": [[26, 6], [27, 6], [26, 8], [27, 8]], "dir": "right" }
+  ],
+  "matches": {
+    "m01": { "window": "between", "pre": { "slots": 4, "slotMs": 30000 }, "breakTalk": true, "groupRooms": true, "topics": ["coop", "consult", "info", "tips", "rescue", "promises"] },
+    "m02": { "window": "between", "pre": { "slots": 0 }, "procedure": "出題室" },
+    "m03": { "window": "between", "pre": { "slots": 0 } },
+    "m04": { "window": "during", "pre": { "slots": 0 }, "procedure": "任務室" },
+    "m05": { "window": "between", "pre": { "slots": 0 }, "procedure": "出題室" },
+    "m06": { "window": "during", "pre": { "slots": 0 } },
+    "m07": { "window": "between", "pre": { "slots": 0 } },
+    "m08": { "window": "between", "pre": { "slots": 0 } },
+    "m09": { "window": "during", "pre": { "slots": 0 } },
+    "m10": { "window": "between", "pre": { "slots": 0 } },
+    "m11": { "window": "none", "pre": { "slots": 0 } },
+    "p01": { "window": "none", "pre": { "slots": 0 } },
+    "p02": { "window": "none", "pre": { "slots": 0 } },
+    "p03": { "window": "none", "pre": { "slots": 0 } },
+    "p04": { "window": "none", "pre": { "slots": 0 } },
+    "p05": { "window": "during", "pre": { "slots": 0 } },
+    "p06": { "window": "none", "pre": { "slots": 0 } },
+    "p07": { "window": "between", "pre": { "slots": 0 } },
+    "p08": { "window": "none", "pre": { "slots": 0 } },
+    "p09": { "window": "none", "pre": { "slots": 0 } },
+    "p10": { "window": "between", "pre": { "slots": 0 } }
+  },
+  "tips": {
+    "m01": [
+      "角と端から埋めるといい。角のマスに入る片は限られるから、先に決まる。",
+      "一番大きい片の置き場所を先に決めると、残りの片の行き先が絞れる。",
+      "穴のまわりは形が決まりやすい。穴の横から埋めていくと迷いにくい。",
+      "細長い片は壁に沿わせると、ほかの片の邪魔になりにくい。",
+      "1 マスだけの隙間ができたら、その置き方は外れ。すぐ戻してやり直す。",
+      "片は回せるけど裏返せない。L 字と、その鏡に映した形は別物だと思って。",
+      "空いているマスの数と、手元の片のマス数の合計を比べると、置き間違いに気づける。",
+      "時間が無い時は、確実な片だけ置く。未完成でも、正しく埋めたマスの分は点になる。"
+    ]
+  }
+}
