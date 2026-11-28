@@ -27,6 +27,8 @@ export interface TriData {
   seats: number[];
   /** 自分の席（無ければ -1） */
   me: number;
+  /** 次に取られうる自分の兵の位置（赤い「！」を付ける） */
+  atk?: number[];
   /** 点の番号 → 印（can、cap、sel、chosen、from、to、hit、threat、movable。空白区切りで複数） */
   marks?: Record<number, string>;
   /** 旗の印（席 → deliver、chosen） */
@@ -76,6 +78,11 @@ export function triBoard(d: TriData, onNode?: (n: number) => void, onFlag?: (sea
     const [x, y] = triXY(s.pos);
     const under = d.board.ground.some((g) => g.node === s.pos);
     out.push(`<g class="tb-sol${s.seat === d.me ? ' me' : ''}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><ellipse cx="0" cy="12" rx="30" ry="16" fill="${TRI_COLORS[s.seat]}"/>${img(SOLDIER, 78, 0, -18) || '<circle r="16" cy="-12" fill="#ccc"/>'}${s.gem >= 0 ? `<g transform="translate(27 -34)"><circle r="19" class="tb-carry"/>${img(GEM, 32)}</g>` : ''}${under ? `<g transform="translate(-28 14)">${img(GEM, 26)}</g>` : ''}</g>`);
+  }
+  // 次に取られうる兵：兵の左上に赤い「！」
+  for (const n of d.atk ?? []) {
+    const [x, y] = triXY(n);
+    out.push(`<g class="tb-atk" transform="translate(${(x - 30).toFixed(1)} ${(y - 44).toFixed(1)})"><circle r="17"/><text y="7" text-anchor="middle">!</text></g>`);
   }
   const el = h('div', { class: 'tb', style: `width:${(W * scale).toFixed(0)}px;height:${(HT * scale).toFixed(0)}px` });
   el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${-W / 2} ${-80} ${W} ${HT}" width="${(W * scale).toFixed(0)}" height="${(HT * scale).toFixed(0)}">${out.join('')}</svg>`;

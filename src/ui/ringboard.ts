@@ -9,6 +9,9 @@ import { h } from './dom';
 import { HEX_COLORS } from './hexboard';
 
 const PAWN = assetUrl('ui/v11/m08/pawn');
+/** 壁の正式素材（横向きの棒、256×128 で棒は 250×17）。表示の時だけ道と直角に回す（2026-11-28 本人の許可）。加工はしない */
+const WALL = assetUrl('ui/v11/m08/wall');
+const WALL_W = 68;
 const RADII = [0, 130, 215, 300];
 const COS36 = Math.cos(Math.PI / 5);
 
@@ -77,7 +80,10 @@ export function ringBoard(d: RingData, onNode?: (n: number) => void, onEdge?: (e
     const mx = (x1 + x2) / 2;
     const my = (y1 + y2) / 2;
     const ang = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI + 90;
-    return `<g class="rb-wall ${cls}" transform="translate(${mx.toFixed(1)} ${my.toFixed(1)}) rotate(${ang.toFixed(1)})"><rect x="-26" y="-6.5" width="52" height="13" rx="3"/></g>`;
+    const body = WALL && cls !== 'ghost'
+      ? `<image href="${WALL}" x="${-WALL_W / 2}" y="${-WALL_W / 4}" width="${WALL_W}" height="${WALL_W / 2}" preserveAspectRatio="xMidYMid meet"/>`
+      : '<rect x="-26" y="-6.5" width="52" height="13" rx="3"/>';
+    return `<g class="rb-wall ${cls}${WALL ? ' art' : ''}" transform="translate(${mx.toFixed(1)} ${my.toFixed(1)}) rotate(${ang.toFixed(1)})">${body}</g>`;
   };
   d.walls.forEach((w, e) => { if (w) out.push(wallBar(e, d.last?.kind === 'wall' && d.last.edge === e ? 'new' : '')); });
   if (d.selEdge !== undefined) out.push(wallBar(d.selEdge, 'ghost'));

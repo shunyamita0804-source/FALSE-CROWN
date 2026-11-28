@@ -7,7 +7,7 @@ import { Sound } from '../audio/audio';
 import { t } from '../i18n/i18n';
 import { L4, M01_DEMO, M01_PRACTICE, SQ } from '../matches/m01';
 import { M03_DEMO, M03_PRACTICE } from '../matches/m03';
-import { applyAct as applyRail, CITY_NAMES, EDGES, practiceTable, routeFor } from '../matches/m04';
+import { applyAct as applyRail, CITY_NAMES, EDGES, ROUNDS as M04_ROUNDS, practiceTable, routeFor } from '../matches/m04';
 import { P03_PRACTICE } from '../matches/p03';
 import { RailMap, SEAT_COLORS, type RailMapData } from './railmap';
 import { LinkBoard } from './linkboard';
@@ -304,7 +304,7 @@ function m04Guide(): Guide {
         title: t('tut.m04.t4'), text: t('tut.m04.p4'),
         figure: () => h('div', { class: 'col', style: 'gap:14px;align-items:center' },
           chips([{ label: t('tut.m04.c1'), value: '8〜12' }, { label: t('tut.m04.c2'), value: '1' }, { label: t('tut.m04.c3'), value: '1' }], ['+', '+']),
-          facts([['9', t('tut.m04.f1')], ['3', t('tut.m04.f2')], ['12', t('tut.m04.f3')]])),
+          facts([[String(M04_ROUNDS), t('tut.m04.f1')], ['3', t('tut.m04.f2')], ['12', t('tut.m04.f3')]])),
       },
     ],
     practice: {

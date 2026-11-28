@@ -66,7 +66,7 @@ const { chromium } = require('playwright');
     if (builds === 1) check('区間を選んで敷くと、自分の線路になり、建設費が引かれる', after.owner[e] === st.seat && after.built === st.built + 1, `${st.funds}→${after.funds}（費用 ${st.costs[e]}）`);
   }
   const fin = await state();
-  check('9 巡で終わる（3 巡ごとに交渉が 2 回入る）', fin.phase === 'done' && fin.turn === 9 * fin.n && breaks === 2, `turn ${fin.turn} breaks ${breaks}`);
+  check('8 巡で終わる（3 巡ごとに交渉が 2 回入る）', fin.phase === 'done' && fin.turn === 8 * fin.n && breaks === 2, `turn ${fin.turn} breaks ${breaks}`);
   check('敷く、資金、輸送の 3 つの行動を画面から実行できた', builds > 0 && moves > 0, `敷く ${builds} 資金 ${funds} 輸送 ${moves}`);
   if (shortSeen !== false) check('資金が足りない区間は敷けない', shortSeen === true);
   const want = fin.missions.filter((m) => m.done).reduce((a, m) => a + m.points, 0) + fin.built + Math.floor(fin.funds / 3);
