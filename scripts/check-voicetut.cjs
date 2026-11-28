@@ -15,7 +15,7 @@ const { chromium } = require('playwright');
   const title = () => page.locator('.vt-title').innerText();
   const sub = () => page.locator('.vt-line').innerText();
   const subShown = () => page.locator('.vt-subtext').innerText();
-  const waitReady = async (ms = 15000) => { await page.locator('.vt-next.ready').waitFor({ timeout: ms }); };
+  const waitReady = async (ms = 30000) => { await page.locator('.vt-next.ready').waitFor({ timeout: ms }); };
   const next = async () => { await page.locator('.vt-next').tap(); await W(500); };
   const voicePlaying = () => page.evaluate(() => window.__fc.Sound.voicePlaying);
 
@@ -28,7 +28,9 @@ const { chromium } = require('playwright');
   check('初めての時も、説明全体を飛ばすボタンがある', await page.locator('.vt-skipall').count() === 1);
   await W(600);
   const partial = await subShown();
-  check('声が鳴っている間、字幕は少しずつ出る', (await voicePlaying()) && partial.length < (await sub()).length, `${partial.length}/${(await sub()).length}`);
+  const dim = await page.evaluate(() => getComputedStyle(document.querySelector('.vt-subtext')).opacity);
+  check('声が鳴っている間も、字幕は全文を最初から明るく出す', (await voicePlaying()) && partial === (await sub()) && partial.length > 0 && dim === '1', `${partial.length}/${(await sub()).length} ${dim}`);
+  check('声が終わっても、読む時間を取るまで「次へ」は光らない', await page.locator('.vt-next.ready').count() === 0);
   await shot('01_title');
   await waitReady();
   check('声が終わると字幕は台本の全文になる', (await subShown()) === '第1競技、ピース・アセンブル。');
@@ -43,7 +45,7 @@ const { chromium } = require('playwright');
   await shot('02_rules');
   // 聞き直し：字幕が最初から出直す
   await page.locator('.vt-replay').tap(); await W(400);
-  check('「聞き直す」で、声と字幕が最初から出直す', (await voicePlaying()) && (await subShown()).length < (await sub()).length);
+  check('「聞き直す」で、声が最初から鳴り直す（字幕は全文のまま）', (await voicePlaying()) && (await subShown()) === (await sub()));
   await page.locator('.vt-toggle').tap(); await W(300);
   check('「声を止める」で声が止まり、字幕は全文になる', !(await voicePlaying()) && (await subShown()) === (await sub()));
   await next();

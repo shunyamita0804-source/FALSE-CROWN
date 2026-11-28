@@ -28,6 +28,8 @@ const DIR_ROW: Record<Dir, number> = { down: 0, up: 1, left: 2, right: 3 };
 /** 席の向き → 立ち絵の向き（斜めは左右に寄せる） */
 /** 正式の着席の絵（sit.png）で、腰が乗る点のセル内の高さ（制作依頼の取り決め：x=48, y=90） */
 const SIT_HIP_Y = 90;
+/** 背を向けて座る椅子の背もたれの上端は、腰の位置からおよそこの高さ（px）上。前の絵を分ける高さに使う */
+const FG_SPLIT_ABOVE_HIP = 30;
 /** 斜めの着席の絵（sit_diag.png）のコマ：右下・左下・右上・左上 */
 const SIT_DIAG: Partial<Record<Facing, number>> = { SE: 0, SW: 1, NE: 2, NW: 3 };
 const SEAT_DIR: Record<Facing, Dir> = { N: 'up', S: 'down', E: 'right', W: 'left', NE: 'right', SE: 'right', NW: 'left', SW: 'left' };
@@ -287,9 +289,27 @@ export class FieldScene extends Phaser.Scene {
     if (!f) return;
     const need = [...new Set(this.furnitureKeys(roomId))].filter((k) => !this.textures.exists(k));
     if (need.length) { this.requestAssets(need); return; }
-    const put = (key: string, p: FurnitureProp, depth: number) => this.roomObjects.push(this.add.image(p.x, p.y, `asset:${key}`).setOrigin(0).setDisplaySize(p.w, p.h).setDepth(depth));
+    const put = (key: string, p: FurnitureProp, depth: number) => {
+      const img = this.add.image(p.x, p.y, `asset:${key}`).setOrigin(0).setDisplaySize(p.w, p.h).setDepth(depth);
+      this.roomObjects.push(img);
+      return img;
+    };
     for (const p of f.props) {
       if (p.door) { put(this.gateOpen(roomId, p) ? p.door.open : p.door.closed, p, p.depth); continue; }
+      // 前の絵に、机の縁と、こちらに背を向けて座る椅子（N 向き）が一緒に入っている家具（競技場の大机など）：
+      // そのままだと、座った人が机の縁ごと前の絵に隠れる。前の絵を表示の時だけ上下に分け、上（机の縁）は人の後ろ、
+      // 下（椅子の背もたれ）は人の前に描く。分ける高さは、その椅子の腰の位置から決める（絵は加工しない）
+      const backSeats = p.fg ? f.seats.filter((q) => q.prop === p.id && q.facing === 'N' && q.hip[1] > p.y && q.hip[1] < p.y + p.h) : [];
+      if (p.fg && backSeats.length) {
+        const splitY = Math.min(...backSeats.map((q) => q.hip[1])) - FG_SPLIT_ABOVE_HIP;
+        put(p.img, p, Math.min(p.depth, p.fg.depth - 4));
+        const tex = this.textures.get(`asset:${p.fg.img}`).getSourceImage() as { width: number; height: number };
+        const k = tex.height / p.h;
+        const cut = Math.round((splitY - p.y) * k);
+        put(p.fg.img, p, p.fg.depth - 3).setCrop(0, 0, tex.width, cut);
+        put(p.fg.img, p, p.fg.depth).setCrop(0, cut, tex.width, tex.height - cut);
+        continue;
+      }
       put(p.img, p, p.fg ? Math.min(p.depth, p.fg.depth - 2) : p.depth);
       if (p.fg) put(p.fg.img, p, p.fg.depth);
     }
