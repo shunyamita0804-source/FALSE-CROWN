@@ -1,8 +1,11 @@
 /**
  * 参加者の定義（仕様書 01_GAME_CORE.md「NPC一覧」）。
  * 能力値は仕様の確定値、人格値（0〜100）と配色は暫定（docs/decisions.md）。
+ * 表示名（姓名・呼び名・読み）は npc_names.json に分けてある。内部ID は名前を変えても変えない（docs/npc_rename.md）。
  */
 import profilesJson from './npc_profiles.json';
+import namesJson from './npc_names.json';
+import { getLang } from '../i18n/i18n';
 
 export type HeroId = 'hero';
 export type NpcId =
@@ -47,9 +50,12 @@ export interface Palette {
 
 export interface CharacterDef {
   id: NpcId;
-  name: string;
-  short: string;
-  kana: string;
+  /** 表示用の姓名（npc_names.json から、言語ごと） */
+  readonly name: string;
+  /** 呼び名（会話・ログ・部屋の札・名簿） */
+  readonly short: string;
+  /** 読み（自己紹介の字幕） */
+  readonly kana: string;
   gender: 'm' | 'f';
   age: number;
   job: string;
@@ -82,9 +88,11 @@ const pe = (greed: number, loyalty: number, ambition: number, morality: number, 
   explore,
 });
 
-export const NPCS: CharacterDef[] = [
+type CharacterBase = Omit<CharacterDef, 'name' | 'short' | 'kana'>;
+
+const BASE: CharacterBase[] = [
   {
-    id: 'npc_02_kanzaki', name: '神崎 怜', short: '神崎', kana: 'かんざき れい', gender: 'm', age: 28, job: '数学者',
+    id: 'npc_02_kanzaki', gender: 'm', age: 28, job: '数学者',
     stats: st(10, 9, 8, 4, 3, 7), personality: pe(30, 55, 60, 60, 35, 55),
     profile: '合理性を何より重んじる若き数学者。買収や情に訴える話には乗らない。',
     secret: 'CROWN計画の数理モデル開発に関与していた。',
@@ -93,7 +101,7 @@ export const NPCS: CharacterDef[] = [
     rules: { requireRational: true },
   },
   {
-    id: 'npc_03_kurose', name: '黒瀬 美琴', short: '黒瀬', kana: 'くろせ みこと', gender: 'f', age: 32, job: '弁護士',
+    id: 'npc_03_kurose', gender: 'f', age: 32, job: '弁護士',
     stats: st(9, 8, 7, 10, 7, 8), personality: pe(50, 70, 65, 55, 45, 50),
     profile: '契約は必ず守るが、条文の抜け穴は躊躇なく使う弁護士。',
     secret: '過去の被害者から真相究明の依頼を受けている。',
@@ -102,7 +110,7 @@ export const NPCS: CharacterDef[] = [
     rules: { keepsContracts: true },
   },
   {
-    id: 'npc_04_mido', name: '御堂 隆臣', short: '御堂', kana: 'みどう たかおみ', gender: 'm', age: 45, job: '経営者',
+    id: 'npc_04_mido', gender: 'm', age: 45, job: '経営者',
     stats: st(6, 9, 5, 10, 8, 7), personality: pe(95, 35, 90, 25, 60, 30),
     profile: '強欲な経営者。派閥を作り、高額の取引で人を動かす。',
     secret: 'CROWN計画の研究に出資していた。',
@@ -111,7 +119,7 @@ export const NPCS: CharacterDef[] = [
     rules: { profitFirst: true },
   },
   {
-    id: 'npc_05_shiraishi', name: '白石 紗夜', short: '白石', kana: 'しらいし さや', gender: 'f', age: 24, job: '心理学研究者',
+    id: 'npc_05_shiraishi', gender: 'f', age: 24, job: '心理学研究者',
     stats: st(8, 8, 7, 9, 9, 10), personality: pe(55, 20, 70, 35, 60, 55),
     profile: '誰にでも親しげに話しかける心理学研究者。複数の同盟を同時に結ぶ。',
     secret: '「裏切り」の研究をしている。',
@@ -120,7 +128,7 @@ export const NPCS: CharacterDef[] = [
     rules: {},
   },
   {
-    id: 'npc_06_kiryu', name: '桐生 颯', short: '桐生', kana: 'きりゅう はやて', gender: 'm', age: 21, job: 'プロゲーマー',
+    id: 'npc_06_kiryu', gender: 'm', age: 21, job: 'プロゲーマー',
     stats: st(8, 10, 7, 5, 4, 8), personality: pe(40, 90, 85, 60, 55, 40),
     profile: '負けず嫌いのプロゲーマー。一度仲間と認めた相手には忠実。',
     secret: '過去の大会のゲーム資料を持っている。',
@@ -129,7 +137,7 @@ export const NPCS: CharacterDef[] = [
     rules: {},
   },
   {
-    id: 'npc_07_tachibana', name: '橘 香織', short: '橘', kana: 'たちばな かおり', gender: 'f', age: 38, job: '医師',
+    id: 'npc_07_tachibana', gender: 'f', age: 38, job: '医師',
     stats: st(7, 5, 8, 6, 3, 8), personality: pe(15, 85, 30, 95, 25, 40),
     profile: '弱い立場の人を放っておけない医師。仲間を売る取引は大金でも断る。',
     secret: '過去の被害者の担当医だった。',
@@ -138,7 +146,7 @@ export const NPCS: CharacterDef[] = [
     rules: { refuseBetrayFriends: true },
   },
   {
-    id: 'npc_08_dojima', name: '堂島 誠司', short: '堂島', kana: 'どうじま せいじ', gender: 'm', age: 52, job: '元刑事',
+    id: 'npc_08_dojima', gender: 'm', age: 52, job: '元刑事',
     stats: st(8, 7, 7, 7, 5, 10), personality: pe(30, 70, 45, 75, 30, 90),
     profile: '慎重で観察眼の鋭い元刑事。施設のあちこちを調べて回る。',
     secret: '過去の失踪事件を追っている。',
@@ -147,7 +155,7 @@ export const NPCS: CharacterDef[] = [
     rules: {},
   },
   {
-    id: 'npc_09_asahina', name: '朝比奈 ひまり', short: '朝比奈', kana: 'あさひな ひまり', gender: 'f', age: 19, job: '大学生',
+    id: 'npc_09_asahina', gender: 'f', age: 19, job: '大学生',
     stats: st(5, 5, 10, 8, 5, 7), personality: pe(45, 60, 50, 65, 40, 70),
     profile: '人懐っこい大学生。一度聞いた話は決して忘れない。',
     secret: '兄が過去の大会に参加していた。',
@@ -156,7 +164,7 @@ export const NPCS: CharacterDef[] = [
     rules: {},
   },
   {
-    id: 'npc_10_kujo', name: '九条 蓮司', short: '九条', kana: 'くじょう れんじ', gender: 'm', age: 35, job: 'ギャンブラー',
+    id: 'npc_10_kujo', gender: 'm', age: 35, job: 'ギャンブラー',
     stats: st(8, 9, 7, 8, 10, 9), personality: pe(60, 45, 70, 40, 95, 50),
     profile: 'ブラフを好むギャンブラー。元はプロ雀士。危険な賭けほど楽しむ。',
     secret: '過去の大会の参加者だった。',
@@ -165,7 +173,7 @@ export const NPCS: CharacterDef[] = [
     rules: {},
   },
   {
-    id: 'npc_11_kisaragi', name: '如月 麗華', short: '如月', kana: 'きさらぎ れいか', gender: 'f', age: 29, job: '俳優',
+    id: 'npc_11_kisaragi', gender: 'f', age: 29, job: '俳優',
     stats: st(6, 6, 8, 9, 10, 8), personality: pe(80, 30, 75, 30, 55, 45),
     profile: '華やかな俳優。演技で本心を隠し、利益を優先する。',
     secret: '主催者から秘密の依頼を受けている。',
@@ -174,7 +182,7 @@ export const NPCS: CharacterDef[] = [
     rules: { profitFirst: true },
   },
   {
-    id: 'npc_12_kuze', name: '久世 宗一郎', short: '久世', kana: 'くぜ そういちろう', gender: 'm', age: 62, job: '元教授',
+    id: 'npc_12_kuze', gender: 'm', age: 62, job: '元教授',
     stats: st(10, 8, 9, 6, 6, 8), personality: pe(25, 60, 40, 70, 30, 95),
     profile: '博識な元教授。古い書物や建物の構造に強い興味を示す。',
     secret: 'CROWN計画の創設者の一人。',
@@ -183,6 +191,57 @@ export const NPCS: CharacterDef[] = [
     rules: {},
   },
 ];
+
+// ---- 表示名（内部ID → 名前）。改名は npc_names.json だけで行う ----
+export interface DisplayName { name: string; short: string; kana: string }
+type NameEntry = { status?: string; [lang: string]: Partial<DisplayName> | string | undefined };
+interface NamesJson { hero: Record<string, Partial<Record<'m' | 'f', string>>>; characters: Record<string, NameEntry> }
+const NAMES = namesJson as unknown as NamesJson;
+
+/** その言語での表示名。未設定の項目は日本語の表示名を使う */
+export function displayName(id: string, lang: string = getLang()): DisplayName {
+  const e = NAMES.characters[id];
+  const ja = (e?.ja ?? {}) as Partial<DisplayName>;
+  const lo = (e?.[lang] ?? {}) as Partial<DisplayName>;
+  const name = lo.name || ja.name || id;
+  return { name, short: lo.short || ja.short || name, kana: lo.kana ?? (lang === 'ja' ? ja.kana ?? '' : '') };
+}
+
+/** 改名の状態（original＝旧名のまま、renamed＝差し替え済み） */
+export function nameStatus(id: string): string {
+  return NAMES.characters[id]?.status ?? 'original';
+}
+
+export const NAMED_IDS = Object.keys(NAMES.characters);
+
+/**
+ * 文中の名前の差し込み。{name:npc_02_kanzaki}（姓名）、{short:…}（呼び名）、{kana:…}（読み）を、いまの表示名に置き換える。
+ * 名前を文に直接書くと改名の時に漏れるので、データの文章ではこの書き方を使う。
+ * 日本語の文中の {name:…} は空白を詰める（画面の名札など .name は空白入りのまま）。
+ */
+export function fillNames(text: string, lang: string = getLang()): string {
+  return text.replace(/\{(name|short|kana):([a-z0-9_]+)\}/g, (all, k: keyof DisplayName, id: string) => {
+    if (!(id in NAMES.characters)) return all;
+    const v = displayName(id, lang)[k];
+    // 日本語の文中では姓と名の間の空白を詰める（「神崎 怜」→「神崎怜」）。カタカナの名前は表に「・」で書く
+    return k === 'name' && lang === 'ja' ? v.replace(/[\s\u3000]+/g, '') : v;
+  });
+}
+
+/** 音声で名乗っている名前が、いまの表示名（日本語、空白を詰めた姓名）と同じか。違えば録り直し前の古い音声 */
+export function saysCurrentName(id: string, spokenName: string): boolean {
+  if (!(id in NAMES.characters)) return true;
+  const strip = (x: string) => x.replace(/[\s\u3000・]+/g, '');
+  return strip(displayName(id, 'ja').name) === strip(spokenName);
+}
+
+export const NPCS: CharacterDef[] = BASE.map((b) => {
+  const def = { ...b } as CharacterDef;
+  for (const k of ['name', 'short', 'kana'] as const) {
+    Object.defineProperty(def, k, { get: () => displayName(b.id)[k], enumerable: true });
+  }
+  return def;
+});
 
 // 仕様 v03 の 02_NPC_PROFILES.json を正とし、人格値・基準価格・秘密の解放条件を上書きする
 interface ProfileJson {
@@ -219,4 +278,12 @@ export const HERO_PALETTES: Record<'m' | 'f', Palette> = {
   f: { hair: '#2e1f1c', skin: '#f6dac8', coat: '#2a2236', accent: '#d8b25a', pants: '#1c1826' },
 };
 
-export const DEFAULT_HERO_NAMES = { m: '天城 湊', f: '天城 葵' };
+/** 主人公の名前の初期値（名前の入力欄に入る。npc_names.json の hero） */
+export const DEFAULT_HERO_NAMES = {
+  get m(): string {
+    return NAMES.hero[getLang()]?.m || NAMES.hero.ja?.m || '';
+  },
+  get f(): string {
+    return NAMES.hero[getLang()]?.f || NAMES.hero.ja?.f || '';
+  },
+};

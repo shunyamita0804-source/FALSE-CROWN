@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import voiceTable from '../src/data/voice.json';
 import { INTRO, departRoom, introLine, introOrder, introParticipants, markIntroduced, ringSeats, textHoldMs } from '../src/core/introduction';
 import { newGame } from '../src/core/state';
-import { NPC_IDS, type CharId, type NpcId } from '../src/data/characters';
+import { NPC_IDS, fillNames, type CharId, type NpcId } from '../src/data/characters';
 import { ROOMS } from '../src/world/maps';
 import { collisionOf } from '../src/world/sim';
 
@@ -64,7 +64,7 @@ describe('参加者の自己紹介', () => {
       const l = introLine(s, id, voiceOf);
       const v = voiceOf(id);
       if (v) { expect(l.text).toBe(v.text); expect(l.voice).not.toBeNull(); }
-      else { expect(l.voice).toBeNull(); expect(l.text).toBe(INTRO.entries[id].text); }
+      else { expect(l.voice).toBeNull(); expect(l.text).toBe(fillNames(INTRO.entries[id].text)); }
       expect(l.age).toBeGreaterThan(0);
       expect(l.job).toBeTruthy();
       // 非公開の数値は持たない
@@ -74,7 +74,7 @@ describe('参加者の自己紹介', () => {
     expect(hero.voice).toBeNull();
     expect(hero.text).toContain('天城 湊');
     // データの台詞（声が届く前の仮の字幕）も、届いている声と食い違わない
-    for (const id of NPC_IDS) { const v = voiceOf(id); if (v) expect(INTRO.entries[id].text).toBe(v.text); }
+    for (const id of NPC_IDS) { const v = voiceOf(id); if (v) expect(fillNames(INTRO.entries[id].text)).toBe(v.text); }
   });
 
   it('声が無い字幕は、読める長さだけ出しておく', () => {

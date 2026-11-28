@@ -101,6 +101,7 @@
         "introduction": {
           "file": "11_intro.mp3",
           "text": "神崎怜です。数学者をしています。感情よりも論理を重視する人間です。よろしくお願いします。",
+          "spokenName": "神崎怜",
           "gain": 0.902,
           "lufs": -18.1
         },
@@ -198,6 +199,7 @@
         "introduction": {
           "file": "11_introduction.mp3",
           "text": "黒瀬美琴です。弁護士をしています。公平な勝負を期待しています。よろしくお願いします。",
+          "spokenName": "黒瀬美琴",
           "gain": 0.733,
           "lufs": -16.3
         },
@@ -295,6 +297,7 @@
         "introduction": {
           "file": "11_intro.mp3",
           "text": "御堂隆臣だ。会社を経営している。勝負に参加する以上、頂点を目指すつもりだ。",
+          "spokenName": "御堂隆臣",
           "gain": 0.832,
           "lufs": -17.4
         },
@@ -392,6 +395,7 @@
         "introduction": {
           "file": "11_introduction.mp3",
           "text": "白石紗夜です。心理学を学んでいます。人の考え方や行動に興味があるんです。よろしくお願いしますね。",
+          "spokenName": "白石紗夜",
           "gain": 1.023,
           "lufs": -19.2
         },
@@ -489,6 +493,7 @@
         "introduction": {
           "file": "11_introduction.mp3",
           "text": "桐生颯。プロゲーマーやってる。こういう勝負なら、誰にも負ける気しないけどね。",
+          "spokenName": "桐生颯",
           "gain": 0.582,
           "lufs": -14.3
         },
@@ -586,6 +591,7 @@
         "introduction": {
           "file": "11_introduction.mp3",
           "text": "橘香織です。医師をしています。困ったことがあったら、遠慮なく相談してね。",
+          "spokenName": "橘香織",
           "gain": 1.202,
           "lufs": -20.6
         },
@@ -683,6 +689,7 @@
         "introduction": {
           "file": "11_introduction.mp3",
           "text": "堂島誠司だ。昔は刑事をやっていた。まあ、よろしく頼むよ。",
+          "spokenName": "堂島誠司",
           "gain": 0.684,
           "lufs": -15.7
         },
@@ -780,6 +787,7 @@
         "introduction": {
           "file": "11_introduction.mp3",
           "text": "朝比奈ひまりです！ 大学生です。ちょっと緊張してるけど、みんなよろしくね！",
+          "spokenName": "朝比奈ひまり",
           "gain": 0.861,
           "lufs": -17.7
         },
@@ -877,6 +885,7 @@
         "introduction": {
           "file": "11_introduction.mp3",
           "text": "九条蓮司だ。職業はギャンブラー。せっかくの大会だ、楽しませてもらうよ。",
+          "spokenName": "九条蓮司",
           "gain": 0.724,
           "lufs": -16.2
         },
@@ -974,6 +983,7 @@
         "introduction": {
           "file": "11_intro.mp3",
           "text": "如月麗華よ。女優をしているわ。ふふ、退屈しない大会になるといいわね。",
+          "spokenName": "如月麗華",
           "gain": 1.072,
           "lufs": -19.6
         },
@@ -1071,6 +1081,7 @@
         "introduction": {
           "file": "11_introduction.mp3",
           "text": "久世宗一郎と申します。大学で教鞭を執っております。実に興味深い大会だね。",
+          "spokenName": "久世宗一郎",
           "gain": 0.912,
           "lufs": -18.2
         },
