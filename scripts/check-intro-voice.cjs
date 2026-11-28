@@ -61,7 +61,7 @@ const names = require('../src/data/npc_names.json');
       await page.locator('.intro-card').tap(); await page.waitForTimeout(250);
     }
   }
-  check('録り直した 7 人を全員確かめた', Object.keys(fresh).every((id) => seen.has(id)), [...seen].join(','));
+  check('新しい名前を名乗る声の人を全員確かめた', Object.keys(fresh).every((id) => seen.has(id)), [...seen].join(','));
   // 「飛ばす」で紹介を終えた時も止まる
   await toIntro();
   let ok = false; let who = '';

@@ -1,0 +1,16 @@
+key,file,voiced_from,voiced_to,start,end,text
+greeting,01_greeting.mp3,0.06,1.93,0.0,2.19,おはよう。よく眠れた？
+hello,02_hello.mp3,2.44,3.1,2.19,3.38,どうしたの？
+understand,03_understand.mp3,3.66,4.91,3.38,5.17,そうだったのね。
+accept,04_accept.mp3,5.42,6.55,5.17,6.84,ええ、もちろんよ。
+refuse,05_refuse.mp3,7.14,9.22,6.84,9.44,ごめんなさい、それはできないわ。
+thinking,06_thinking.mp3,9.65,10.97,9.44,11.32,少し考えさせてね。
+surprise,07_surprise.mp3,11.66,12.9,11.32,13.12,まあ、本当に？
+happy,08_happy.mp3,13.33,14.73,13.12,15.03,ふふっ、よかったわ。
+disappointed,09_disappointed.mp3,15.32,17.43,15.03,17.75,そんな……残念ね。
+thanks,10_thanks.mp3,18.07,20.3,17.75,20.66,ありがとう。本当に助かったわ。
+introduction,11_introduction.mp3,21.01,25.92,20.66,26.29,ヨウコです。医師をしています。困ったことがあったら、遠慮なく相談してね。
+victory,12_victory.mp3,26.65,30.14,26.29,30.45,ふぅ……なんとか勝てたわね。安心したわ。
+defeat,13_defeat.mp3,30.77,34.75,30.45,35.03,負けてしまったわね……次はもっと慎重に考えないと。
+elimination,14_elimination.mp3,35.32,38.68,35.03,39.03,ここまでみたいね……。みんな、どうか無事でいてね。
+betrayal,15_betrayal.mp3,39.39,42.76,39.03,42.92,どうして……？ あなたのこと、信じていたのに。
