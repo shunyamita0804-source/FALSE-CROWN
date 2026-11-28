@@ -19,9 +19,12 @@
     ]
   },
   "order": {
-    "mode": "ring",
+    "mode": "random",
     "hero": "last",
-    "note": "mode：ring は輪の並び順（主人公の隣から時計回り）、roster は名簿の順、random はその周の乱数で決める。hero：first は最初、last は最後、inline は輪の並びのまま。"
+    "first": [
+      "npc_05_shiraishi"
+    ],
+    "note": "mode：ring は輪の並び順（主人公の隣から時計回り）、roster は名簿の順、random はその周の乱数で決める（周ごとに変わる）。first に並べた人はその順で先頭に固定する（その周にいなければ飛ばす）。hero：first は最初、last は最後、inline は並びのまま。本人の指定（2026-11-28）：白石から、残りは順不同、主人公は最後。"
   },
   "bgm": "introduction",
   "timing": {

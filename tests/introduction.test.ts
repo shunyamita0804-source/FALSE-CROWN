@@ -46,6 +46,14 @@ describe('参加者の自己紹介', () => {
     const order = introOrder(seats, s.seed);
     expect(order.slice().sort()).toEqual(introParticipants(s).slice().sort());
     expect(order[order.length - 1]).toBe('hero');
+    // 本人の指定：白石から。残りは周ごとに変わる
+    expect(order[0]).toBe('npc_05_shiraishi');
+    const other = introOrder(seats, s.seed + 1);
+    expect(other[0]).toBe('npc_05_shiraishi');
+    expect(other.join()).not.toBe(order.join());
+    // 白石がいない周は、ほかの人から始まる
+    const noShi = ringSeats(introParticipants(s).filter((x) => x !== 'npc_05_shiraishi'), grid);
+    expect(introOrder(noShi, s.seed)).toHaveLength(11);
     expect(introOrder(seats, s.seed, { ...INTRO, order: { mode: 'ring', hero: 'first' } })[0]).toBe('hero');
     const r1 = introOrder(seats, 1, { ...INTRO, order: { mode: 'random', hero: 'inline' } });
     expect(r1.slice().sort()).toEqual(order.slice().sort());
