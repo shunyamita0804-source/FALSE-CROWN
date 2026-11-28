@@ -31,6 +31,7 @@ import { playVoice } from './audio/voice';
 import { drainBetrayals } from './npc/negotiation';
 import * as screens from './ui/screens';
 import { talkTo } from './ui/talk';
+import { makerSplash } from './ui/splash';
 
 if (window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window) document.body.classList.add('touch');
 document.body.dataset.channel = CHANNEL;
@@ -101,6 +102,7 @@ async function boot(): Promise<void> {
   for (;;) {
     // タイトルへ戻るたびに新しい版を確認し、あれば入れ替える（プレイ中には読み込み直さない）
     if (!isNative && (await applyUpdateIfAny())) return;
+    await makerSplash();
     const choice = await screens.titleScreen();
     let state: GameState | null = null;
     if (choice === 'continue') {
