@@ -146,6 +146,7 @@ with open(vpath, 'w', encoding='utf-8-sig', newline='') as fp:
             else:
                 job, why = '不要', ''
             if cid in NEW_VOICE: plan = '新規収録（声を作り直す）'
+            elif v.get('spokenName') and re.sub(r'[\s・]+', '', v['spokenName']) == re.sub(r'[\s・]+', '', FULL.get(cid, '')): plan = '録り直し済み（新しい名前の自己紹介、2026-11-28 受領）'
             elif v.get('spokenName'): plan = '録り直し（新しい名前の自己紹介）' + (f'。{INTRO_NOTE[cid]}' if cid in INTRO_NOTE else '')
             else: plan = '今の声を使い続ける'
             cnt[plan] = cnt.get(plan, 0) + 1
