@@ -1763,16 +1763,23 @@ body .vt-foot .btn.btn-s { min-height: 76px; }
 .intro-head span { color: var(--ivory-dim); }
 .intro-profile { display: none; }
 /* 本人の指示（2026-11-28）：人物の絵に枠は付けない。透過の胸上の絵を、台詞の枠の左上に立たせる */
-.intro-profile.on { display: block; align-self: flex-start; margin: 0 0 -2px 46px; height: 300px; pointer-events: none; position: relative; z-index: 1; }
+.intro-profile.on { display: block; align-self: flex-start; margin: 0 0 -2px -44px; height: 300px; pointer-events: none; position: relative; z-index: 1; }
 .intro-profile .intro-bust { height: 100%; width: auto; aspect-ratio: 1 / 1; background-size: 125% auto; background-position: 50% 2%; filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55)); -webkit-mask-image: linear-gradient(#000 88%, transparent); mask-image: linear-gradient(#000 88%, transparent); animation: intro-in 260ms ease-out; }
 /* 名前と年齢・職業：台詞の枠の上端に付けた名札（絵の右隣から） */
-.intro-tab { position: absolute; left: 360px; bottom: calc(100% - 2px); display: flex; align-items: baseline; gap: 22px; padding: 8px 28px 8px 26px; background: linear-gradient(180deg, #1a2244, #0e1430); border: 1.5px solid var(--gold); border-bottom: none; border-radius: 12px 12px 0 0; white-space: nowrap; animation: intro-in 260ms ease-out; }
+.intro-tab { position: absolute; left: -10px; bottom: calc(100% - 14px); z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 330px; padding: 12px 40px 12px 40px; background: linear-gradient(180deg, #1a2244, #0e1430); border: 1.5px solid var(--gold); border-radius: 12px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5); white-space: nowrap; animation: intro-in 260ms ease-out; }
+html[data-ui-assets~="talk/intro_name_plate"] .intro-tab { background: none; border-radius: 0; border-style: solid; border-color: transparent; border-width: 14px 26px; border-image: var(--asset-talk-intro-name-plate) var(--asset-talk-intro-name-plate-slice) fill / 14px 26px stretch; padding: 0 12px; min-width: 260px; gap: 0; line-height: 1.2; box-shadow: none; }
+.intro-card.talk { z-index: 2; }
 .intro-name { display: flex; align-items: baseline; gap: 12px; }
 .intro-name b { font-family: var(--serif); font-size: 1.6em; color: var(--gold2); letter-spacing: 0.08em; }
 .intro-name small { color: var(--ivory-dim); font-size: 0.9em; letter-spacing: 0.1em; }
-.intro-meta { color: #e8dcc0; font-size: 1.15em; padding-left: 22px; border-left: 1px solid rgba(216, 178, 90, 0.5); }
+.intro-meta { color: #e8dcc0; font-size: 1.05em; letter-spacing: 0.04em; }
 /* 下段：台詞だけの横長の枠 */
 .intro-card { position: relative; display: flex; align-items: center; gap: 26px; min-height: 104px; padding: 16px 70px 14px 40px; background: linear-gradient(180deg, rgba(14, 18, 40, 0.9), rgba(6, 8, 20, 0.94)); border: 1.5px solid var(--gold); border-radius: 14px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55); cursor: pointer; }
+html[data-ui-assets~="talk/intro_window"] .intro-card { background: none; border-radius: 0; box-shadow: none; border-style: solid; border-color: transparent; border-width: 30px 70px; border-image: var(--asset-talk-intro-window) var(--asset-talk-intro-window-slice) fill / 30px 70px stretch; padding: 0; }
+html[data-ui-assets~="talk/intro_window"] .intro-tab { left: -100px; bottom: calc(100% + 2px); }
+html[data-ui-assets~="talk/intro_name_plate"] .intro-name b { font-size: 1.35em; }
+html[data-ui-assets~="talk/intro_name_plate"] .intro-meta { font-size: 0.95em; }
+html[data-ui-assets~="talk/intro_window"] .intro-next { right: -40px; bottom: -14px; }
 .intro-card.wait { padding-right: 40px; }
 .intro-text { margin: 0; flex: 1; font-size: 1.3em; line-height: 1.6; white-space: pre-wrap; animation: intro-in 260ms ease-out; }
 .intro-text.narration { font-family: var(--serif); color: #e6dcc4; }

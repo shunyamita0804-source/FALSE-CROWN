@@ -12,7 +12,7 @@ const cache = new Map<string, string>();
 
 /** 立ち絵の描き方（data/portraits.json）。bust は胸から上の新しい絵 */
 interface FaceBox { x: number; y: number; size: number; w: number; h: number }
-interface PortraitStyle { style?: 'bust'; normal?: string; face?: FaceBox }
+interface PortraitStyle { style?: 'bust'; normal?: string; exprs?: string[]; face?: FaceBox }
 const STYLES = (portraitsJson as unknown as { characters: Record<string, PortraitStyle> }).characters;
 const styleOf = (id: string): PortraitStyle | undefined => STYLES[charFolder(id === 'host' ? 'host_observer' : id, heroGender)];
 /** 胸から上の新しい絵の人か */
@@ -51,6 +51,9 @@ export function faceUrl(id: string): string {
 export function portraitUrl(id: string, expr = 'normal'): string {
   // 通常絵の代用（透過の通常絵が届くまで、決めた表情を通常として使う）
   if (expr === 'normal' && styleOf(id)?.normal) expr = styleOf(id)!.normal!;
+  // 新しい絵の表情がまだ揃っていない人は、届いていない表情を通常絵で出す（旧デザインの表情と混ざらないように）
+  const ex = styleOf(id)?.exprs;
+  if (ex && !ex.includes(expr)) expr = styleOf(id)?.normal ?? 'normal';
   const folder = charFolder(id === 'host' ? 'host_observer' : id, heroGender);
   const key = `portrait:${folder}:${expr}`;
   let url = cache.get(key);

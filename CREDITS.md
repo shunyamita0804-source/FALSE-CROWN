@@ -69,6 +69,11 @@ Kenney（https://kenney.nl/）— Casino Audio / Interface Sounds / RPG Audio
 - ファイル：`public/assets/ui/logo/maker_logo.png`、`maker_glow.png`（起動時のロゴ画面、`src/ui/splash.ts`）
 - 流用元：制作者の別作品「ミストラルモンスターズ バトルカード オンライン」（`mistral-bc-online/design-parts/maker-logo/`、2026-11-28 に複写。流用元のリポジトリは読み取りのみ）。制作者自身のメーカーロゴ。加工なし
 
+## 自己紹介の名札と台詞の枠
+
+- ファイル：`public/assets/ui/talk/intro_name_plate.webp`、`intro_window.webp`（参加者の自己紹介、`src/ui/introduction.ts` と `src/style.css`）
+- 流用元：制作者の別作品「ミストラルモンスターズ バトルカード オンライン」（`mistral-bc-online/public/ui/r8/profile_plate.webp`、`public/ui/orig/talk_window.webp`、2026-11-28 に複写。流用元のリポジトリは読み取りのみ）。加工なし
+
 ### プログラムで合成している音
 
 - 扉を叩く音（ノック）：素材を使わず、再生時に合成している（`src/audio/audio.ts` の `knock()`）

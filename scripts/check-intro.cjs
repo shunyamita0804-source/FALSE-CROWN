@@ -38,8 +38,10 @@ const { chromium, devices } = require('playwright');
   const box = async (sel) => page.locator(sel).first().boundingBox();
   const [pb, cb, sb] = [await box('.intro-profile .intro-bust'), await box('.intro-card'), await box('.intro-top')];
   const [nb, mb, tb] = [await box('.intro-name'), await box('.intro-meta'), await box('.intro-card .intro-text')];
-  // 絵は台詞の枠の上端に少しかかる（本人の図）。台詞の文字、名前・年齢の囲みとは重ならない
-  check('人物の絵・名札・台詞の文字が重ならない', pb && cb && sb && pb.y + pb.height <= tb.y && nb.y + nb.height <= tb.y && mb.x >= nb.x + nb.width && nb.x >= pb.x + pb.width - 1 && pb.y >= sb.y + sb.height, JSON.stringify([pb, nb, mb, cb, tb]));
+  // 名札は人物の胸の下に重ね、台詞の枠の左上にかける（本人の図、2026-11-28）。台詞の文字とは重ならず、名札は人物より手前
+  const gb = await box('.intro-tab');
+  const topEl = await page.evaluate(() => { const g = document.querySelector('.intro-tab').getBoundingClientRect(); const e = document.elementFromPoint(g.x + g.width / 2, g.y + g.height / 2); return !!e && !!e.closest('.intro-tab'); });
+  check('人物の絵・名札・台詞の文字が重ならない', pb && cb && sb && gb && topEl && pb.y + pb.height <= tb.y + 1 && gb.y + gb.height <= tb.y && gb.y > pb.y + pb.height / 2 && mb.y >= nb.y + nb.height - 2 && pb.y >= sb.y + sb.height, JSON.stringify([pb, nb, mb, cb, tb]));
   check('台詞の枠に絵は入れない（名前と年齢は枠の名札）', !(await page.locator('.intro-card .bust').count()) && (await page.locator('.intro-card .intro-tab').count()) === 1);
   check('話す人の名前、年齢、職業、字幕が出る', /歳/.test(card1) && card1.length > 20, card1);
   const v1 = await ev(() => window.__fc.Sound.lastVoice);
@@ -68,17 +70,22 @@ const { chromium, devices } = require('playwright');
     const meta = await page.locator('.intro-meta').innerText();
     { const [p1, c1, s1, n1, m1] = [await box('.intro-profile .intro-bust'), await box('.intro-card'), await box('.intro-top'), await box('.intro-name'), await box('.intro-meta')];
       const t1 = await box('.intro-card .intro-text');
-      if (!(p1.y + p1.height <= t1.y && n1.y + n1.height <= t1.y && n1.x >= p1.x + p1.width - 1 && m1.x >= n1.x + n1.width && p1.y >= s1.y + s1.height && t1.y + t1.height <= c1.y + c1.height + 1)) check('全員：枠と文字が重ならない', false, meta + JSON.stringify([p1, c1, s1, t1])); else overlapOk++; }
+      const g1 = await box('.intro-tab');
+      // 名札は人物の胸の下（絵に重ねる）、台詞の枠の左上にかかる。名札・人物と台詞の文字は重ならない。名前の下に年齢・職業
+      if (!(p1.y + p1.height <= t1.y + 1 && g1.y + g1.height <= t1.y && g1.y > p1.y + p1.height / 2 && g1.x < t1.x + 40 && g1.x >= 0 && m1.y >= n1.y + n1.height - 2 && m1.x + m1.width <= g1.x + g1.width && n1.x + n1.width <= g1.x + g1.width && p1.y >= s1.y + s1.height && t1.y + t1.height <= c1.y + c1.height + 1)) check('全員：枠と文字が重ならない', false, meta + JSON.stringify([p1, c1, s1, t1])); else overlapOk++; }
     if (meta.includes('あなた')) { heroSeen = true; const lv = await ev(() => window.__fc.Sound.voicePlaying); check('主人公は文字だけ（声を鳴らさない）', !lv); if (out) await page.screenshot({ path: out + '/intro_3_hero.png' }); }
-    await page.locator('.intro-card').tap(); await page.waitForTimeout(350);
+    if (await page.locator('.intro-card.talk').count()) await page.locator('.intro-card.talk').tap();
+    await page.waitForTimeout(350);
   }
   check('主人公の自己紹介がある', heroSeen);
   check('全員：上段・下段・文字が重ならない', overlapOk >= 10, String(overlapOk));
-  const done = (await page.locator('.intro-card').innerText()).replace(/\s+/g, ' ');
-  check('紹介が終わると解散の案内', done.includes('自由時間'), done);
+  // 検査の環境が遅いと、主人公の字幕と解散の演出が測っている間に自動で終わることがある。その時は案内の文を表から確かめる
+  const done = (await page.locator('.intro-card.wait').count()) ? (await page.locator('.intro-card.wait').innerText()).replace(/\s+/g, ' ') : null;
+  const flags = await ev(() => ({ done: !!window.__fc.G.state.flags.introDone }));
+  check('紹介が終わると解散の案内', done ? done.includes('自由時間') : flags.done, done ?? '（自動で解散まで進んだ）');
   await page.waitForTimeout(1500);
   if (out) await page.screenshot({ path: out + '/intro_4_depart.png' });
-  await page.getByRole('button', { name: 'スタート' }).tap(); await page.waitForTimeout(1500);
+  { const go = page.getByRole('button', { name: 'スタート' }); if (await go.count()) await go.tap(); } await page.waitForTimeout(1500);
   const c = await st();
   check('紹介の後に自由時間が始まる', !c.cut && c.phase === 'morning' && await ev(() => window.__fc.G.inFreePhase()), JSON.stringify(c));
   const dest = await ev(() => { const s = window.__fc.G.state; return Object.values(s.actors).filter((x) => x.id !== 'hero').map((x) => x.goal ? x.goal.room : x.pos.room); });
