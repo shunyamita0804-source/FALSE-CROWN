@@ -3,7 +3,7 @@
  * 競技の勝敗、棟分け、脱落はすべて core/ のルールで決まり、ここは結果に従って画面と物語を進めるだけ。
  * 主人公専用の分岐は「プレイヤーが操作するか」「プレイヤーが脱落したら終局」だけで、勝敗への補正は一切ない。
  */
-import { reserveSeat, seatTile, sitDown, standUp } from '../world/seats';
+import { reserveSeat, seatTile, sitDown, standAll, standUp } from '../world/seats';
 import { cellOf } from '../world/cells';
 import { homeOf, isCell, isPrivateRoom, knockable, ownerOfRoom, roomTitle } from '../world/rooms';
 import { Sound, type BgmId } from '../audio/audio';
@@ -17,6 +17,7 @@ import { applyMainResult, applyPrisonResult, championEnding, endDay, gatherAt, i
 import { scheduleFor } from '../data/config';
 import { INTRO } from '../core/introduction';
 import type { GameState, MatchSlot, Phase } from '../core/types';
+import { arrangeGroups, newStrategy, strategyEnabled, type StrategyState } from '../core/strategy';
 import type { CharId, NpcId } from '../data/characters';
 import storyJson from '../data/story_events.json';
 import endingsJson from '../data/endings.json';
@@ -28,7 +29,7 @@ import { addInvite, clearSocial, INVITE_TIME, isBedroom, observeAttitude, ownerO
 /** その日のメインマッチと監獄マッチが両方とも実装済みか */
 const dayPlayable = (day: number) => isImplemented(mainMatchId(day)) && (!prisonMatchId(day) || isImplemented(prisonMatchId(day)!));
 import { fastForward, tickNpcs, type BrainEvent } from '../npc/brain';
-import { recordBetrayal, settlePlans } from '../npc/negotiation';
+import { consumePledges, recordBetrayal, settlePlans } from '../npc/negotiation';
 import { loadMeta, saveGame, saveMeta, type Meta } from '../save/save';
 import type { Target } from '../scenes/FieldScene';
 import { CLUE_BY_EVENT } from '../story/clues';
@@ -76,6 +77,10 @@ export interface Screens {
   handout(): Promise<void>;
   /** 参加者の自己紹介（DAY 1、開会式の後。全員が揃ってから順番に） */
   introduction(): Promise<void>;
+  /** 競技の作戦時間（ルール説明の後、開始前の相談） */
+  strategy(slot: MatchSlot, st: StrategyState): Promise<void>;
+  /** 作戦時間の相談室の入口を調べた */
+  strategyRoom(roomId: string): Promise<void>;
 }
 
 export interface RankingView {
@@ -119,6 +124,8 @@ export const G = {
   onExit: null as (() => void) | null,
   /** 演出中（自己紹介など）の動き。設定されている間は自由時間の処理の代わりにこれを毎コマ呼ぶ（時計は進めない） */
   cutscene: null as ((dt: number) => void) | null,
+  /** 競技の作戦時間（ルール説明の後の相談。ui/strategy.ts）。null なら作戦時間ではない */
+  strategy: null as import('../ui/strategy').StrategyCtx | null,
   /** カメラを向ける位置（マス単位）。null なら主人公を追う */
   camFocus: null as { x: number; y: number } | null,
 
@@ -177,6 +184,11 @@ export const G = {
       void G.ui.talkTo(target.id as NpcId);
     } else if (target.kind === 'door') {
       const d = target.door;
+      if (G.strategy) {
+        // 作戦時間の間は会場から出られない（全員同じ）
+        if (!quiet) toast(t('strat.noExit'), 'info', 2200);
+        return;
+      }
       if (canEnter(s, 'hero', d.to, d.lock)) {
         // 部屋の切り替え：短く暗転して行き先の名前を出し、明けるまで操作を受け付けない。
         // 着いた直後に押しっぱなしの方向で扉へ戻ってしまわないよう、方向キーを一度離すまで扉は反応しない
@@ -427,6 +439,11 @@ async function inspect(id: string, text: string, event?: string): Promise<void> 
     await G.ui.boardScreen();
     // 掲示台の過去の記録（v05 の I04）。裏ルートの条件にはしない
     if (s.day >= 4 && freeEnd) { await story('I04'); s.flags.v04_board_record = true; }
+    return;
+  }
+  // 作戦時間の相談室の入口（仮素材：大会競技場の左右の壁の入口）
+  if (event?.startsWith('consult_')) {
+    await G.ui.strategyRoom(event.slice(8));
     return;
   }
   // 寝台と机の出来事は、自分に割り当てられた個室でだけ起きる（他人の部屋では眺めるだけ）
@@ -712,11 +729,27 @@ async function step(s: GameState): Promise<boolean> {
       if (isFinalDay(s.day)) void announce('final');
       await banner(t('banner.gather'));
       await G.ui.rulesScreen(mainMatchId(s.day), { prison: false });
-      enter('main');
+      // ルール説明の後の作戦時間（試作、まず M01。本人の決定 2026-11-28）
+      enter(strategyEnabled(mainMatchId(s.day)) && !isFinalDay(s.day) ? 'strategy' : 'main');
       return true;
     }
     case 'strategy': {
-      // 旧版の「作戦時間」。v10 で朝の自由行動（11:00 からの競技準備）に統合した。古いセーブはそのまま競技へ進む
+      // 作戦時間：ルール説明の後、競技の前に、会場（ホール）を歩いて相談する。古いセーブや作戦時間の無い競技はそのまま競技へ
+      const id = mainMatchId(s.day);
+      if (!strategyEnabled(id) || isFinalDay(s.day)) { enter('main'); return true; }
+      if (!s.match || s.match.kind !== 'main' || s.match.day !== s.day) { npcRescuePromises(s); s.match = newSlot(s, id, aliveIds(s), 'main'); }
+      if (!s.strategy || s.strategy.day !== s.day || s.strategy.match !== id) s.strategy = newStrategy(s, id);
+      if (first()) {
+        if (s.actors.hero.pos.room !== 'main_arena') gatherAt(s, 'main_arena');
+        // 組分けの発表の後、組ごとに相談室の近くへ集まる（席を立つ）
+        standAll(s, 'main_arena');
+        arrangeGroups(s, s.match, (who, x, y) => placeIn(s, who, 'main_arena', { x, y }));
+      }
+      Sound.bgm('match_main');
+      showField(true);
+      await fade(false);
+      if (!s.strategy.done) await G.ui.strategy(s.match, s.strategy);
+      await fade(true);
       enter('main');
       return true;
     }
@@ -730,6 +763,9 @@ async function step(s: GameState): Promise<boolean> {
       const { ranking, scores, notes } = await playAndRank(slot);
       const engine = engineOf(id);
       settlePlans(s, id, (plan, actor, obs) => engine.checkPlan?.(slot.state, plan, actor, obs) ?? 'unknown');
+      // 緩い約束は、2 人とも出た競技が終われば使い終える（約束破りにはしない）
+      consumePledges(s, slot.players);
+      s.strategy = undefined;
       const res = applyMainResult(s, ranking, scores);
       s.match = null;
       s.flags.lastNotes = JSON.stringify(notes);
@@ -816,6 +852,7 @@ async function step(s: GameState): Promise<boolean> {
       const { ranking, scores, notes } = await playAndRank(slot);
       const engine = engineOf(id);
       settlePlans(s, id, (plan, actor, obs) => engine.checkPlan?.(slot.state, plan, actor, obs) ?? 'unknown');
+      consumePledges(s, slot.players);
       applyPrisonResult(s, ranking, scores);
       s.match = null;
       s.flags.lastNotes = JSON.stringify(notes);

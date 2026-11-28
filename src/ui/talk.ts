@@ -9,7 +9,7 @@ import { medalIssued, promiseRescue, promised } from '../core/rescue';
 import { G } from '../app/game';
 import { Sound } from '../audio/audio';
 import { buildCtx, engineOf } from '../core/runner';
-import { activeDeals, adjustRel, allied, aliveIds, learn, nameOf, rel, rngOf, shortName, transfer } from '../core/state';
+import { activeDeals, adjustRel, allied, pledged, aliveIds, learn, nameOf, rel, rngOf, shortName, transfer } from '../core/state';
 import type { GameState, Info, MatchSlot, PlanTerm } from '../core/types';
 import { NPC_BY_ID, PROFILES, type CharId, type NpcId } from '../data/characters';
 import { CONFIG } from '../data/config';
@@ -17,11 +17,13 @@ import storyJson from '../data/story_events.json';
 import { t } from '../i18n/i18n';
 import type { BrainEvent } from '../npc/brain';
 import { say, type LineKey } from '../npc/lines';
-import { absorb, accuse, commit, dealLabel, evaluate, noteDeal, type Proposal } from '../npc/negotiation';
+import { absorb, accuse, commit, dealLabel, describeDeal, evaluate, noteDeal, type Proposal } from '../npc/negotiation';
+import { answerHint, askTip, cancelCooperation, giveTip, newStrategy, talkRule, tipsOf } from '../core/strategy';
+import { engagedElsewhere, inviteToRoom } from './strategy';
 import { aboutTarget, addInvite, endInvite, INVITE_TIME, inviteVerdict, isPrivate, observeAttitude } from '../npc/social';
 import { actorsIn, distance } from '../world/sim';
 import { bust, icon, setBust } from './art';
-import { button, choose, clear, closeLayer, h, openLayer, panel, type Layer } from './dom';
+import { button, choose, clear, closeLayer, confirmDialog, h, openLayer, panel, type Layer } from './dom';
 import { pieces } from './screens';
 
 const EXPR: Partial<Record<LineKey, string>> = {
@@ -319,8 +321,9 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
 
     const treatyMenu = async () => {
       const medal = medalIssued(s.day) && !s.today.mainRanking;
-      const pick = await choose<'alliance' | 'nonaggression' | 'askRescue' | 'offerRescue' | null>(t('talk.treaty'), t(priv() ? 'talk.treatyPrivate' : 'talk.treatyPublic'), [
-        { label: t('talk.alliance'), value: 'alliance', kind: 'primary' }, { label: t('talk.nonaggression'), value: 'nonaggression' },
+      // 生活中は「次は協力しよう」という緩い約束まで。支払いや具体的な条件の付いた協力は、競技のルール説明の後（本人の決定 2026-11-28）
+      const pick = await choose<'pledge' | 'askRescue' | 'offerRescue' | null>(t('talk.treaty'), `${t('talk.pledgeNote')}\n${t(priv() ? 'talk.treatyPrivate' : 'talk.treatyPublic')}`, [
+        { label: t('talk.pledge'), value: 'pledge', kind: 'primary' },
         ...(medal ? [{ label: t('talk.rescueAsk'), value: 'askRescue' as const }, { label: t('talk.rescueOffer'), value: 'offerRescue' as const }] : []),
         { label: t('common.cancel'), value: null },
       ], { cancel: null, pauses: false });
@@ -333,7 +336,85 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
       } else if (pick === 'offerRescue') {
         if (!promised(s, 'hero', npc)) { promiseRescue(s, 'hero', npc); adjustRel(s, npc, 'hero', { trust: 4, like: 3 }); Sound.se('confirm'); }
         raw(t('talk.rescueThanks'), 'normal');
-      } else if (pick) await proposeTreaty(pick);
+      } else if (pick === 'pledge') {
+        if (pledged(s, 'hero', npc)) return raw(t('talk.already'));
+        if (await negotiate({ kind: 'pledge', from: 'hero', to: npc, payNow: 0, payOnSuccess: 0, untilDay: s.day + 2 })) line('pledge_ok');
+      }
+    };
+
+    // ---- 作戦時間（ルール説明の後）と、M01 の休憩の会話（競技用コマンド。試作） ----
+    const strat = !inMatch ? G.strategy : null;
+    const v2 = !!strat || (!!inMatch && !!talkRule(inMatch.id).breakTalk);
+    const mslot = inMatch ?? strat?.slot ?? null;
+    const stCtx = () => s.strategy ?? newStrategy(s, mslot?.id ?? '');
+
+    const coopOffer = async () => {
+      if (allied(s, 'hero', npc)) return raw(t('talk.already'));
+      const pay = await askNumber(t('strat.cmdCoop'), t('strat.coopAsk', { name: def.short }), 0, hero.pieces, 0);
+      if (pay === null) return;
+      await negotiate({ kind: 'alliance', from: 'hero', to: npc, payNow: pay, payOnSuccess: 0, untilDay: s.day });
+    };
+    const consult = () => {
+      const r = inviteToRoom(npc);
+      if (r.ok) Sound.se('confirm');
+      raw(r.text, r.ok ? 'smile' : 'normal');
+    };
+    const infoV2 = async () => {
+      const results = mslot ? (engineOf(mslot.id).view(mslot.state, 'hero') as { results?: Record<string, { complete: boolean; base: number; speed: number; team: number }[]> }).results : undefined;
+      const last = results?.[npc]?.[results[npc].length - 1];
+      const pick = await choose<string | null>(t('strat.cmdInfo'), t('strat.infoText'), [
+        ...(inMatch && last ? [{ label: t('strat.askHow'), value: 'how' }] : []),
+        { label: t('strat.askHint'), value: 'hint' }, { label: t('talk.pubAsk'), value: 'pub' }, { label: t('common.cancel'), value: null },
+      ], { cancel: null, pauses: false });
+      if (pick === 'how' && last) {
+        line(last.complete ? 'stage_good' : 'stage_bad');
+        text.textContent += `\n${t('strat.howPublic', { n: results![npc].length, pts: last.base + last.speed + last.team })}`;
+      } else if (pick === 'hint') {
+        const a = answerHint(s, npc, 'hero', rngOf(s));
+        line(a === 'yes' ? 'hint_yes' : a === 'no' ? 'hint_no' : 'hint_vague');
+      } else if (pick === 'pub') await publicInfo();
+    };
+    const tipAsk = () => {
+      const a = askTip(s, mslot, stCtx(), npc, 'hero', rngOf(s));
+      if (a.kind === 'refuse') return line('tip_refuse');
+      raw(`${a.kind === 'again' ? say(s, npc, 'tip_again') + '\n' : say(s, npc, 'tip_give') + '\n'}「${a.text}」`, 'think');
+    };
+    const tipTeach = async () => {
+      const list = tipsOf(stCtx().match);
+      if (!list.length) return line('noInfo');
+      const pick = await choose<string | null>(t('strat.teachTitle'), t('strat.teachText'), [...list.map((x) => ({ label: x, value: x as string | null })), { label: t('common.cancel'), value: null }], { cancel: null, pauses: false });
+      if (!pick) return;
+      giveTip(s, stCtx(), 'hero', npc);
+      line('tip_thanks');
+    };
+    const promiseMenu = async () => {
+      const deals = activeDeals(s, 'hero', npc);
+      const rescueMine = promised(s, 'hero', npc);
+      const rescueTheirs = promised(s, npc, 'hero');
+      const lines = [...deals.map((d) => describeDeal(s, d)), rescueMine ? t('strat.rescueMine') : '', rescueTheirs ? t('strat.rescueTheirs') : ''].filter(Boolean);
+      const medal = medalIssued(s.day) && !s.today.mainRanking;
+      const pick = await choose<string | null>(t('strat.cmdPromise'), lines.length ? lines.join('\n') : t('strat.noPromise'), [
+        ...(medal && !rescueTheirs ? [{ label: t('talk.rescueAsk'), value: 'askRescue' }] : []),
+        ...(medal && !rescueMine ? [{ label: t('talk.rescueOffer'), value: 'offerRescue' }] : []),
+        ...(allied(s, 'hero', npc) ? [{ label: t('strat.cancelCoop'), value: 'cancel', kind: 'danger' as const }] : []),
+        { label: t('common.close'), value: null },
+      ], { cancel: null, pauses: false });
+      if (pick === 'askRescue') {
+        const r = rel(s, npc, 'hero');
+        if (r.trust >= 35 || r.like >= 20 || allied(s, 'hero', npc)) { promiseRescue(s, npc, 'hero'); Sound.se('confirm'); raw(t('talk.rescueYes'), 'normal'); }
+        else raw(t('talk.rescueNo'), 'normal');
+      } else if (pick === 'offerRescue') {
+        promiseRescue(s, 'hero', npc);
+        adjustRel(s, npc, 'hero', { trust: 4, like: 3 });
+        Sound.se('confirm');
+        raw(t('talk.rescueThanks'), 'normal');
+      } else if (pick === 'cancel') {
+        if (await confirmDialog(t('strat.cancelCoop'), t('strat.cancelText', { name: def.short }), { ok: t('strat.cancelCoop'), cancel: t('common.cancel'), danger: true, pauses: false })) {
+          cancelCooperation(s, 'hero', npc);
+          line('coop_cancel');
+          refreshInfo();
+        }
+      }
     };
 
     const infoMenu = async () => {
@@ -410,7 +491,18 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
         await fn();
         if (!closed) buildMenu();
       }, { small: true }));
-      if (inMatch) {
+      const busy = strat ? engagedElsewhere(npc) : null;
+      if (busy) {
+        // 作戦時間に、ほかの人との相談へ向かっている人とは話せない（NPC 同士と同じ：1 枠に 1 組）
+        text.textContent = busy;
+      } else if (v2) {
+        add(t('strat.cmdCoop'), coopOffer, 'alliance');
+        if (strat) add(t('strat.cmdConsult'), consult, 'contract');
+        add(t('strat.cmdInfo'), infoV2, 'rumor');
+        add(t('strat.cmdTipAsk'), tipAsk, 'help');
+        add(t('strat.cmdTeach'), tipTeach);
+        add(t('strat.cmdPromise'), promiseMenu, 'contract');
+      } else if (inMatch) {
         add(t('talk.planAsk'), () => planMenu('npc'));
         add(t('talk.planOffer'), () => planMenu('hero'));
         add(t('talk.intent'), askIntent, 'help');
@@ -427,7 +519,7 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
         if (priv()) add(t('talk.secret'), secretMenu, 'contract');
         if (!priv() || following) add(following ? t('talk.followStop') : t('talk.inviteAsk'), invite);
       }
-      menu.append(button([icon('back'), t(inMatch ? 'talk.leave' : priv() ? 'talk.end' : 'talk.nothing')], () => {
+      menu.append(button([icon('back'), t(inMatch || strat ? 'talk.leave' : priv() ? 'talk.end' : 'talk.nothing')], () => {
         Sound.se('back');
         close();
       }, { kind: 'ghost', small: true }));
@@ -438,7 +530,8 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
     const incoming = async (p: Proposal) => {
       const priceIn = Math.max(0, -p.payNow);
       const offerOut = Math.max(0, p.payNow);
-      if (p.kind === 'alliance') line('alliance_offer');
+      if (p.kind === 'pledge') line('pledge_offer');
+      else if (p.kind === 'alliance') line('alliance_offer');
       else if (p.kind === 'nonaggression') line('propose_nap');
       else if (p.kind === 'info_sell') line('info_offer', { x: String(priceIn) });
       else if (p.kind === 'loan') line('loan_request', { x: String(priceIn) });
@@ -457,7 +550,7 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
           noteDeal(s, d);
           Sound.se(p.payNow ? 'coins' : 'confirm');
           if (p.kind === 'info_sell' && p.infoId) raw(`「${s.infos[p.infoId].text}」`, 'think');
-          else line(p.kind === 'loan' ? 'gift_received' : 'trust_high');
+          else line(p.kind === 'loan' ? 'gift_received' : p.kind === 'pledge' ? 'pledge_ok' : 'trust_high');
           refreshInfo();
         } else line('refuse');
       } else line('exit');
