@@ -119,11 +119,14 @@ JOB_REVIEW = {
   ('npc_08_dojima', 'betrayal'): '「人を見る目が鈍った」（元刑事らしい言い方）',
   ('npc_12_kuze', 'victory'): '「私の仮説は」（学者らしい言い方）',
 }
+# 本人の予定（2026-11-28）：この 4 人は声そのものを作り直し、15 種すべてを新規収録。残り 7 人は今の声を使い続け、自己紹介だけ録り直す。
+# 職業・能力・関係・秘密は今の設定を引き継ぐ。新しい名前は通常絵の確認後に正式な対応表が届く（下は予定の名前）。
+NEW_VOICE = {'npc_02_kanzaki': 'レオン', 'npc_03_kurose': 'ヴィクトリア', 'npc_07_tachibana': 'ヨウコ', 'npc_08_dojima': 'ヴィクター'}
 vpath = os.path.join(OUT, 'voice_rerecord.csv')
 cnt = {}
 with open(vpath, 'w', encoding='utf-8-sig', newline='') as fp:
     w = csv.writer(fp)
-    w.writerow(['内部ID', '今の名前', '音声ファイル', '種類', '台詞', '改名で録り直し', '職業・経歴を変える時', '理由'])
+    w.writerow(['内部ID', '今の名前', '予定の名前', '音声ファイル', '種類', '台詞', '今回の予定', '改名で録り直し', '職業・経歴を変える時', '理由'])
     for cid, c in vo.items():
         for k, v in list(c.get('clips', {}).items()) + list(c.get('extra', {}).items()):
             text = v.get('text', '')
@@ -138,6 +141,9 @@ with open(vpath, 'w', encoding='utf-8-sig', newline='') as fp:
                 job, why = '未確認', '台本が無く、文面が分からない（耳で確かめる）'
             else:
                 job, why = '不要', ''
-            cnt[rename] = cnt.get(rename, 0) + 1
-            w.writerow([cid, FULL.get(cid, ''), f"{c['dir']}/{v['file']}", k, text, rename, job, why])
-print('音声：' + '、'.join(f'改名で{k} {v} 本' for k, v in cnt.items()) + f' → {vpath}')
+            if cid in NEW_VOICE: plan = '新規収録（声を作り直す）'
+            elif v.get('spokenName'): plan = '録り直し（新しい名前の自己紹介）'
+            else: plan = '今の声を使い続ける'
+            cnt[plan] = cnt.get(plan, 0) + 1
+            w.writerow([cid, FULL.get(cid, ''), NEW_VOICE.get(cid, '未定'), f"{c['dir']}/{v['file']}", k, text, plan, rename, job, why])
+print('音声：' + '、'.join(f'{k} {v} 本' for k, v in cnt.items()) + f' → {vpath}')
