@@ -9,11 +9,11 @@ import bgmTable from '../data/bgm.json';
  */
 const BASE = import.meta.env.BASE_URL;
 
-export type BgmId = 'title' | 'corridor' | 'room' | 'living' | 'common' | 'lounge' | 'prison' | 'hidden' | 'match_main' | 'match_prison' | 'final' | 'elimination' | 'ending';
+export type BgmId = 'title' | 'opening' | 'introduction' | 'corridor' | 'room' | 'living' | 'common' | 'lounge' | 'prison' | 'hidden' | 'match_main' | 'match_prison' | 'final' | 'elimination' | 'ending';
 export interface BgmDef { label: string; file: string; title: string; loop: boolean; xfade?: boolean; resume?: boolean; by: string }
 /** 場面 → 音源の対応は src/data/bgm.json で管理する（差し替え手順は docs/bgm.md） */
 export const BGM = (bgmTable as unknown as { scenes: Record<BgmId, BgmDef> }).scenes;
-export const BGM_CREDITS = (bgmTable as unknown as { credits: Record<string, { name: string; url: string; license: string }> }).credits;
+export const BGM_CREDITS = (bgmTable as unknown as { credits: Record<string, { name: string; url: string; license: string; perTitle?: string }> }).credits;
 
 /** 効果音の論理名 → 素材（複数ある場合は順に使い分ける） */
 export const SE = {

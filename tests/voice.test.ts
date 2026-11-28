@@ -29,7 +29,9 @@ describe('汎用ボイスの対応表', () => {
     for (const [, c] of withExtra) {
       expect(Object.keys(c.extra!).sort()).toEqual([...EXTRA].sort());
       for (const [cat, clip] of Object.entries(c.extra!)) {
-        expect(clip.file).toMatch(new RegExp(`^1[1-5]_${cat === 'introduction' ? '(introduction|intro)' : cat}\\.mp3$`));
+        // 納品物のファイル名のまま収録する（intro、win、lose は別名）
+        const ALIAS: Record<string, string> = { introduction: '(introduction|intro)', victory: '(victory|win)', defeat: '(defeat|lose)' };
+        expect(clip.file).toMatch(new RegExp(`^1[1-5]_${ALIAS[cat] ?? cat}\\.mp3$`));
         expect(Object.values(c.clips).some((x) => x.file === clip.file)).toBe(false);
       }
     }

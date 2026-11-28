@@ -9,6 +9,21 @@
       "xfade": true,
       "by": "incompetech"
     },
+    "opening": {
+      "label": "開会式・大会説明（ゲームマスターの説明の声の間は自動で音量を下げる。説明の終わりにフェードアウト）",
+      "file": "stay_the_course.mp3",
+      "title": "Stay the Course",
+      "loop": true,
+      "xfade": true,
+      "by": "incompetech"
+    },
+    "introduction": {
+      "label": "参加者の自己紹介（開会式の後。暫定でラウンジ曲。自己紹介の声の間は自動で音量を下げる）",
+      "file": "B03_alt_coffee_lounge.m4a",
+      "title": "Coffee_Lounge",
+      "loop": true,
+      "by": "peritune"
+    },
     "corridor": {
       "label": "生活棟の廊下",
       "file": "airport_lounge.mp3",
@@ -114,7 +129,8 @@
     "incompetech": {
       "name": "Kevin MacLeod (incompetech.com)",
       "url": "https://incompetech.com/",
-      "license": "CC BY 4.0（https://creativecommons.org/licenses/by/4.0/）。音源は未加工です。"
+      "license": "Licensed under Creative Commons: By Attribution 4.0 License\nhttps://creativecommons.org/licenses/by/4.0/",
+      "perTitle": "“{title}” Kevin MacLeod (incompetech.com)"
     }
   }
 }

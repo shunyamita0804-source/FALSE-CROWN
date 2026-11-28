@@ -15,6 +15,7 @@ import { subGamesScreen } from '../ui/subhub';
 import { hiddenInspect, resumeHiddenRun } from '../ui/hiddenhub';
 import { applyMainResult, applyPrisonResult, championEnding, endDay, gatherAt, isFinalDay, mainMatchId, moveToHouses, prisonMatchId, startMorning } from '../core/tournament';
 import { scheduleFor } from '../data/config';
+import { INTRO } from '../core/introduction';
 import type { GameState, MatchSlot, Phase } from '../core/types';
 import type { CharId, NpcId } from '../data/characters';
 import storyJson from '../data/story_events.json';
@@ -73,6 +74,8 @@ export interface Screens {
   /** 開会式と、その後の配布（v11） */
   ceremony(opts: { review?: boolean; skippable?: boolean }): Promise<void>;
   handout(): Promise<void>;
+  /** 参加者の自己紹介（DAY 1、開会式の後。全員が揃ってから順番に） */
+  introduction(): Promise<void>;
 }
 
 export interface RankingView {
@@ -114,10 +117,19 @@ export const G = {
   ui: null as unknown as Screens,
   /** 終局してタイトルへ戻る時に呼ばれる */
   onExit: null as (() => void) | null,
+  /** 演出中（自己紹介など）の動き。設定されている間は自由時間の処理の代わりにこれを毎コマ呼ぶ（時計は進めない） */
+  cutscene: null as ((dt: number) => void) | null,
+  /** カメラを向ける位置（マス単位）。null なら主人公を追う */
+  camFocus: null as { x: number; y: number } | null,
 
   /** 自由行動中のシミュレーションを進める（フィールドシーンから毎フレーム呼ばれる） */
   tick(dt: number): void {
     const s = G.state;
+    if (s && G.cutscene && !document.hidden) {
+      s.simTime += dt;
+      G.cutscene(dt);
+      return;
+    }
     if (!s || !freeEnd || clockPaused() || document.hidden) return;
     s.simTime += dt;
     const curfew = s.phase === 'curfew';
@@ -648,7 +660,8 @@ async function step(s: GameState): Promise<boolean> {
     case 'prologue': {
       // 開会式（v11）：中央ホールに 12 人が集まり、進行役が大会の仕組みを段階的に説明する。時計は式が終わってから動き出す
       showField(false);
-      Sound.bgm('title');
+      // 開会式の曲（説明の声の間は自動で音量が下がる。式の終わりにフェードアウトする）
+      Sound.bgm('opening', 1200);
       await G.ui.ceremony({ skippable: G.meta.ceremonySeen === true });
       if (!G.meta.ceremonySeen) { G.meta.ceremonySeen = true; saveMeta(G.meta); }
       await G.ui.handout();
@@ -672,13 +685,18 @@ async function step(s: GameState): Promise<boolean> {
       }
       if (first()) {
         startMorning(s);
-        // DAY 1 は開会式の直後。全員が中央ホールから散っていく
-        if (s.day === 1) gatherAt(s, 'main_hall');
+        // DAY 1 は開会式の直後。全員が自己紹介の集合場所に集まる（そこから輪の位置へ歩く）
+        if (s.day === 1) gatherAt(s, INTRO.venue.room);
         s.phaseLeft = phaseDuration('morning');
         log(s, t('log.morning', { day: s.day }), 'day');
       }
       showField(true);
       await fade(false);
+      // DAY 1：参加者の自己紹介。終わるまで時計は止まり、終わると各自が施設へ歩き出して自由時間になる
+      if (s.day === 1 && !s.flags.introDone) {
+        await G.ui.introduction();
+        if (!s.seen.includes('S01A')) s.seen.push('S01A');
+      }
       await story(`S${dd(s.day)}A`);
       if (await freeOrEnd()) return false;
       await fade(true);
