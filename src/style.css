@@ -1857,3 +1857,18 @@ html[data-ui-assets~="v11/bg/match_sub"] .match.venue-sub { background: linear-g
 .bust.bust-art { background-size: contain !important; background-position: 50% 100% !important; }
 /* 顔アイコン：人物ごとの切り抜き（data/portraits.json の face）。大きさと位置は art.ts の faceCropCss が書く */
 .face.face-crop { display: inline-block; flex: none; background-repeat: no-repeat; }
+
+/* ---- 起動時のメーカーロゴ（src/ui/splash.ts） ---- */
+.splash-screen { background: #000; display: flex; align-items: center; justify-content: center; z-index: 900; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.splash-screen.layer, .splash-screen.layer.open { opacity: 1; transition: none; }
+.splash-inner { opacity: 0; transform: scale(0.965); filter: blur(6px); }
+.splash-inner.is-in { opacity: 1; transform: none; filter: none; transition: opacity var(--splash-in) ease-out, transform var(--splash-in) cubic-bezier(0.25, 0.8, 0.3, 1), filter var(--splash-in) ease-out; }
+.splash-inner.is-out { opacity: 0; filter: blur(3px); transition: opacity var(--splash-out) ease-in, filter var(--splash-out) ease-in; }
+.splash-logo { position: relative; width: 760px; max-width: 80vw; aspect-ratio: 1200 / 480; }
+.splash-img, .splash-glow { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.splash-glow { mix-blend-mode: plus-lighter; opacity: 0; }
+.splash-inner.is-in .splash-glow { animation: splash-glow 2.2s ease-out both; }
+@keyframes splash-glow { 0% { opacity: 0; transform: scale(0.9); } 35% { opacity: 0.6; } 100% { opacity: 0.28; transform: none; } }
+.splash-word { display: flex; flex-direction: column; align-items: center; gap: 10px; color: #f3ead2; }
+.splash-name { font-family: 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', serif; font-size: 56px; letter-spacing: 0.32em; padding-left: 0.32em; }
+.splash-en { font-size: 18px; letter-spacing: 0.6em; padding-left: 0.6em; opacity: 0.7; }
