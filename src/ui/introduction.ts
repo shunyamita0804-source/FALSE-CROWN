@@ -70,11 +70,16 @@ export function introductionEvent(): Promise<void> {
     const lines: IntroLine[] = order.map((id) => introLine(s, id, (who) => voiceClip(who, 'introduction')));
     const departing: { id: NpcId; at: number; dest: string | null; started: boolean }[] = [];
 
+    // 上段：話す人の紹介（胸から上の絵 → 名前 → 年齢・職業を左から横並び）と、進み具合・飛ばす
+    // 下段：独立した横長の枠に、自己紹介の台詞だけ（冒頭から全文）
     const head = h('div', { class: 'intro-head' });
+    const profile = h('div', { class: 'intro-profile' });
     const card = h('div', { class: 'intro-card', onclick: () => next(), 'data-focus': '', tabIndex: 0 });
     const skipBtn = button(t('intro.skipAll'), () => finishTalks(), { kind: 'ghost', small: true });
     const top = h('div', { class: 'intro-top' }, head, skipBtn);
-    const root = h('div', { class: 'overlay clear intro' }, top, card);
+    // 本人の配置図（2026-11-28）：会話の枠の上、中央の人物の列の手前に人物紹介、その下に台詞の枠
+    const bottom = h('div', { class: 'intro-bottom' }, profile, card);
+    const root = h('div', { class: 'overlay clear intro' }, top, bottom);
 
     const clearTimer = () => { if (timer) { clearTimeout(timer); timer = null; } };
     const faceAll = (who: CharId | null) => {
@@ -89,6 +94,8 @@ export function introductionEvent(): Promise<void> {
 
     const showGather = () => {
       drawHead(t('intro.gathering'));
+      clear(profile);
+      profile.className = 'intro-profile';
       clear(card);
       card.className = 'intro-card wait';
       card.append(h('p', { class: 'intro-text narration' }, t('intro.gatherText', { place: ROOMS[room].name })));
@@ -103,16 +110,16 @@ export function introductionEvent(): Promise<void> {
       a.bubble = { text: MARK, until: s.simTime + 3_600_000 };
       faceAll(l.id);
       drawHead(t('intro.count', { i: idx + 1, n: lines.length }));
-      clear(card);
-      card.className = `intro-card${l.id === 'hero' ? ' hero' : ''}`;
       const meta = l.age != null ? `${t('intro.age', { n: l.age })}　${l.job ?? ''}` : t('intro.player');
-      card.append(
-        bust(l.id, 'normal', 'intro-bust'),
-        h('div', { class: 'intro-body' },
-          h('div', { class: 'intro-name' }, h('b', null, l.name), l.kana ? h('small', null, l.kana) : null),
-          h('div', { class: 'intro-meta' }, meta),
-          h('p', { class: 'intro-text' }, l.text),
-          h('div', { class: 'intro-next' }, l.voice ? '♪' : '', ' ▼')));
+      clear(profile);
+      profile.className = `intro-profile on${l.id === 'hero' ? ' hero' : ''}`;
+      profile.append(
+        h('div', { class: 'intro-portrait' }, bust(l.id, 'normal', 'intro-bust')),
+        h('div', { class: 'intro-name' }, h('b', null, l.name), l.kana ? h('small', null, l.kana) : null),
+        h('div', { class: 'intro-meta' }, meta));
+      clear(card);
+      card.className = 'intro-card';
+      card.append(h('p', { class: 'intro-text' }, l.text), h('div', { class: 'intro-next' }, l.voice ? '♪' : '', ' ▼'));
       const hold = () => { timer = setTimeout(next, textHoldMs(l.text)); };
       if (!l.voice) { hold(); return; }
       let started = false;
@@ -166,6 +173,8 @@ export function introductionEvent(): Promise<void> {
       leave.forEach((id, i) => departing.push({ id: id as NpcId, at: i * INTRO.timing.departStaggerMs, dest: departRoom(id as NpcId, room, (r) => r in ROOMS && canEnter(s, id, r)), started: false }));
       skipBtn.style.visibility = 'hidden';
       drawHead(t('intro.done'));
+      clear(profile);
+      profile.className = 'intro-profile';
       clear(card);
       card.className = 'intro-card wait';
       card.append(h('p', { class: 'intro-text narration' }, t('intro.doneText')), h('div', { class: 'intro-foot' }, button(t('cer.go'), () => end(), { kind: 'primary', autofocus: true })));
