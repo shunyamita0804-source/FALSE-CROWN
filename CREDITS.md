@@ -64,6 +64,11 @@ Kenney（https://kenney.nl/）— Casino Audio / Interface Sounds / RPG Audio
 - 流用元：制作者の別作品「ミストラルモンスターズ バトルカード」（`mistral-bc-online/assets/audio/se/alarm_clock_ring.mp3`、2026-11-27 に複写。流用元のリポジトリは読み取りのみ）
 - 加工：流用元の作品で、3.4 秒への切り出し、高域の減衰、前後のフェード、音量調整が行われている（流用元の `docs/audio-credits.md` の記載）。FALSE CROWN では手を加えていない
 
+## メーカーロゴ（スリーライス）
+
+- ファイル：`public/assets/ui/logo/maker_logo.png`、`maker_glow.png`（起動時のロゴ画面、`src/ui/splash.ts`）
+- 流用元：制作者の別作品「ミストラルモンスターズ バトルカード オンライン」（`mistral-bc-online/design-parts/maker-logo/`、2026-11-28 に複写。流用元のリポジトリは読み取りのみ）。制作者自身のメーカーロゴ。加工なし
+
 ### プログラムで合成している音
 
 - 扉を叩く音（ノック）：素材を使わず、再生時に合成している（`src/audio/audio.ts` の `knock()`）
