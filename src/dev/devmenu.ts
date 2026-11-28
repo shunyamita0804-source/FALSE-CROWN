@@ -28,6 +28,8 @@ import { rankingScreen, rulesScreen } from '../ui/screens';
 function fresh(): GameState {
   const s = newGame({ gender: 'm', name: DEFAULT_HERO_NAMES.m, difficulty: G.meta.settings.difficulty });
   setHeroGender('m');
+  // 途中から始める検証では、DAY 1 の自己紹介は済んだことにする（自己紹介は専用のボタンから）
+  s.flags.introDone = true;
   return s;
 }
 
@@ -169,6 +171,16 @@ export function devMenu(): Promise<GameState | null> {
           await playMatch(slot);
           G.state = null;
         }, { small: true })),
+        h('h4', { class: 'gold' }, '開会式と自己紹介'),
+        h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' },
+          button('開会式から（本編の始まり）', () => { const s = fresh(); delete s.flags.introDone; done(s); }, { small: true }),
+          button('自己紹介から（開会式の後）', () => {
+            const s = fresh();
+            delete s.flags.introDone;
+            s.phase = 'morning';
+            done(s);
+          }, { small: true }),
+        ),
         h('h4', { class: 'gold' }, '任意の時点から開始（そこまでは自動対戦）'),
         ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter((d) => isImplemented(scheduleFor(d).main) && (!scheduleFor(d).prisonGame || isImplemented(scheduleFor(d).prisonGame!))).map((d) =>
           h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' },

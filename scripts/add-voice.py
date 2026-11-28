@@ -9,7 +9,7 @@
 import csv, glob, json, os, re, shutil, subprocess, sys
 
 EXTRA = ['introduction', 'victory', 'defeat', 'elimination', 'betrayal']
-ALIAS = {'intro': 'introduction'}
+ALIAS = {'intro': 'introduction', 'win': 'victory', 'lose': 'defeat'}
 BASIC = ['greeting', 'hello', 'understand', 'accept', 'refuse', 'thinking', 'surprise', 'happy', 'disappointed', 'thanks']
 
 def main():

@@ -545,7 +545,12 @@ export class FieldScene extends Phaser.Scene {
     this.target = control ? this.findTarget() : null;
     // カメラは主人公に遅れなく付ける（遅れて追う方式は、主人公と背景の動きがずれてガタついて見えるため使わない）
     const hv = this.actors.get('hero');
-    if (hv) {
+    if (G.camFocus) {
+      // 演出中（自己紹介など）：指定の位置へ、なめらかに寄せる
+      const k = Math.min(1, dt / 220);
+      this.camTarget.set(this.camTarget.x + ((G.camFocus.x * TILE) - this.camTarget.x) * k, this.camTarget.y + ((G.camFocus.y * TILE) - this.camTarget.y) * k);
+      this.cameras.main.centerOn(this.camTarget.x, this.camTarget.y);
+    } else if (hv) {
       this.camTarget.set(hv.sprite.x, hv.sprite.y - 40);
       this.cameras.main.centerOn(this.camTarget.x, this.camTarget.y);
     }
