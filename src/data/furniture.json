@@ -66,7 +66,7 @@
       200,
       550
      ],
-     "facing": "SOUTHEAST",
+     "facing": "SE",
      "a": [
       265,
       590
@@ -855,7 +855,7 @@
       219,
       391
      ],
-     "facing": "NORTHEAST",
+     "facing": "NE",
      "a": [
       219,
       470
@@ -868,7 +868,7 @@
       446,
       391
      ],
-     "facing": "NORTHWEST",
+     "facing": "NW",
      "a": [
       446,
       470
@@ -881,7 +881,7 @@
       1424,
       282
      ],
-     "facing": "SOUTHEAST",
+     "facing": "SE",
      "a": [
       1392,
       282
@@ -894,7 +894,7 @@
       1581,
       282
      ],
-     "facing": "SOUTHWEST",
+     "facing": "SW",
      "a": [
       1613,
       282
@@ -907,7 +907,7 @@
       1424,
       386
      ],
-     "facing": "NORTHEAST",
+     "facing": "NE",
      "a": [
       1392,
       414
@@ -920,7 +920,7 @@
       1581,
       386
      ],
-     "facing": "NORTHWEST",
+     "facing": "NW",
      "a": [
       1613,
       414
@@ -933,7 +933,7 @@
       207,
       600
      ],
-     "facing": "SOUTHEAST",
+     "facing": "SE",
      "a": [
       169,
       630
@@ -946,7 +946,7 @@
       358,
       600
      ],
-     "facing": "SOUTHWEST",
+     "facing": "SW",
      "a": [
       396,
       630
@@ -959,7 +959,7 @@
       1424,
       600
      ],
-     "facing": "SOUTHEAST",
+     "facing": "SE",
      "a": [
       1386,
       630
@@ -972,7 +972,7 @@
       1581,
       600
      ],
-     "facing": "SOUTHWEST",
+     "facing": "SW",
      "a": [
       1619,
       630
@@ -1011,7 +1011,7 @@
       192,
       965
      ],
-     "facing": "NORTHEAST",
+     "facing": "NE",
      "a": [
       192,
       1055
@@ -1024,7 +1024,7 @@
       433,
       965
      ],
-     "facing": "NORTHWEST",
+     "facing": "NW",
      "a": [
       433,
       1055
@@ -2231,7 +2231,7 @@
       221,
       692
      ],
-     "facing": "SOUTHEAST",
+     "facing": "SE",
      "a": [
       189,
       692
@@ -2244,7 +2244,7 @@
       369,
       692
      ],
-     "facing": "SOUTHWEST",
+     "facing": "SW",
      "a": [
       401,
       692
@@ -2257,7 +2257,7 @@
       221,
       796
      ],
-     "facing": "NORTHEAST",
+     "facing": "NE",
      "a": [
       189,
       824
@@ -2270,7 +2270,7 @@
       369,
       796
      ],
-     "facing": "NORTHWEST",
+     "facing": "NW",
      "a": [
       401,
       824
@@ -2283,7 +2283,7 @@
       1161,
       692
      ],
-     "facing": "SOUTHEAST",
+     "facing": "SE",
      "a": [
       1129,
       692
@@ -2296,7 +2296,7 @@
       1309,
       692
      ],
-     "facing": "SOUTHWEST",
+     "facing": "SW",
      "a": [
       1341,
       692
@@ -2309,7 +2309,7 @@
       1161,
       796
      ],
-     "facing": "NORTHEAST",
+     "facing": "NE",
      "a": [
       1129,
       824
@@ -2322,7 +2322,7 @@
       1309,
       796
      ],
-     "facing": "NORTHWEST",
+     "facing": "NW",
      "a": [
       1341,
       824
@@ -8581,7 +8581,7 @@
       127,
       615
      ],
-     "facing": "SOUTHEAST",
+     "facing": "SE",
      "a": [
       95,
       615
@@ -8594,7 +8594,7 @@
       254,
       615
      ],
-     "facing": "SOUTHWEST",
+     "facing": "SW",
      "a": [
       286,
       615
@@ -8607,7 +8607,7 @@
       127,
       697
      ],
-     "facing": "NORTHEAST",
+     "facing": "NE",
      "a": [
       95,
       725
@@ -8620,7 +8620,7 @@
       254,
       697
      ],
-     "facing": "NORTHWEST",
+     "facing": "NW",
      "a": [
       286,
       725
@@ -8633,7 +8633,7 @@
       1045,
       615
      ],
-     "facing": "SOUTHEAST",
+     "facing": "SE",
      "a": [
       1013,
       615
@@ -8646,7 +8646,7 @@
       1157,
       615
      ],
-     "facing": "SOUTHWEST",
+     "facing": "SW",
      "a": [
       1189,
       615
@@ -8659,7 +8659,7 @@
       1045,
       697
      ],
-     "facing": "NORTHEAST",
+     "facing": "NE",
      "a": [
       1013,
       725
@@ -8672,7 +8672,7 @@
       1157,
       697
      ],
-     "facing": "NORTHWEST",
+     "facing": "NW",
      "a": [
       1189,
       725

@@ -14,7 +14,8 @@ import json, os, shutil, sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 PROPS_DIR = 'props/redesign'
-FACING = {'north': 'N', 'south': 'S', 'east': 'E', 'west': 'W', 'n': 'N', 's': 'S', 'e': 'E', 'w': 'W'}
+FACING = {'north': 'N', 'south': 'S', 'east': 'E', 'west': 'W', 'northeast': 'NE', 'northwest': 'NW', 'southeast': 'SE', 'southwest': 'SW',
+          'north_east': 'NE', 'north_west': 'NW', 'south_east': 'SE', 'south_west': 'SW'}
 
 
 def facing(v):
