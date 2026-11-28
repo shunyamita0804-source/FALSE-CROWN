@@ -14,8 +14,8 @@ import type { Actor, GameState, Info } from '../core/types';
 import { CLUE_BY_EVENT } from '../story/clues';
 import { canEnter, passFn } from '../world/access';
 import { ROOMS } from '../world/maps';
-import { roomRoute } from '../world/path';
-import { actorsIn, distance, homeSpot, moveActor, seatUsable, setPathTo, setRouteTo, speedOf } from '../world/sim';
+import { nearestFree, roomRoute } from '../world/path';
+import { actorsIn, collisionOf, distance, homeSpot, moveActor, occupiedSet, seatUsable, setPathTo, setRouteTo, speedOf } from '../world/sim';
 import { reserveSeat, seatOf, seatTile, sitDown, standUp, sweepSeats, freeSeats } from '../world/seats';
 import { absorb, accuse, commit, evaluate, perceivedStrength, type Proposal } from './negotiation';
 import { addInvite, endInvite, invited, INVITE_TIME, inviteVerdict, isBedroom, isPrivate, othersPresent, ownerOf, visitVerdict, witnessEntry } from './social';
@@ -286,12 +286,57 @@ function takeSeat(state: GameState, a: Actor, rng: Rng): void {
   g.spot = t;
   a.route = [];
   if (a.pos.x === t.x && a.pos.y === t.y) a.path = [];
-  else if (!setPathTo(state, a, t.x, t.y)) {
-    // たどり着けない：席を放して、立ったまま過ごす
-    standUp(state, a.id);
-    g.seat = '-';
-  }
+  // 入口が人でふさがっていて今は道が無い時も、席は持ったまま、下の settleSeat で少し待って歩き直す
+  else setPathTo(state, a, t.x, t.y);
 }
+
+/** 部屋に入ってから、人にふさがれても席や地点へ歩き直し続ける時間と、歩き直す間隔 */
+const WALK_IN_PATIENCE = 25_000;
+const WALK_IN_WAIT = 400;
+/** 部屋に入ってから待ち続けてよいか（初めて呼ばれた時刻を覚える） */
+function patient(state: GameState, g: NonNullable<Actor['goal']>): boolean {
+  if (g.since === undefined) g.since = state.simTime;
+  return state.simTime - g.since < WALK_IN_PATIENCE;
+}
+
+/**
+ * 別の部屋から着いた時、入口で止まらず、部屋の中の目当ての地点（spot）まで歩く。
+ * 部屋を移る経路では spot が使われず、扉をくぐったマスで「着いた」ことになっていたため、
+ * 食堂や個室の入口に人が固まっていた。席へ向かう人は takeSeat が席まで歩かせるので、ここでは扱わない。
+ * spot に人が立っていれば、その近くの空いたマスへ行く（同じ地点に何人も集まらない）。
+ */
+function walkIn(state: GameState, a: Actor): void {
+  const g = a.goal;
+  if (!g || g.inside || a.pos.room !== g.room || a.step || a.route.length || a.path.length) return;
+  if (!g.spot || (g.seat && g.seat !== '-') || g.kind === 'explore' || g.kind === 'talk' || g.kind === 'follow' || g.kind === 'approachHero') {
+    g.inside = true;
+    return;
+  }
+  // 席を使うかどうかがまだ決まっていない（takeSeat の前）時は待つ
+  if ((g.note === 'meal' || (g.kind === 'wander' && g.note !== 'at')) && g.seat === undefined) return;
+  const occ = occupiedSet(state, a.pos.room, a.id);
+  const grid = collisionOf(state, a.pos.room);
+  const here = Math.abs(a.pos.x - g.spot.x) + Math.abs(a.pos.y - g.spot.y);
+  const t = nearestFree(grid, g.spot, occ);
+  if ((here <= 1 && !nearDoor(a)) || (t.x === a.pos.x && t.y === a.pos.y)) {
+    g.inside = true;
+    return;
+  }
+  // 途中で人にふさがれて止まった時も、ここへ戻ってきて歩き直す。何度やっても着けなければ、その場で過ごす
+  if (!patient(state, g)) {
+    g.inside = true;
+    return;
+  }
+  if (setPathTo(state, a, t.x, t.y) && a.path.length) {
+    g.spot = t;
+    return;
+  }
+  // 入口の前が人でふさがっていて道が無い：少し待って歩き直す
+  a.busyUntil = state.simTime + WALK_IN_WAIT;
+}
+
+/** 部屋の中まで歩き終えたか（着いたことにしてよいか） */
+const walkedIn = (a: Actor): boolean => !a.goal?.spot || !!a.goal.inside;
 
 /**
  * 取った席に着いていれば座る。途中で人にふさがれて着けなかった時は、何度か歩き直す。
@@ -299,13 +344,17 @@ function takeSeat(state: GameState, a: Actor, rng: Rng): void {
  */
 function settleSeat(state: GameState, a: Actor): boolean {
   const g = a.goal;
+  // 席を使うかどうかがまだ決まっていない（部屋に入ったばかり）
+  if (g && g.seat === undefined && (g.note === 'meal' || (g.kind === 'wander' && g.note !== 'at'))) return false;
   if (!g?.seat || g.seat === '-') return true;
   if (sitDown(state, a.id)) return true;
   const mine = seatOf(state, a.id);
-  if (mine && (g.tries ?? 0) < 4) {
-    g.tries = (g.tries ?? 0) + 1;
+  if (mine && patient(state, g)) {
     const t = seatTile(mine.seat);
     if (setPathTo(state, a, t.x, t.y) && a.path.length) return false;
+    // 道が人でふさがっている：少し待ってから歩き直す
+    a.busyUntil = state.simTime + WALK_IN_WAIT;
+    return false;
   }
   standUp(state, a.id);
   g.seat = '-';
@@ -484,6 +533,11 @@ export function tickNpcs(state: GameState, dt: number, heroBusy: boolean): Brain
     takeSeat(state, a, rng);
     // 同行中は、相手に置いていかれないよう相手と同じ速さで歩く
     moveActor(state, a, dt, a.goal?.kind === 'follow' && a.goal.target ? Math.max(speedOf(id), speedOf(a.goal.target)) : speedOf(id), halt);
+    // 扉をくぐって目当ての部屋に入ったら、入口で止まらずに席か部屋の中の地点へ向かう
+    if (!halt) {
+      takeSeat(state, a, rng);
+      walkIn(state, a);
+    }
     if (halt && !a.step) {
       // 待っている間は用事の期限を延ばし、主人公の方を向く
       if (a.goal) a.goal.until += dt;
@@ -640,7 +694,7 @@ export function tickNpcs(state: GameState, dt: number, heroBusy: boolean): Brain
         a.busyUntil = state.simTime + 1500;
         events.push({ type: 'approach', npc: id, other: 'hero', proposal: p ?? undefined });
       }
-    } else if (a.goal?.note === 'meal' && a.pos.room === 'dining' && !a.step && !a.path.length && !a.route.length && settleSeat(state, a)) {
+    } else if (a.goal?.note === 'meal' && a.pos.room === 'dining' && !a.step && !a.path.length && !a.route.length && walkedIn(a) && settleSeat(state, a)) {
       // 取った席に座って食べる（席が無ければ立ったまま）。食べ終わると立って、席を空ける
       // 食事：同じ時間に食卓を囲んだ相手と少し打ち解ける
       // 歩いているうちに時間帯を少し過ぎても、その食事として数える
@@ -668,7 +722,7 @@ export function tickNpcs(state: GameState, dt: number, heroBusy: boolean): Brain
         else if (!setPathTo(state, a, a.goal.spot.x, a.goal.spot.y)) a.goal = undefined;
       }
     }
-    else if ((a.goal?.kind === 'wander' || a.goal?.kind === 'rest') && a.goal.note !== 'at' && a.goal.note !== 'bath' && a.pos.room === a.goal.room && !a.step && !a.path.length && !a.route.length && settleSeat(state, a)) {
+    else if ((a.goal?.kind === 'wander' || a.goal?.kind === 'rest') && a.goal.note !== 'at' && a.goal.note !== 'bath' && a.pos.room === a.goal.room && !a.step && !a.path.length && !a.route.length && walkedIn(a) && settleSeat(state, a)) {
       // 着いた：しばらくそこで過ごす（待機、着席、休息）
       // 就寝の支度で個室へ戻った時、まだなら入浴も済ませる
       if (a.goal.note === 'bed' && !state.flags[`bath:${state.day}:${id}`]) {
