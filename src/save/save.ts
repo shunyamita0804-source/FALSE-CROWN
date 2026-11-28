@@ -6,6 +6,8 @@
 import { hashString } from '../core/rng';
 import { SAVE_VERSION } from '../core/state';
 import type { GameState } from '../core/types';
+import { relocateStranded } from '../world/sim';
+import { sweepSeats } from '../world/seats';
 
 export interface StorageLike {
   getItem(key: string): string | null;
@@ -72,6 +74,11 @@ function migrate(state: GameState, _from: number): GameState {
   // 将来の形式変更はここで吸収する
   state.lineHist ??= {};
   state.relEvents ??= [];
+  // 以前の房の部屋（cell_p01〜）にいた人は、共同牢の中の自分の房へ移す。席の表も点検する
+  if (state.actors?.hero) {
+    relocateStranded(state);
+    sweepSeats(state);
+  }
   state.version = SAVE_VERSION;
   return state;
 }

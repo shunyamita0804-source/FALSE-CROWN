@@ -2,7 +2,6 @@
  * 画面なしで大会を進める（自動対戦テスト、バランス検証、開発者用の「任意の日程から開始」に使う）。
  * プレイヤーも NPC と同じ AI（平均的な能力値）で動かす。勝敗の補正や結果の固定は行わない。
  */
-import { homeOf } from '../world/rooms';
 import { autoRescue } from './rescue';
 import { isImplemented } from '../matches/registry';
 import { fastForward } from '../npc/brain';
@@ -13,7 +12,7 @@ import { engineOf, newSlot, resolveTies, runToEnd } from './runner';
 import { aliveIds } from './state';
 import { applyMainResult, applyPrisonResult, endDay, gatherAt, isFinalDay, mainMatchId, moveToHouses, prisonMatchId, startMorning } from './tournament';
 import type { GameState, Phase } from './types';
-import { placeIn } from '../world/sim';
+import { placeHome } from '../world/sim';
 
 export interface AutoOpts {
   /** 自由時間の NPC 行動を再現する（false なら省略して高速化） */
@@ -97,7 +96,7 @@ export async function autoAdvance(s: GameState, untilDay: number, untilPhase: Ph
         s.phase = 'curfew';
         break;
       case 'curfew':
-        for (const id of aliveIds(s)) placeIn(s, id, homeOf(s, id));
+        for (const id of aliveIds(s)) placeHome(s, id);
         endDay(s);
         s.phase = 'morning';
         break;

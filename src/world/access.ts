@@ -1,4 +1,4 @@
-import { homeOf, isPrivateRoom, ownerOfRoom, plateOf } from './rooms';
+import { homeOf, isCell, isPrivateRoom, ownerOfRoom, plateOf } from './rooms';
 import type { CharId } from '../data/characters';
 import { shortName } from '../core/state';
 import type { GameState } from '../core/types';
@@ -44,6 +44,8 @@ export function denyReason(state: GameState, roomId: string, lock?: string): str
   const room = ROOMS[roomId];
   if (state.phase === 'curfew') return '消灯時間を過ぎている。朝まで個室から出られない。';
   if (isPrivateRoom(roomId)) {
+    // 以前の房の部屋（いまは使わない扉）
+    if (isCell(roomId)) return '房へは、格子の扉から出入りする。';
     const p = plateOf(state, roomId)!;
     if (!p.owner) return p.away ? `${shortName(state, p.away)}は監獄棟へ移っている。この部屋は閉鎖されている。` : '空室。鍵がかかっている。';
     return '他の参加者の個室には、招かれない限り入れない。';

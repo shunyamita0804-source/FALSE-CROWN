@@ -8,15 +8,22 @@ import type { Actor, Dir, GameState } from '../core/types';
 import { canEnter, passFn } from './access';
 import { ROOMS, buildCollision, doorApproach, doorAt, doorDir, findDoor, type DoorDef } from './maps';
 import { findPath, nearestFree, roomRoute } from './path';
+import { cellOf, cellSpots, closedGateTiles, seatAllowed, type CellRef } from './cells';
+import type { Seat } from './furniture';
+import { homeOf } from './rooms';
+import { releaseSeat, seatTargetAt, seatTile } from './seats';
 
 const gridCache = new Map<string, { key: string; grid: boolean[][] }>();
 
 export function collisionOf(state: GameState, roomId: string): boolean[][] {
   const room = ROOMS[roomId];
-  const key = room.props.map((p) => (p.showIf ? (state.flags[p.showIf] ? 1 : 0) : p.hideIf ? (state.flags[p.hideIf] ? 1 : 0) : '')).join('');
+  // 閉じている格子の扉（監獄棟の房）は、そのマスを通れなくする
+  const gates = closedGateTiles(state, roomId);
+  const key = room.props.map((p) => (p.showIf ? (state.flags[p.showIf] ? 1 : 0) : p.hideIf ? (state.flags[p.hideIf] ? 1 : 0) : '')).join('') + (gates.length ? `|${gates.map((g) => `${g.x},${g.y}`).join(';')}` : '');
   const c = gridCache.get(roomId);
   if (c && c.key === key) return c.grid;
   const grid = buildCollision(room, state.flags);
+  for (const g of gates) if (grid[g.y]?.[g.x] === false) grid[g.y][g.x] = true;
   gridCache.set(roomId, { key, grid });
   return grid;
 }
@@ -71,6 +78,7 @@ export function enterDoor(state: GameState, a: Actor, door: DoorDef): boolean {
   const facing: Dir = d === 'up' ? 'down' : d === 'down' ? 'up' : d === 'left' ? 'right' : 'left';
   if (passes.length > 64) passes.splice(0, 32);
   passes.push({ room: a.pos.room, door: door.id, who: a.id, arrive: false }, { room: target.id, door: td.id, who: a.id, arrive: true });
+  releaseSeat(state, a.id);
   a.pos = { room: target.id, x: spot.x, y: spot.y, dir: facing };
   a.step = undefined;
   a.path = [];
@@ -80,6 +88,8 @@ export function enterDoor(state: GameState, a: Actor, door: DoorDef): boolean {
 /** 1 歩踏み出す。成功したら true */
 export function tryStep(state: GameState, a: Actor, dir: Dir): boolean {
   if (a.step) return false;
+  // 座っている人は、歩き出す前に立つ（席を空ける）
+  if (a.seat) releaseSeat(state, a.id);
   a.pos.dir = dir;
   const { dx, dy } = DIRS[dir];
   const nx = a.pos.x + dx;
@@ -125,6 +135,8 @@ function nextDoor(a: Actor): DoorDef | undefined {
 
 /** アクターの移動を dt ミリ秒進める */
 export function moveActor(state: GameState, a: Actor, dt: number, speed: number, halt = false): void {
+  // 座っている人が動く時は、先に立つ（席を空ける）
+  if (a.seat && (a.step || a.path.length || a.route.length)) releaseSeat(state, a.id);
   let budget = (dt / 1000) * speed;
   let guard = 0;
   while (budget > 0 && guard++ < 8) {
@@ -230,9 +242,77 @@ export function placeIn(state: GameState, id: CharId, roomId: string, near?: { x
   const occ = occupiedSet(state, roomId, id);
   const base = near ?? room.spots[0] ?? { x: Math.floor(room.w / 2), y: Math.floor(room.h / 2) };
   const p = nearestFree(grid, base, occ);
+  releaseSeat(state, id);
   a.pos = { room: roomId, x: p.x, y: p.y, dir: 'down' };
   a.step = undefined;
   a.path = [];
   a.route = [];
   a.moving = false;
+}
+
+/** その部屋で、その人が使える席かどうかの判定（立つ位置へ歩いて行ける席で、房の中の椅子は本人の房だけ） */
+export function seatUsable(state: GameState, who: CharId, roomId: string): (seat: Seat) => boolean {
+  const grid = collisionOf(state, roomId);
+  return (seat) => {
+    const t = seatTile(seat);
+    return grid[t.y]?.[t.x] === false && seatAllowed(state, who, roomId, seat);
+  };
+}
+
+/** 房の中で寝起きするマス（寝台の脇。そこへ歩いて行けない時は、房の中か、いちばん近い通れるマス） */
+export function cellSleepTile(state: GameState, c: CellRef): { x: number; y: number } {
+  const grid = collisionOf(state, c.room);
+  const spots = cellSpots(c);
+  return spots.find((t) => grid[t.y]?.[t.x] === false) ?? nearestFree(grid, spots[spots.length - 1]);
+}
+
+/** 寝起きする場所（部屋とマス）。生活棟は自分の個室、監獄棟は自分の房の寝台の脇 */
+export function homeSpot(state: GameState, who: CharId): { room: string; spot?: { x: number; y: number } } {
+  const room = homeOf(state, who);
+  const c = cellOf(state, who);
+  return { room, spot: c ? cellSleepTile(state, c) : ROOMS[room]?.spots[0] };
+}
+
+/** 寝起きする場所へ置く（消灯、起床、棟分けの直後） */
+export function placeHome(state: GameState, who: CharId): void {
+  const h = homeSpot(state, who);
+  placeIn(state, who, h.room, cellOf(state, who) ? h.spot : undefined);
+}
+
+/**
+ * 無くなった部屋、使わなくなった部屋（以前の房の部屋 cell_p01〜）にいる人を、寝起きする場所へ移す。
+ * 古いセーブを読んだ時と、場面の切り替えで呼ぶ。動かした人がいれば true。
+ */
+export function relocateStranded(state: GameState): boolean {
+  let moved = false;
+  for (const id of ALL_IDS) {
+    const a = state.actors[id];
+    if (!a?.alive) continue;
+    if (ROOMS[a.pos.room] && !/^cell_p\d+$/.test(a.pos.room)) continue;
+    placeHome(state, id);
+    moved = true;
+  }
+  return moved;
+}
+
+export type NearbyAction = { kind: 'stand' } | { kind: 'sit'; seat: Seat } | { kind: 'bed' };
+
+/**
+ * 話す相手も調べる物もない時に、その場でできること（主人公の行動ボタン）。
+ * 座っていれば「立つ」、自分の房の寝台の脇なら「寝台」、空いている椅子のそばなら「座る」。
+ */
+export function nearbyAction(state: GameState, who: CharId = 'hero'): NearbyAction | null {
+  const a = state.actors[who];
+  if (!a?.alive || a.step) return null;
+  if (a.seat) return { kind: 'stand' };
+  const c = cellOf(state, who);
+  if (c && c.room === a.pos.room) {
+    const t = cellSleepTile(state, c);
+    if (Math.abs(t.x - a.pos.x) + Math.abs(t.y - a.pos.y) <= 1) return { kind: 'bed' };
+  }
+  const occ = occupiedSet(state, a.pos.room, who);
+  const usable = seatUsable(state, who, a.pos.room);
+  // 立つ位置に他の人がいる椅子には座れない
+  const seat = seatTargetAt(state, a.pos.room, { x: a.pos.x, y: a.pos.y }, a.pos.dir, (s) => { const t = seatTile(s); return usable(s) && !occ.has(`${t.x},${t.y}`); });
+  return seat ? { kind: 'sit', seat } : null;
 }

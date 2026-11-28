@@ -15,7 +15,8 @@ import { CLUE_BY_EVENT } from '../story/clues';
 import { canEnter, passFn } from '../world/access';
 import { ROOMS } from '../world/maps';
 import { roomRoute } from '../world/path';
-import { actorsIn, distance, moveActor, setPathTo, setRouteTo, speedOf } from '../world/sim';
+import { actorsIn, distance, homeSpot, moveActor, seatUsable, setPathTo, setRouteTo, speedOf } from '../world/sim';
+import { reserveSeat, seatOf, seatTile, sitDown, standUp, sweepSeats, freeSeats } from '../world/seats';
 import { absorb, accuse, commit, evaluate, perceivedStrength, type Proposal } from './negotiation';
 import { addInvite, endInvite, invited, INVITE_TIME, inviteVerdict, isBedroom, isPrivate, othersPresent, ownerOf, visitVerdict, witnessEntry } from './social';
 
@@ -38,6 +39,8 @@ const STAY_MAX = 80_000;
 const SEARCH_TIME = 6000;
 const MEAL_TIME = 18_000;
 const BATH_TIME = 20_000;
+/** その場で過ごす時に、空いた椅子があれば座る割合 */
+const SIT_CHANCE = 0.6;
 
 function prof(id: NpcId) {
   return PROFILES[id];
@@ -116,7 +119,7 @@ function think(state: GameState, a: Actor, rng: Rng): void {
   const home = homeOf(state, id);
   // 就寝の支度：消灯の 40 分前からは、割り当てられた個室へ戻って過ごす
   if (bedtime(state, id) && canEnter(state, id, home)) {
-    a.goal = { kind: 'rest', room: home, spot: ROOMS[home].spots[0], note: 'bed', until: state.simTime + 900_000 };
+    a.goal = { kind: 'rest', room: home, spot: homeSpot(state, id).spot, note: 'bed', until: state.simTime + 900_000 };
     startGoal(state, a);
     return;
   }
@@ -149,7 +152,7 @@ function think(state: GameState, a: Actor, rng: Rng): void {
     cands.push({ u, run: () => { a.goal = { kind: 'talk', target: o, until: state.simTime + 60_000 }; } });
   }
   // 密談（v10）：人目のある場所で同盟を持ちかけたい相手を、自分の個室へ誘う。応じるかは相手しだい
-  if (state.phase !== 'curfew' && !isBedroom(a.pos.room) && canEnter(state, id, homeOf(state, id)) && reachable(state, a, homeOf(state, id)) !== null && allianceNeed(state, id) > 0.25) {
+  if (state.phase !== 'curfew' && !isBedroom(a.pos.room) && isPrivateRoom(homeOf(state, id)) && canEnter(state, id, homeOf(state, id)) && reachable(state, a, homeOf(state, id)) !== null && allianceNeed(state, id) > 0.25) {
     const secrecy = 0.15 + def.stats.acting * 0.03 + (100 - def.personality.morality) / 500;
     for (const o of aliveNpcs(state)) {
       if (o === id || allied(state, id, o)) continue;
@@ -258,7 +261,44 @@ function startGoal(state: GameState, a: Actor): void {
     const b = state.actors[g.target];
     setRouteTo(state, a, b.pos.room);
   } else if (g.room) {
+    // 監獄棟の人が「自分の部屋で過ごす」時は、共同牢の入口ではなく自分の房まで行く
+    if (g.kind === 'rest' && !g.spot && g.room === homeOf(state, a.id) && !isPrivateRoom(g.room)) g.spot = homeSpot(state, a.id).spot;
     setRouteTo(state, a, g.room, g.spot);
+  }
+}
+
+/**
+ * 着いた部屋で席を取り、その席の「立つ位置」へ向かう（先に予約してから歩く）。
+ * 食事は必ず席を探し、その場で過ごす時はときどき座る。席が無ければ、これまで通り待機地点へ行く。
+ */
+function takeSeat(state: GameState, a: Actor, rng: Rng): void {
+  const g = a.goal;
+  if (!g || g.seat !== undefined || a.step || a.pos.room !== g.room) return;
+  const meal = g.note === 'meal';
+  if (!meal && !(g.kind === 'wander' && g.note !== 'at')) return;
+  g.seat = '-';
+  if (!freeSeats(state, a.pos.room, 'free').length) return;
+  if (!meal && !rng.chance(SIT_CHANCE)) return;
+  const seat = reserveSeat(state, a.id, a.pos.room, { near: g.spot ?? { x: a.pos.x, y: a.pos.y }, usable: seatUsable(state, a.id, a.pos.room) });
+  if (!seat) return;
+  const t = seatTile(seat);
+  g.seat = seat.id;
+  g.spot = t;
+  a.route = [];
+  if (a.pos.x === t.x && a.pos.y === t.y) a.path = [];
+  else if (!setPathTo(state, a, t.x, t.y)) {
+    // たどり着けない：席を放して、立ったまま過ごす
+    standUp(state, a.id);
+    g.seat = '-';
+  }
+}
+
+/** 取った席に着いていれば座る。着けなかった時は席を放す */
+function settleSeat(state: GameState, a: Actor): void {
+  if (!a.goal?.seat || a.goal.seat === '-') return;
+  if (!sitDown(state, a.id)) {
+    standUp(state, a.id);
+    a.goal.seat = '-';
   }
 }
 
@@ -408,6 +448,8 @@ function searchSpot(state: GameState, a: Actor, events: BrainEvent[]): void {
 export function tickNpcs(state: GameState, dt: number, heroBusy: boolean): BrainEvent[] {
   const events: BrainEvent[] = [];
   const rng = rngOf(state);
+  // 席の表の点検（部屋を出た人、脱落した人の席を空ける）
+  sweepSeats(state);
   // 同時刻の処理順は公平なローテーション
   const ids = aliveNpcs(state);
   const rot = Math.floor(state.simTime / THINK) % Math.max(1, ids.length);
@@ -428,6 +470,8 @@ export function tickNpcs(state: GameState, dt: number, heroBusy: boolean): Brain
       }
     } else if ((a.waitUntil ?? 0) > state.simTime && (toHero || distance(a, hero) > 5)) a.waitUntil = 0;
     const halt = (a.waitUntil ?? 0) > state.simTime;
+    // 目当ての部屋に着いたら、空いた席を取ってそこへ向かう（食事、その場で過ごす時）
+    takeSeat(state, a, rng);
     // 同行中は、相手に置いていかれないよう相手と同じ速さで歩く
     moveActor(state, a, dt, a.goal?.kind === 'follow' && a.goal.target ? Math.max(speedOf(id), speedOf(a.goal.target)) : speedOf(id), halt);
     if (halt && !a.step) {
@@ -519,7 +563,7 @@ export function tickNpcs(state: GameState, dt: number, heroBusy: boolean): Brain
               a.talkCd.hero = state.simTime + CONFIG.npc.approachHeroCooldown;
               a.goal = undefined;
               const secrecy = 0.15 + NPC_BY_ID[id].stats.acting * 0.03 + (100 - NPC_BY_ID[id].personality.morality) / 500;
-              if (p && p.kind === 'alliance' && state.phase !== 'curfew' && !isBedroom(a.pos.room) && othersPresent(state, id, 'hero') && canEnter(state, id, homeOf(state, id)) && reachable(state, a, homeOf(state, id)) !== null && rng.chance(secrecy)) {
+              if (p && p.kind === 'alliance' && state.phase !== 'curfew' && !isBedroom(a.pos.room) && othersPresent(state, id, 'hero') && isPrivateRoom(homeOf(state, id)) && canEnter(state, id, homeOf(state, id)) && reachable(state, a, homeOf(state, id)) !== null && rng.chance(secrecy)) {
                 // 人目があるので、同盟の話は自分の個室でしたい（主人公も NPC 同士と同じ扱い）
                 a.busyUntil = state.simTime + 1500;
                 events.push({ type: 'invite', npc: id, other: 'hero' });
@@ -587,6 +631,8 @@ export function tickNpcs(state: GameState, dt: number, heroBusy: boolean): Brain
         events.push({ type: 'approach', npc: id, other: 'hero', proposal: p ?? undefined });
       }
     } else if (a.goal?.note === 'meal' && a.pos.room === 'dining' && !a.step && !a.path.length && !a.route.length) {
+      // 取った席に座って食べる（席が無ければ立ったまま）。食べ終わると立って、席を空ける
+      settleSeat(state, a);
       // 食事：同じ時間に食卓を囲んだ相手と少し打ち解ける
       // 歩いているうちに時間帯を少し過ぎても、その食事として数える
       const slot = clockMinutes(state) < CLOCK.main ? 'breakfast' : 'dinner';
@@ -620,9 +666,14 @@ export function tickNpcs(state: GameState, dt: number, heroBusy: boolean): Brain
         state.flags[`bath:${state.day}:${id}`] = true;
         a.busyUntil = state.simTime + BATH_TIME;
       }
+      settleSeat(state, a);
       a.goal.note = 'at';
       a.goal.until = state.simTime + rng.int(STAY_MIN, STAY_MAX);
     }
+    // 席に座っているのは、その場で過ごしている間だけ（用事ができたら立つ。食事中は上の busyUntil で止まっている）
+    if (a.seat && a.goal?.note !== 'at') standUp(state, id);
+    // 用事もなく予約だけ残っている席は放す
+    else if (!a.seat && (!a.goal?.seat || a.goal.seat === '-') && seatOf(state, id)) standUp(state, id);
     // 用事が済んだら、すぐ次へ動かずに少しその場で過ごす
     if (hadGoal && !a.goal && a.nextThink < state.simTime) a.nextThink = state.simTime + rng.int(PAUSE_MIN, PAUSE_MAX);
     if (!a.goal && state.simTime >= a.nextThink && !a.step) {
