@@ -28,6 +28,7 @@ import { canEnter } from '../world/access';
 import { ROOMS } from '../world/maps';
 import { ceremonyScreen } from './ceremony';
 import { renderRelations } from './relations';
+import { renderItems } from './items';
 import { playVoice, resetVoiceHistory, voiceClip } from '../audio/voice';
 import { introLine } from '../core/introduction';
 import { bgUrl, bust, emblemUrl, face, fxBanner, icon, logoUrl, portraitUrl, rankMark, setBust, setHeroGender } from './art';
@@ -289,9 +290,9 @@ export function hudLog(text: string): void {
 
 // ---------------- 手帳（メニュー） ----------------
 
-type Tab = 'status' | 'relations' | 'people' | 'deals' | 'info' | 'files' | 'history' | 'rules' | 'map' | 'system';
+type Tab = 'status' | 'items' | 'relations' | 'people' | 'deals' | 'info' | 'files' | 'history' | 'rules' | 'map' | 'system';
 
-const TAB_ICONS: Record<Tab, string> = { status: 'rank', relations: 'alliance', people: 'participant_list', deals: 'contract', info: 'evidence', files: 'document', history: 'document', rules: 'help', map: 'map', system: 'settings' };
+const TAB_ICONS: Record<Tab, string> = { status: 'rank', items: 'inventory', relations: 'alliance', people: 'participant_list', deals: 'contract', info: 'evidence', files: 'document', history: 'document', rules: 'help', map: 'map', system: 'settings' };
 
 export function openMenu(initial: Tab = 'status'): void {
   const s = G.state;
@@ -309,7 +310,7 @@ export function openMenu(initial: Tab = 'status'): void {
     clear(tabs);
     // 「資料」の欄は、裏ルートで何か手に入れてから出す（序盤から匂わせない）
     const hasFiles = Object.values(s.actors.hero.items).some((n) => n > 0);
-    for (const k of ['status', 'relations', 'people', 'deals', 'info', ...(hasFiles ? ['files'] : []), 'history', 'rules', 'map', 'system'] as Tab[]) {
+    for (const k of ['status', 'items', 'relations', 'people', 'deals', 'info', ...(hasFiles ? ['files'] : []), 'history', 'rules', 'map', 'system'] as Tab[]) {
       tabs.append(h('button', { class: `tab${tab === k ? ' on' : ''}`, type: 'button', onclick: () => { tab = k; Sound.se('page'); render(); } }, icon(TAB_ICONS[k]), t(`menu.${k}`)));
     }
     clear(body);
@@ -344,6 +345,8 @@ function renderTab(s: GameState, tab: Tab, close: () => void, rerender: () => vo
         ...s.log.slice(-14).reverse().map((l) => h('div', { class: 'logline' }, `DAY${l.day}　${l.text}`)),
       ];
     }
+    case 'items':
+      return renderItems(s);
     case 'relations':
       return renderRelations(s, rerender);
     case 'people': {
@@ -605,18 +608,27 @@ export function rankingScreen(v: RankingView): Promise<void> {
       resolve();
     };
     const n = v.ranking.length;
-    const list = h('div', { class: 'rank-list' }, v.ranking.map((id, i) => {
+    // メインマッチの結果では、全員の獲得ピース（0 も）と獲得後の残高を出す
+    const withPieces = !!v.balances && !v.prison && !v.final;
+    const gain = (id: CharId) => v.rewards?.[id] ?? 0;
+    const list = h('div', { class: `rank-list${withPieces ? ' with-pieces' : ''}` }, withPieces ? h('div', { class: 'rank-head' }, h('span', null, t('rank.colRank')), h('span'), h('span', null, t('rank.colName')), h('span'), h('span', null, t('rank.colGain')), h('span', null, t('rank.colBalance')), h('span', null, t('rank.colScore'))) : null, v.ranking.map((id, i) => {
       const cut = i >= n - v.cut;
-      return h('div', { class: `rank${cut ? ' prison' : ''}${id === 'hero' ? ' me' : ''}` },
+      return h('div', { class: `rank${cut ? ' prison' : ''}${id === 'hero' ? ' me' : ''}`, 'data-id': id },
         h('span', { class: 'no' }, rankMark(i)), face(id), h('span', { class: 'grow' }, nameOf(s, id)),
-        cut ? h('span', { class: 'st' }, icon(v.prison ? 'eliminated' : 'prison'), h('span', { class: 'tag' }, v.cutLabel)) : null,
-        v.rewards && v.rewards[id] ? h('span', { class: 'good' }, '+', pieces(v.rewards[id] ?? 0)) : null,
+        cut ? h('span', { class: 'st' }, icon(v.prison ? 'eliminated' : 'prison'), h('span', { class: 'tag' }, v.cutLabel)) : h('span', { class: 'st' }),
+        withPieces
+          ? [h('span', { class: `gain ${gain(id) > 0 ? 'good' : 'dim'}` }, `+${gain(id)}`), h('span', { class: 'bal' }, pieces(v.balances?.[id] ?? 0))]
+          : v.rewards && v.rewards[id] ? h('span', { class: 'good' }, '+', pieces(v.rewards[id] ?? 0)) : h('span'),
         h('span', { class: 'pts' }, `${v.scores[id] ?? 0}${t('rank.pts')}`));
     }));
     const mine = v.ranking.indexOf('hero');
+    // 自分の行の要約：順位、獲得ピース、獲得後の残高（救いのメダルで棟が変わっても、報酬は変わらない）
+    const mineBox = withPieces && mine >= 0
+      ? h('div', { class: 'note-box rank-mine' }, t('rank.mine', { rank: mine + 1, gain: gain('hero'), balance: v.balances?.hero ?? 0 }), h('br'), h('span', { class: 'small dim' }, t('rank.rewardNote')))
+      : null;
     // 監獄マッチで脱落を免れた時は勝ち抜けの帯（1 位も含む）。本戦の 1 位は勝利の帯
     const fx = mine < 0 ? null : mine >= n - v.cut ? fxBanner('defeat', v.cutLabel, 'sm') : v.prison ? fxBanner('prison_survive', t('rank.survive'), 'sm') : mine === 0 ? fxBanner('victory', t('rank.first'), 'sm') : null;
-    const body = h('div', { class: 'col', style: 'gap:8px' }, fx, list, ...v.notes.map((x) => h('div', { class: 'note-box' }, x)));
+    const body = h('div', { class: 'col', style: 'gap:8px' }, fx, mineBox, list, ...v.notes.map((x) => h('div', { class: 'note-box' }, x)));
     // 追加ボイス：1 位の人の勝利の声。持っていなければ、最下位の人の敗北の声（監獄マッチの最下位は、脱落の画面で鳴らす）
     // 進行の声：結果の発表（主人公が 1 位なら勝利の祝い。決勝の優勝は、このあとの戴冠で祝う）。そのあとに参加者の声
     let shown = true;
