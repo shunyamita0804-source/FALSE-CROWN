@@ -49,3 +49,12 @@ npc_02_kanzaki レオン／npc_03_kurose ヴィクトリア／npc_04_mido リチ
 - 残り 7 人は今の声を使い続け、自己紹介（11）だけ新しい名前で録り直す。届くまで自己紹介の声は鳴らない（`spokenName` が旧名のため）。
 - 教授枠は「アルバート、62 歳、元大学教授、退職済み」に統一（`job` は元大学教授）。新しい自己紹介は過去形。声の無い時の字幕（`introductions.json`）は「大学で教鞭を執っておりました」にした。
 - 賞金の通貨、主人公の初期名、元プロ雀士の経歴は別途判断（今回は変えていない）。
+
+## 新しい立ち絵（2026-11-28、v0.28.0）
+
+- 通常絵：同梱の通常絵参照原本（`references/<内部ID>_normal_reference.png`、768×1024 透過）をそのまま `portrait_normal.png` に。レオン・ヨウコ・ヴィクターは修正版 v3、ほか 7 人は最初のリデザインセット。
+- 表情 7 種×11 人＝77 枚（smile、anger、sad、surprise、think、smirk、wary）は同じ名前で置き換え。納品の README と検査表は `docs/assets/characters/redesign_20261128/`。
+- マイク（npc_06_kiryu）の通常絵は白背景の JPEG（1086×1448）しか無いので、透過 PNG が届くまで笑顔を通常として使う（`src/data/portraits.json` の `normal`）。旧デザインの `portrait_normal.png` は残っているが使わない。
+- 描き方は `src/data/portraits.json`：`bust` の人は胸から上の絵なので切り抜かずに絵全体を枠の下端に合わせ、顔アイコンは旧 `face.png` を使わず立ち絵の頭のあたりを拡大して丸く見せる（画像は加工しない）。
+- 確認：`sh scripts/with-preview.sh node scripts/check-portraits.cjs [写真の保存先]`（8 表情で枠・絵の位置と大きさが同じ、切り替え前に全表情読み込み済み、顔アイコン）。
+- 歩行（walk）・待機（stand）・着席（sit）の絵は旧デザインのまま（本人の方針：通常絵の確定後に展開）。

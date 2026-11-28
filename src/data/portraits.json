@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "note": "立ち絵の描き方。style が bust の人は、胸から上の絵（2026-11-28 のリデザイン、768×1024 の透過 PNG）なので、切り抜かずに絵全体を枠の下に合わせて出す。顔アイコンも face.png（旧デザイン）ではなく立ち絵の上側を丸く切り取って出す（画像は加工しない）。normal を書いた人は、通常の顔にその表情を使う（通常絵の透過版が届くまでの代用）。ここに無い人は旧来どおり（全身の立ち絵を胸から上に絞って出す）。",
+  "characters": {
+    "npc_02_kanzaki": { "style": "bust" },
+    "npc_03_kurose": { "style": "bust" },
+    "npc_04_mido": { "style": "bust" },
+    "npc_05_shiraishi": { "style": "bust" },
+    "npc_06_kiryu": { "style": "bust", "normal": "smile" },
+    "npc_07_tachibana": { "style": "bust" },
+    "npc_08_dojima": { "style": "bust" },
+    "npc_09_asahina": { "style": "bust" },
+    "npc_10_kujo": { "style": "bust" },
+    "npc_11_kisaragi": { "style": "bust" },
+    "npc_12_kuze": { "style": "bust" }
+  }
+}
