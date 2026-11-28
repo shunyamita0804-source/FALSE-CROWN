@@ -9,7 +9,7 @@ import { NPC_BY_ID, PROFILES, type CharId, type NpcId } from '../data/characters
 import { CONFIG } from '../data/config';
 import { CLOCK, clockMinutes, lifeSlot } from '../core/clock';
 import { Rng } from '../core/rng';
-import { activeDeals, addInfo, adjustRel, aliveIds, aliveNpcs, allied, fact, learn, nameOf, rel, rngOf } from '../core/state';
+import { activeDeals, addInfo, adjustRel, aliveIds, aliveNpcs, allied, pledged, fact, learn, nameOf, rel, rngOf } from '../core/state';
 import type { Actor, GameState, Info } from '../core/types';
 import { CLUE_BY_EVENT } from '../story/clues';
 import { canEnter, passFn } from '../world/access';
@@ -48,7 +48,7 @@ function prof(id: NpcId) {
 
 /** その日の「同盟したい度合い」：競技前で、まだ味方が少ないほど高い */
 function allianceNeed(state: GameState, id: NpcId): number {
-  const n = activeDeals(state, id).filter((d) => d.kind === 'alliance' && d.untilDay >= state.day).length;
+  const n = activeDeals(state, id).filter((d) => (d.kind === 'alliance' || d.kind === 'pledge') && d.untilDay >= state.day).length;
   const pre = state.phase === 'morning' || state.phase === 'strategy' ? 1 : state.phase === 'house' ? 0.5 : 0.3;
   const per = NPC_BY_ID[id].personality;
   const want = per.loyalty < 40 ? 3 : 2; // 忠誠の低い人物ほど同盟を多く持とうとする
@@ -362,14 +362,25 @@ function settleSeat(state: GameState, a: Actor): boolean {
 }
 
 /** a が b に持ちかける提案を決める（a の知識と関係だけから） */
-export function chooseProposal(state: GameState, a: NpcId, b: CharId, rng: Rng): Proposal | null {
+/**
+ * a が b に持ちかける提案。mode が 'life'（生活中の自由時間）の時は、同盟や不可侵の代わりに「次は協力しよう」という
+ * 緩い約束だけを持ちかける（本人の決定 2026-11-28：支払いや具体的な条件の付いた協力は、競技のルール説明の後）。
+ */
+export function chooseProposal(state: GameState, a: NpcId, b: CharId, rng: Rng, mode: 'life' | 'match' = 'life'): Proposal | null {
   const def = NPC_BY_ID[a];
   const per = def.personality;
   const r = rel(state, a, b);
   const need = allianceNeed(state, a);
   const base: Omit<Proposal, 'kind'> = { from: a, to: b, payNow: 0, payOnSuccess: 0, untilDay: state.day };
   const opts: { u: number; p: Proposal }[] = [];
-  if (!allied(state, a, b) && r.hostility < 40) {
+  if (mode === 'life') {
+    if (!pledged(state, a, b) && !allied(state, a, b) && r.hostility < 40) {
+      const strength = perceivedStrength(state, b);
+      let u = need * 50 + r.like * 0.5 + (r.trust - 40) * 0.6 + strength * 15 - r.wary * 0.3;
+      if (def.rules.requireRational) u += (strength - 0.5) * 40 - 8;
+      opts.push({ u, p: { ...base, kind: 'pledge', untilDay: state.day + 2 } });
+    }
+  } else if (!allied(state, a, b) && r.hostility < 40) {
     const strength = perceivedStrength(state, b);
     let u = need * 50 + r.like * 0.5 + (r.trust - 40) * 0.6 + strength * 15 - r.wary * 0.3;
     if (def.rules.requireRational) u += (strength - 0.5) * 40 - 8;

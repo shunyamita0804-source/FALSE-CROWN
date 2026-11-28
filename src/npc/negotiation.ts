@@ -3,7 +3,7 @@
  * 評価は「ピース換算の効用」で行い、受諾/拒否/対案と、その理由（台詞キー）を返す。
  */
 import { NPC_BY_ID, PROFILES, type CharId, type NpcId } from '../data/characters';
-import { activeDeals, addInfo, adjustRel, allied, fact, learn, log, nameOf, rel, shortName, transfer, uid } from '../core/state';
+import { activeDeals, addInfo, adjustRel, allied, pledged, fact, learn, log, nameOf, rel, shortName, transfer, uid } from '../core/state';
 import type { Deal, DealKind, GameState, Info, PlanTerm } from '../core/types';
 import type { LineKey } from './lines';
 
@@ -119,7 +119,17 @@ export function evaluate(state: GameState, p: Proposal): Verdict {
     return null;
   };
 
+  // 緩い約束（生活中に交わした「次は協力しよう」）は、同じ競技での協力の話の材料になる（必ず受けるわけではない）
+  const pledge = !!pledged(state, me, p.from);
   switch (p.kind) {
+    case 'pledge': {
+      if (pledge || allied(state, me, p.from)) return { accept: false, reason: 'refuse', score: -1 };
+      if (r.hostility > 55 || r.wary > 75) return { accept: false, reason: 'trust_low', score: -5 };
+      // 中身を決めない約束なので、額では動かない。関係、相手の強さの印象、味方の少なさ、律儀さで決める
+      const mine = activeDeals(state, me).filter((d) => d.kind === 'pledge').length;
+      const v = aff * 0.8 + (strength - 0.4) * 1.5 + (mine === 0 ? 0.4 : -mine * 0.3) + (per.loyalty - 50) / 100 + (def.rules.requireRational ? (strength - 0.5) * 2 : 0);
+      return v >= -0.2 ? { accept: true, reason: 'accept', score: v } : { accept: false, reason: r.trust < 35 ? 'trust_low' : 'refuse', score: v };
+    }
     case 'gift':
       return { accept: true, reason: 'gift_received', score: pay };
     case 'loan': {
@@ -141,10 +151,10 @@ export function evaluate(state: GameState, p: Proposal): Verdict {
       const base = prof.basePrices.ALLIANCE;
       if (base < 0) {
         // 神崎・久世：額では動かない。合理性（相手の強さ・関係）だけで判断
-        const v = (strength - 0.45) * 3 + aff * 0.8 - myAlliances * 0.6 + (r.trust - 40) / 25;
+        const v = (strength - 0.45) * 3 + aff * 0.8 - myAlliances * 0.6 + (r.trust - 40) / 25 + (pledge ? 0.4 : 0);
         return v >= 0.2 ? { accept: true, reason: 'accept', score: v } : { accept: false, reason: r.trust < 40 ? 'trust_low' : 'reject_principle', score: v };
       }
-      const need = needPrice(state, me, p.from, base, benefit, risk) + Math.round(myAlliances * (per.loyalty / 60));
+      const need = Math.max(0, needPrice(state, me, p.from, base, benefit, risk) + Math.round(myAlliances * (per.loyalty / 60)) - (pledge ? 1 : 0));
       if (pay >= need) return { accept: true, reason: 'accept', score: pay - need };
       return counterPrice(need) ?? { accept: false, reason: r.trust < 40 ? 'trust_low' : 'reject_price', score: pay - need };
     }
@@ -174,7 +184,7 @@ export function evaluate(state: GameState, p: Proposal): Verdict {
       }
       const base = prof.basePrices.PLAN < 0 ? 0 : prof.basePrices.PLAN;
       const benefit = clamp(60 - cost * 25 + (allied(state, me, p.from) ? 25 : 0), 0, 100);
-      const need = needPrice(state, me, p.from, base, benefit, cost * 25) + Math.max(0, Math.round(cost - 0.5));
+      const need = Math.max(0, needPrice(state, me, p.from, base, benefit, cost * 25) + Math.max(0, Math.round(cost - 0.5)) - (pledge ? 1 : 0));
       if (pay >= need) return { accept: true, reason: 'accept', score: pay - need };
       return counterPrice(need, 6) ?? { accept: false, reason: r.trust < 35 ? 'trust_low' : 'reject_price', score: pay - need };
     }
@@ -306,7 +316,7 @@ export function commit(state: GameState, p: Proposal, witnesses: CharId[] = []):
 }
 
 export function dealLabel(kind: DealKind | 'accuse'): string {
-  return { info_sell: '情報の売買', info_swap: '情報交換', alliance: '同盟', nonaggression: '不可侵', plan: '作戦の約束', poach: '引抜き', loan: '貸借', gift: '贈与', accuse: '告発' }[kind];
+  return { info_sell: '情報の売買', info_swap: '情報交換', alliance: '同盟', nonaggression: '不可侵', plan: '作戦の約束', poach: '引抜き', loan: '貸借', gift: '贈与', pledge: '協力の約束', accuse: '告発' }[kind];
 }
 
 export function describeDeal(state: GameState, d: Deal, viewer: CharId = 'hero'): string {
@@ -320,6 +330,7 @@ export function describeDeal(state: GameState, d: Deal, viewer: CharId = 'hero')
     case 'plan': return `${on}との作戦：${shortName(state, d.performer ?? d.from)}が「${d.plan?.label ?? ''}」${d.planBack ? `／見返りに相手が「${d.planBack.label}」` : ''}${pay}${later}`;
     case 'loan': return `${on}との貸借：${shortName(state, d.from)}が${-d.payNow}ピース借り、${d.payOnSuccess}ピース返す約束（DAY${d.untilDay}まで）`;
     case 'gift': return `${on}へ贈与${pay}`;
+    case 'pledge': return `${on}と「次は協力しよう」（DAY${d.untilDay}まで。同じ競技に出たら話のきっかけになる）`;
     case 'poach': return `${on}に${d.target ? shortName(state, d.target) : ''}との同盟を破棄させた${pay}`;
     default: return `${on}と${dealLabel(d.kind)}${pay}`;
   }
@@ -494,4 +505,19 @@ export function expireDeals(state: GameState): { text: string }[] {
 /** プレイヤーへの通知つきのログ */
 export function noteDeal(state: GameState, d: Deal): void {
   if (d.from === 'hero' || d.to === 'hero') log(state, `約束：${describeDeal(state, d)}`, 'deal');
+}
+
+/**
+ * 緩い約束を使い終える。2 人とも出た競技が終わったら、約束は果たしたものとして閉じる。
+ * 協力が成立しなかった（断られた、ルール上協力できなかった）場合も、約束破りにはしない（本人の決定 2026-11-28）。
+ * 状態は 'expired'（使い終えた）にする。'fulfilled' にすると、結末の判定で「果たした約束」に数えてしまうため。
+ */
+export function consumePledges(state: GameState, players: CharId[]): void {
+  for (const d of state.deals) {
+    if (d.status !== 'active' || d.kind !== 'pledge') continue;
+    if (players.includes(d.from) && players.includes(d.to)) {
+      d.status = 'expired';
+      d.note = `DAY${state.day}の競技で同じ場に立った`;
+    }
+  }
 }

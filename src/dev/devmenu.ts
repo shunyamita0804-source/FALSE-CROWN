@@ -5,6 +5,7 @@
  * - 監獄マッチ・脱落の検証（開発用の配置変更であることを明示）
  * ここでの操作は検証専用で、通常のプレイには影響しない。
  */
+import { strategyEnabled } from '../core/strategy';
 import { isPrivateRoom } from '../world/rooms';
 import { G } from '../app/game';
 import { autoAdvance } from '../core/autoplay';
@@ -186,6 +187,7 @@ export function devMenu(): Promise<GameState | null> {
           h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' },
             button(`DAY${d} 朝`, () => void startAt(d, 'morning'), { small: true }),
             button(`DAY${d} メインマッチ`, () => void startAt(d, 'main'), { small: true }),
+            ...(strategyEnabled(scheduleFor(d).main) ? [button(`DAY${d} ルール説明と作戦時間（試作）`, () => void startAt(d, 'rules'), { small: true })] : []),
             ...(d === 11 ? [] : [
             button(`DAY${d} 生活棟の自由時間`, () => void startAt(d, 'house', 'living'), { small: true }),
             button(`DAY${d} 監獄棟の自由時間`, () => void startAt(d, 'house', 'prison'), { small: true }),
