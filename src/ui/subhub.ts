@@ -12,6 +12,7 @@ import { t } from '../i18n/i18n';
 import { saveMeta } from '../save/save';
 import { CLUES } from '../story/clues';
 import { ROOMS, ROOM_IDS } from '../world/maps';
+import { assetUrl } from '../assets/registry';
 import { face } from './art';
 import { alertDialog, append, button, clear, closeLayer, h, openLayer, panel, type Layer } from './dom';
 import { playMatch } from './matchui';
@@ -112,14 +113,16 @@ export function subGamesScreen(): Promise<void> {
       const here = aliveIds(s).filter((x): x is NpcId => x !== 'hero' && s.actors[x].pos.room === s.actors.hero.pos.room);
       if (!game) {
         append(body, [h('div', { class: 'small dim' }, t('subhub.lead', { n: SUB_MINUTES })),
+          // 相手がいない時の案内は、一覧の下に隠れないよう先に出す
+          here.length ? null : h('div', { class: 'note-box' }, t('subhub.nobody')),
           h('div', { class: 'subhub-grid' }, SUB_IDS.map((id) => {
             const eng = engineOf(id);
             const got = !!s.flags[rewardKey(id, s.day)];
-            const b = h('button', { class: 'subhub-game', type: 'button', 'data-game': id }, h('b', null, eng.name), h('small', null, eng.summary), h('span', { class: `tag${got ? ' got' : ''}` }, t(got ? 'subhub.got' : 'subhub.notYet')));
+            const shot = assetUrl(`ui/sub_preview/${id}`);
+            const b = h('button', { class: 'subhub-game', type: 'button', 'data-game': id }, shot ? h('img', { class: 'subhub-shot', src: shot, alt: '', draggable: false }) : null, h('b', null, eng.name), h('span', { class: 'subhub-sum' }, eng.summary), h('span', { class: `tag${got ? ' got' : ''}` }, t(got ? 'subhub.got' : 'subhub.notYet')));
             b.addEventListener('click', () => { Sound.se('select'); game = id; render(); });
             return b;
-          })),
-          here.length ? null : h('div', { class: 'note-box' }, t('subhub.nobody'))]);
+          }))]);
         return;
       }
       const eng = engineOf(game);
@@ -128,7 +131,8 @@ export function subGamesScreen(): Promise<void> {
         closeLayer(layer);
         void playOne(id, opp).then(resolve);
       };
-      append(body, [h('b', { class: 'gold' }, eng.name), h('div', { class: 'small dim' }, eng.summary),
+      const shot = assetUrl(`ui/sub_preview/${game}`);
+      append(body, [h('div', { class: 'subhub-pick' }, shot ? h('img', { class: 'subhub-shot', src: shot, alt: '', draggable: false }) : null, h('div', { class: 'col', style: 'gap:6px' }, h('b', { class: 'gold' }, eng.name), h('div', { class: 'subhub-sum' }, eng.summary))),
         h('div', null, t('subhub.pickOpp')),
         h('div', { class: 'row', style: 'gap:8px;flex-wrap:wrap' },
           here.map((x) => { const b = h('button', { class: 'subhub-opp', type: 'button', 'data-opp': x }, face(x), h('span', null, shortName(s, x))); b.addEventListener('click', () => { Sound.se('confirm'); start(x); }); return b; }),

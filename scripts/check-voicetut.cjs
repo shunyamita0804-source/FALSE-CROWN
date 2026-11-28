@@ -3,8 +3,11 @@ const { chromium } = require('playwright');
 (async () => {
   const out = process.argv[2] || null;
   const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
-  const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+  // IPHONE=1 で、ノッチのある iPhone（932×430、左右 59・下 21 の余白）を再現する
+  const notch = !!process.env.IPHONE;
+  const ctx = await browser.newContext({ viewport: notch ? { width: 932, height: 430 } : { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
+  if (notch) await page.addInitScript(() => { document.addEventListener('DOMContentLoaded', () => { const st = document.createElement('style'); st.textContent = '#safe-probe{padding:0 59px 21px 59px !important}'; document.head.append(st); setTimeout(() => window.dispatchEvent(new Event('resize')), 50); }); });
   const errs = []; page.on('pageerror', (e) => errs.push(String(e))); page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
   const res = []; const check = (n, ok, d = '') => { res.push(!!ok); console.log(`${ok ? 'OK  ' : 'FAIL'} ${n} ${d}`); };
   const shot = async (n) => { if (out) await page.screenshot({ path: `${out}/vt_${n}.png` }); };

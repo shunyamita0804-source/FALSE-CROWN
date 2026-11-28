@@ -9,7 +9,7 @@ import { t } from '../../i18n/i18n';
 import { HINT_COST, STAGE_MS, type M01Move, type M01Result, type M01View } from '../../matches/m01';
 import { freeCount } from '../../matches/poly';
 import { face } from '../art';
-import { button, confirmDialog, h, type Child } from '../dom';
+import { autoFit, button, confirmDialog, h, type Child } from '../dom';
 import type { MatchUi } from '../matchui';
 import { PolyBoard } from '../polyboard';
 
@@ -67,6 +67,7 @@ export function renderM01(v: M01View, ui: MatchUi): { main: Child; side: Child }
     const board = new PolyBoard(v.puzzle, {
       cell: Math.floor(Math.min(124, 600 / v.puzzle.h, 640 / v.puzzle.w)),
       trayCell: 40,
+      trayFit: 124,
       onChange: () => { if (L.fill) L.fill.textContent = ''; },
       onComplete: (placed) => {
         board.lock();
@@ -114,5 +115,9 @@ export function renderM01(v: M01View, ui: MatchUi): { main: Child; side: Child }
   }, { small: true, disabled: v.hintUsed || hero.pieces < HINT_COST, title: t('m01.hintOnce') });
   // 遊んでいる間は、盤面と、ピースを使う補助、同じ組の様子（顔と完成の印）だけ。順位はステージの区切りで大きく出す
   const strip = h('div', { class: 'm01-strip fin-hide' }, hintBtn, L.mates);
-  return { main: [h('div', { class: 'm01-play' }, L.board.el, strip)], side: null };
+  // 盤面・置き場・帯をひとまとめにし、画面に入りきらない時は全体を縮める（ノッチのある iPhone で盤面が見切れていた）
+  const inner = h('div', { class: 'm01-fit' }, L.board.el, strip);
+  const play = h('div', { class: 'm01-play' }, inner);
+  autoFit(play, inner);
+  return { main: [play], side: null };
 }

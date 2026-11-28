@@ -16,7 +16,7 @@ import type { MatchEngine } from '../matches/types';
 import { chooseProposal, type BrainEvent } from '../npc/brain';
 import { commit, evaluate, type Proposal } from '../npc/negotiation';
 import { face, icon } from './art';
-import { alertDialog, append, button, clear, clockPaused, closeLayer, fmtTime, h, openLayer, toast, type Child, type Layer } from './dom';
+import { alertDialog, append, button, clear, clockPaused, closeLayer, fitMinWidth, fmtTime, h, openLayer, toast, type Child, type Layer } from './dom';
 import { reviewVoiced } from './tutorial';
 import { renderM01 } from './games/m01';
 import { renderM02 } from './games/m02';
@@ -271,6 +271,8 @@ export function playMatch(slot: MatchSlot): Promise<void> {
       h('div', { class: 'match-body' }, main, side),
     );
     layer = openLayer(el, { pausesClock: false, name: 'match' });
+    // ノッチのある iPhone など幅が足りない画面では、競技の画面全体を少し縮めて、端で切れないようにする
+    fitMinWidth(el, 1480);
     // 開発版のみ：画面の自動確認から、進行中の競技を参照できるようにする
     if (import.meta.env.VITE_CHANNEL !== 'product') {
       const w = window as unknown as { __fcSlot?: MatchSlot; __fcAuto?: () => boolean; __fcHint?: () => unknown };
