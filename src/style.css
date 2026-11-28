@@ -1845,3 +1845,10 @@ html[data-ui-assets~="v11/bg/match_sub"] .match.venue-sub { background: linear-g
 .fx-pop.fx.sm .fx-art { width: 520px; } .fx-pop.fx.sm .fx-inband .fx-text { font-size: 34px; letter-spacing: 0.18em; }
 .fx.sm .fx-art { width: 360px; } .fx.sm .fx-inband .fx-text, .fx.sm .fx-text { font-size: 25px; }
 .fx-inband .fx-text { font-weight: 700; color: #f6dc9a; text-shadow: 0 0 2px #000, 0 2px 8px rgba(0,0,0,0.95); }
+/* M02・M03 の音声付き説明（v0.26.4） */
+.vt-big .face { width: 84px; height: 84px; }
+.vt-tiers .tg-cap { font-size: 1.15em; padding: 6px 14px; border-radius: 10px; border: 1.5px solid #3a4468; background: rgba(10,14,28,0.6); color: var(--ivory); }
+.vt-pairs { flex-wrap: wrap; justify-content: center; gap: 12px; max-width: 620px; }
+.vt-pairs .vt-group .face { width: 54px; height: 54px; }
+.vt-fig .m02-tellbtn .face { width: 56px; height: 56px; }
+.vt-fig .tg-cap { max-width: 620px; text-align: center; }
