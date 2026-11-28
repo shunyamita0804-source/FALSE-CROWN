@@ -36,11 +36,11 @@ const { chromium, devices } = require('playwright');
   check('12 人全員が中央ホールで立ち止まっている', ring.length === 12 && ring.every((r) => r[1] === 'main_hall' && !r[4]), JSON.stringify(ring.map((r) => r.slice(2, 4))));
   const card1 = ((await page.locator('.intro-profile').innerText()) + ' | ' + (await page.locator('.intro-card').innerText())).replace(/\s+/g, ' ');
   const box = async (sel) => page.locator(sel).first().boundingBox();
-  const [pb, cb, sb] = [await box('.intro-portrait'), await box('.intro-card'), await box('.intro-top')];
+  const [pb, cb, sb] = [await box('.intro-profile .intro-bust'), await box('.intro-card'), await box('.intro-top')];
   const [nb, mb, tb] = [await box('.intro-name'), await box('.intro-meta'), await box('.intro-card .intro-text')];
   // 絵は台詞の枠の上端に少しかかる（本人の図）。台詞の文字、名前・年齢の囲みとは重ならない
-  check('人物紹介と台詞の枠・文字が重ならない', pb && cb && sb && pb.y + pb.height <= tb.y && nb.y + nb.height <= cb.y && mb.y + mb.height <= cb.y && pb.y >= sb.y + sb.height, JSON.stringify([pb, nb, mb, cb, tb]));
-  check('下段の枠には台詞だけ（名前と年齢は上段）', !(await page.locator('.intro-card .intro-name, .intro-card .intro-meta, .intro-card .bust').count()));
+  check('人物の絵・名札・台詞の文字が重ならない', pb && cb && sb && pb.y + pb.height <= tb.y && nb.y + nb.height <= tb.y && mb.x >= nb.x + nb.width && nb.x >= pb.x + pb.width - 1 && pb.y >= sb.y + sb.height, JSON.stringify([pb, nb, mb, cb, tb]));
+  check('台詞の枠に絵は入れない（名前と年齢は枠の名札）', !(await page.locator('.intro-card .bust').count()) && (await page.locator('.intro-card .intro-tab').count()) === 1);
   check('話す人の名前、年齢、職業、字幕が出る', /歳/.test(card1) && card1.length > 20, card1);
   const v1 = await ev(() => window.__fc.Sound.lastVoice);
   // 改名した人の古い自己紹介（旧名を名乗る声）は鳴らさない。新しい名前で録り直した声が届いていれば鳴らす
@@ -66,9 +66,9 @@ const { chromium, devices } = require('playwright');
   for (let i = 0; i < 14; i++) {
     if (!(await page.locator('.intro-name').count())) break;
     const meta = await page.locator('.intro-meta').innerText();
-    { const [p1, c1, s1, n1, m1] = [await box('.intro-portrait'), await box('.intro-card'), await box('.intro-top'), await box('.intro-name'), await box('.intro-meta')];
+    { const [p1, c1, s1, n1, m1] = [await box('.intro-profile .intro-bust'), await box('.intro-card'), await box('.intro-top'), await box('.intro-name'), await box('.intro-meta')];
       const t1 = await box('.intro-card .intro-text');
-      if (!(p1.y + p1.height <= t1.y && n1.y + n1.height <= c1.y && m1.y + m1.height <= c1.y && n1.x >= p1.x + p1.width && m1.x >= n1.x + n1.width && p1.y >= s1.y + s1.height && t1.y + t1.height <= c1.y + c1.height + 1)) check('全員：枠と文字が重ならない', false, meta + JSON.stringify([p1, c1, s1, t1])); else overlapOk++; }
+      if (!(p1.y + p1.height <= t1.y && n1.y + n1.height <= t1.y && n1.x >= p1.x + p1.width - 1 && m1.x >= n1.x + n1.width && p1.y >= s1.y + s1.height && t1.y + t1.height <= c1.y + c1.height + 1)) check('全員：枠と文字が重ならない', false, meta + JSON.stringify([p1, c1, s1, t1])); else overlapOk++; }
     if (meta.includes('あなた')) { heroSeen = true; const lv = await ev(() => window.__fc.Sound.voicePlaying); check('主人公は文字だけ（声を鳴らさない）', !lv); if (out) await page.screenshot({ path: out + '/intro_3_hero.png' }); }
     await page.locator('.intro-card').tap(); await page.waitForTimeout(350);
   }
