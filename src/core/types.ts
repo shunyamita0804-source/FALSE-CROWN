@@ -7,11 +7,13 @@ export type Dir = 'down' | 'up' | 'left' | 'right';
 export type Phase =
   | 'prologue'
   | 'morning'
+  | 'gather'
   | 'rules'
   | 'strategy'
   | 'main'
   | 'reward'
   | 'house'
+  | 'gatherPrison'
   | 'prison'
   | 'elimination'
   | 'night'
@@ -222,6 +224,8 @@ export interface GameState {
   claimed: string[];
   history: DayRecord[];
   match: MatchSlot | null;
+  /** 競技会場への集合移動（集合案内から会場に着くまで。core/gather.ts） */
+  gather?: import('./gather').GatherState;
   /** 当日のメイン結果（棟分けまで） */
   today: { mainRanking?: CharId[]; mainScores?: Partial<Record<CharId, number>>; prisonRanking?: CharId[]; prisonScores?: Partial<Record<CharId, number>>; teams?: Record<string, CharId[]>; rescue?: import('./rescue').RescueState; rescuePromises?: import('./rescue').RescuePromise[] };
   counter: number;

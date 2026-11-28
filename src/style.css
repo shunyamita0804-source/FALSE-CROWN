@@ -1956,3 +1956,11 @@ body.touch .rl-seg { min-height: 76px; }
 .rl-dialog { width: min(1120px, 100%); }
 .rl-detail-scroll { max-height: 400px; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: 6px; }
 .rl-detail h4 { margin: 6px 0 0; }
+
+/* 集合移動中（ui/gather.ts） */
+.gather-panel { min-width: 560px; }
+.gather-dest { font-size: 1.05em; color: var(--gold2); }
+.gather-next { font-size: 0.98em; }
+.gather-count { font-size: 0.9em; }
+.strat-time.low { color: #ff9b7a; }
+.gather-talk .gather-talk-menu { justify-content: flex-end; }

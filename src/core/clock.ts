@@ -37,6 +37,8 @@ export const FREE_WINDOWS: Partial<Record<Phase, { from: number; to: number }>> 
 /** 自由行動でないフェーズの時刻（競技中などは止まっている） */
 const FIXED: Partial<Record<Phase, number>> = {
   prologue: CLOCK.wake,
+  gather: CLOCK.main,
+  gatherPrison: CLOCK.prison,
   rules: CLOCK.main,
   strategy: CLOCK.main,
   main: CLOCK.main,
