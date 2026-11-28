@@ -42,6 +42,7 @@ export function introductionEvent(): Promise<void> {
     hero.path = [];
     hero.route = [];
     hero.intent = undefined;
+    hero.intentV = undefined;
   }
   const npcs = ids.filter((id) => id !== 'hero');
   for (const id of npcs) {

@@ -20,7 +20,7 @@
   "phase.prologue": "序章", "phase.morning": "朝の自由行動", "phase.rules": "競技説明", "phase.strategy": "作戦時間", "phase.main": "メインマッチ", "phase.reward": "結果発表",
   "phase.house": "棟別の自由行動", "phase.prison": "監獄マッチ", "phase.elimination": "脱落の宣告", "phase.night": "夜の自由行動", "phase.final": "決勝", "phase.ending": "終局",
 
-  "hud.menu": "手帳", "hud.act": "調べる\n話す", "hud.skip": "時間を進める", "hud.skipTitle": "時間を進める", "hud.skipText": "次の集合時刻まで過ごしたことにして進みます。その間も他の参加者は行動を続けます。", "hud.skipOk": "進める",
+  "hud.menu": "手帳", "hud.stick": "移動スティック", "hud.act": "調べる\n話す", "hud.skip": "時間を進める", "hud.skipTitle": "時間を進める", "hud.skipText": "次の集合時刻まで過ごしたことにして進みます。その間も他の参加者は行動を続けます。", "hud.skipOk": "進める",
   "prompt.talk": "{name}と話す", "prompt.door": "{name}へ", "prompt.inspect": "調べる",
   "log.morning": "DAY{day} の朝。", "log.sawTalk": "{a}と{b}が話し込んでいる。", "log.sawDeal": "{a}と{b}が、何か約束を交わしたようだ。", "log.sawSearch": "{a}が何かを調べている。",
   "fx.timeUp": "時間切れ", "fx.perfect": "パーフェクト", "rank.survive": "勝ち抜け", "rank.first": "第 1 位", "fx.discovery": "手掛かりを発見", "toast.noted": "手帳に記録した。", "toast.notYet": "この機能は開発中です。",
