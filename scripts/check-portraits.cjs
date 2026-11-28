@@ -36,7 +36,7 @@ const EX = ['normal', 'smile', 'anger', 'sad', 'surprise', 'think', 'smirk', 'wa
     check(`${id}：8 表情で枠の位置と大きさが同じ`, new Set(r.rects).size === 1, r.rects[0]);
     check(`${id}：8 表情で絵の大きさと位置が同じ`, new Set(r.css).size === 1, r.css[0]);
     check(`${id}：全表情を切り替える前に読み込み済み`, r.loaded);
-    check(`${id}：表情の絵が別々（通常の代用を除く）`, r.uniq >= (id === 'npc_06_kiryu' ? 7 : 8), String(r.uniq));
+    check(`${id}：8 表情の絵が別々`, r.uniq === 8, String(r.uniq));
     check(`${id}：顔アイコンは新しい絵から`, /portrait_/.test(r.faceBg), r.faceBg.slice(-40));
     if (out) {
       for (const e of EX) {

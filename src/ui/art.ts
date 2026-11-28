@@ -11,9 +11,10 @@ import { h } from './dom';
 const cache = new Map<string, string>();
 
 /** 立ち絵の描き方（data/portraits.json）。bust は胸から上の新しい絵 */
-interface PortraitStyle { style?: 'bust'; normal?: string }
+interface FaceBox { x: number; y: number; size: number; w: number; h: number }
+interface PortraitStyle { style?: 'bust'; normal?: string; face?: FaceBox }
 const STYLES = (portraitsJson as unknown as { characters: Record<string, PortraitStyle> }).characters;
-const styleOf = (id: string): PortraitStyle | undefined => STYLES[id];
+const styleOf = (id: string): PortraitStyle | undefined => STYLES[charFolder(id === 'host' ? 'host_observer' : id, heroGender)];
 /** 胸から上の新しい絵の人か */
 export const isBustArt = (id: string): boolean => styleOf(id)?.style === 'bust';
 let heroGender: 'm' | 'f' = 'm';
@@ -35,7 +36,7 @@ export function faceUrl(id: string): string {
   const key = `face:${folder}`;
   let url = cache.get(key);
   if (!url) {
-    // 新しい絵の人は、旧デザインの face.png を使わず、立ち絵の上側を丸く切り取って見せる（CSS の .face.face-bust）
+    // 新しい絵の人は、旧デザインの face.png を使わず、立ち絵を表示に使い、portraits.json の face の箱で顔だけを丸く拡大して見せる（faceCropCss）
     if (isBustArt(id)) url = portraitUrl(id, 'normal');
     url ??= assetUrl(`characters/${folder}/face`) ?? (() => {
       const { pal, gender } = palette(id);
@@ -63,9 +64,17 @@ export function portraitUrl(id: string, expr = 'normal'): string {
   return url;
 }
 
+/** 元の絵の中の正方形（中心 x, y、一辺 size）を、枠いっぱいに出す背景の指定 */
+export function faceCropCss(b: FaceBox): string {
+  const pct = (c: number, full: number) => (full === b.size ? 50 : ((c - b.size / 2) / (full - b.size)) * 100);
+  const r = (n: number) => Math.round(n * 100) / 100;
+  return `background-size:${r((b.w / b.size) * 100)}% auto;background-position:${r(pct(b.x, b.w))}% ${r(pct(b.y, b.h))}%`;
+}
+
 export function face(id: string, cls = ''): HTMLElement {
-  // 新しい絵の人は、立ち絵の頭のあたりを丸い枠に拡大して見せる（画像は加工しない）
-  if (isBustArt(id)) return h('span', { class: `face face-bust ${cls}`, style: `background-image:url("${faceUrl(id)}")`, role: 'img' });
+  // 切り抜きの決まっている人は、顔の部分を丸い枠いっぱいに拡大して見せる（画像は加工しない。枠の大きさに関係なく同じ切り抜き）
+  const box = styleOf(id)?.face;
+  if (box) return h('span', { class: `face face-crop ${cls}`, style: `background-image:url("${faceUrl(id)}");${faceCropCss(box)}`, role: 'img' });
   return h('img', { class: `face ${cls}`, src: faceUrl(id), alt: '', draggable: false });
 }
 

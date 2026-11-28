@@ -1,17 +1,134 @@
 {
   "version": 1,
-  "note": "立ち絵の描き方。style が bust の人は、胸から上の絵（2026-11-28 のリデザイン、768×1024 の透過 PNG）なので、切り抜かずに絵全体を枠の下に合わせて出す。顔アイコンも face.png（旧デザイン）ではなく立ち絵の上側を丸く切り取って出す（画像は加工しない）。normal を書いた人は、通常の顔にその表情を使う（通常絵の透過版が届くまでの代用）。ここに無い人は旧来どおり（全身の立ち絵を胸から上に絞って出す）。",
+  "note": "立ち絵の描き方。style が bust の人は、胸から上の絵（2026-11-28 のリデザイン、768×1024 の透過 PNG）なので、切り抜かずに絵全体を枠の下に合わせて出す。顔アイコンは face.png（旧デザイン）ではなく立ち絵から出す（画像は加工しない）。face は丸い顔アイコンの切り抜き：元の絵（bust の人は通常絵、それ以外は face.png。寸法 w×h）の中で、中心 (x, y)、一辺 size の正方形を丸い枠いっぱいに出す。目・鼻・口が枠に収まり、顔の大きさが全員そろうように人物ごとに決めてある（scripts/check-faces.cjs で確認）。normal を書いた人は、通常の顔にその表情を使う（通常絵の透過版が届くまでの代用）。ここに無い人は旧来どおり（全身の立ち絵を胸から上に絞って出す）。",
   "characters": {
-    "npc_02_kanzaki": { "style": "bust" },
-    "npc_03_kurose": { "style": "bust" },
-    "npc_04_mido": { "style": "bust" },
-    "npc_05_shiraishi": { "style": "bust" },
-    "npc_06_kiryu": { "style": "bust", "normal": "smile" },
-    "npc_07_tachibana": { "style": "bust" },
-    "npc_08_dojima": { "style": "bust" },
-    "npc_09_asahina": { "style": "bust" },
-    "npc_10_kujo": { "style": "bust" },
-    "npc_11_kisaragi": { "style": "bust" },
-    "npc_12_kuze": { "style": "bust" }
+    "npc_02_kanzaki": {
+      "style": "bust",
+      "face": {
+        "x": 405,
+        "y": 410,
+        "size": 470,
+        "w": 768,
+        "h": 1024
+      }
+    },
+    "npc_03_kurose": {
+      "style": "bust",
+      "face": {
+        "x": 415,
+        "y": 410,
+        "size": 470,
+        "w": 768,
+        "h": 1024
+      }
+    },
+    "npc_04_mido": {
+      "style": "bust",
+      "face": {
+        "x": 395,
+        "y": 415,
+        "size": 470,
+        "w": 768,
+        "h": 1024
+      }
+    },
+    "npc_05_shiraishi": {
+      "style": "bust",
+      "face": {
+        "x": 410,
+        "y": 430,
+        "size": 470,
+        "w": 768,
+        "h": 1024
+      }
+    },
+    "npc_06_kiryu": {
+      "style": "bust",
+      "face": {
+        "x": 390,
+        "y": 455,
+        "size": 470,
+        "w": 768,
+        "h": 1024
+      }
+    },
+    "npc_07_tachibana": {
+      "style": "bust",
+      "face": {
+        "x": 378,
+        "y": 405,
+        "size": 470,
+        "w": 768,
+        "h": 1024
+      }
+    },
+    "npc_08_dojima": {
+      "style": "bust",
+      "face": {
+        "x": 390,
+        "y": 395,
+        "size": 470,
+        "w": 768,
+        "h": 1024
+      }
+    },
+    "npc_09_asahina": {
+      "style": "bust",
+      "face": {
+        "x": 345,
+        "y": 430,
+        "size": 470,
+        "w": 768,
+        "h": 1024
+      }
+    },
+    "npc_10_kujo": {
+      "style": "bust",
+      "face": {
+        "x": 425,
+        "y": 435,
+        "size": 470,
+        "w": 768,
+        "h": 1024
+      }
+    },
+    "npc_11_kisaragi": {
+      "style": "bust",
+      "face": {
+        "x": 400,
+        "y": 420,
+        "size": 470,
+        "w": 768,
+        "h": 1024
+      }
+    },
+    "npc_12_kuze": {
+      "style": "bust",
+      "face": {
+        "x": 370,
+        "y": 420,
+        "size": 470,
+        "w": 768,
+        "h": 1024
+      }
+    },
+    "hero_m": {
+      "face": {
+        "x": 150,
+        "y": 97,
+        "size": 130,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "hero_f": {
+      "face": {
+        "x": 138,
+        "y": 105,
+        "size": 130,
+        "w": 256,
+        "h": 256
+      }
+    }
   }
 }
