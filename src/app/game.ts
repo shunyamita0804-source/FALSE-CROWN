@@ -32,7 +32,7 @@ import { fastForward, tickNpcs, type BrainEvent } from '../npc/brain';
 import { consumePledges, recordBetrayal, settlePlans } from '../npc/negotiation';
 import { loadMeta, saveGame, saveMeta, type Meta } from '../save/save';
 import type { Target } from '../scenes/FieldScene';
-import { CLUE_BY_EVENT } from '../story/clues';
+import { activeClue } from '../story/clues';
 import { alertDialog, anyModal, choose, clockPaused, confirmDialog, fade, toast, topLayer } from '../ui/dom';
 import { fxPop } from '../ui/art';
 import { canEnter, denyReason } from '../world/access';
@@ -505,7 +505,7 @@ async function inspect(id: string, text: string, event?: string): Promise<void> 
   if ((event === 'rest_bed' || event === 'desk_map') && ownerOfRoom(s, hero.pos.room) !== 'hero' && !(id === 'cell_bed' && cellOf(s, 'hero')?.room === hero.pos.room)) event = undefined;
   await G.ui.showInspect(text);
   if (!hero.searched.includes(id)) hero.searched.push(id);
-  const clue = event ? CLUE_BY_EVENT[event] : undefined;
+  const clue = activeClue(s.flags, event);
   if (clue && !(clue.fromDay && s.day < clue.fromDay) && !(clue.nightOnly && s.phase !== 'night')) {
     if (!s.infos[clue.id]) addInfo(s, { id: clue.id, kind: 'clue', text: clue.text, truth: true, about: [], source: 'world', value: clue.value, tags: clue.tags });
     if (learn(s, 'hero', clue.id, 'self', 1)) {

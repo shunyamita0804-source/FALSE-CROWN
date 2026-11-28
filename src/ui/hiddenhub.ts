@@ -1,6 +1,7 @@
 /**
  * 裏ルートの画面：入口の小さな謎、裏ゲームの起動と結果、手紙と資料、保守用の昇降機、隔離区域の端末、自分で選ぶ結末。
  * 決まり（挑めるか、報酬、旗）は src/story/hiddenroute.ts。ここは画面と流れだけ。設計は docs/hidden_route.md。
+ * いまは開発メニューで「旧裏ルート」を選んだ時だけ動く。通常の構成は裏ゲーム 2 系統（ui/backgames.ts）。
  */
 import { G } from '../app/game';
 import { Sound } from '../audio/audio';
@@ -15,7 +16,9 @@ import {
   h06Fee, hiddenOpts, hiddenPlayers, readRun, settleHidden, takeNote, takeZeroLetters,
   type ChosenEnding, type EntryPuzzle, type HiddenId, type Line,
 } from '../story/hiddenroute';
+import { isLegacyLayout } from '../story/backgames';
 import { ROOMS } from '../world/maps';
+import { bgInspect, resumeBgRun } from './backgames';
 import { alertDialog, append, button, choose, clear, closeLayer, confirmDialog, h, openLayer, panel, toast, type Layer } from './dom';
 import { playMatch } from './matchui';
 import { tutorialScreen } from './tutorial';
@@ -152,6 +155,8 @@ async function launchHidden(id: HiddenId): Promise<void> {
 export async function resumeHiddenRun(): Promise<void> {
   const s = G.state;
   if (!s) return;
+  // 通常の構成（裏ゲーム 2 系統）。旧裏ルートは開発メニューで選んだ時だけ
+  if (!isLegacyLayout(s)) { await resumeBgRun(); return; }
   const run = readRun(s);
   if (!run) { if (s.match?.kind === 'hidden') s.match = null; return; }
   if (run.day !== s.day) {
@@ -249,6 +254,7 @@ async function isoTerminal(): Promise<void> {
 /** 調査の event が裏ルートのものなら処理して true（調べた文はもう出したあと） */
 export async function hiddenInspect(event: string): Promise<boolean> {
   const s = G.state!;
+  if (!isLegacyLayout(s)) return bgInspect(event);
   const entry = ENTRY_BY_EVENT[event];
   if (entry) return tryEntry(entry);
   const game = GAME_EVENT[event];

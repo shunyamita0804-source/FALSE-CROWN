@@ -201,7 +201,7 @@ const { chromium } = require('playwright');
       await btn.tap(); await W(280); moves++;
     }
     s = await st(); await shot('h06_end');
-    check(`H06：15 巡までで終わり、得点が出る（${moves} 手）`, s.phase === 'done' && moves >= 1 && moves <= 15, JSON.stringify(s.points));
+    check(`H06：12 巡までで終わり、得点が出る（${moves} 手）`, s.phase === 'done' && moves >= 1 && moves <= 12, JSON.stringify(s.points));
   }
 
   if (want('h07')) {

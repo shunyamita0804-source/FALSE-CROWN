@@ -23,8 +23,9 @@ import { aboutTarget, addInvite, dismissGuest, personalState, INVITE_TIME, invit
 import { actorsIn, distance } from '../world/sim';
 import { homeOf, isPrivateRoom } from '../world/rooms';
 import { ROOMS } from '../world/maps';
+import { bgClueToTell, syncClues } from '../story/backgames';
 import { bust, icon, setBust } from './art';
-import { button, choose, clear, closeLayer, confirmDialog, h, openLayer, panel, type Layer } from './dom';
+import { button, choose, clear, closeLayer, confirmDialog, h, openLayer, panel, toast, type Layer } from './dom';
 import { pieces } from './screens';
 
 const EXPR: Partial<Record<LineKey, string>> = {
@@ -265,6 +266,13 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
         adjustRel(s, 'hero', npc, { like: 2, trust: 1 });
       }
       line('smalltalk');
+      // 裏ゲームの手掛かり：相手が自分で調べて知っている書き込みを、雑談のついでに話す（誰でも、何度でも。関係の値は動かさない）
+      const share = bgClueToTell(s, npc);
+      if (share) {
+        text.textContent = `${text.textContent ?? ''}\n${t('bg.tell', { text: s.infos[share]?.text ?? '' })}`;
+        learn(s, 'hero', share, npc, 1);
+        if (syncClues(s).length) toast(t('bg.noted'), 'good');
+      }
     };
 
     /** 個人的な話（私的な場所だけ）。既存の解放条件（日数と信頼）はそのまま */

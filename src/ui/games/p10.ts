@@ -41,6 +41,8 @@ export function renderP10(v: P10View, ui: MatchUi): { main: Child; side: Child }
       ui.rerender();
     }, nxt.kind === 'score' ? 450 : STEP_MS);
   }
+  // 影の対戦者（1 ゲーム）は、点の入るマスが中央ではなく上下の端の「合図のマス」
+  const K = (key: string) => (v.games === 1 ? key.replace('p10.', 'h06.') : key);
   const last: P10Log | undefined = St.n > 0 ? v.log[St.n - 1] : undefined;
   // 表示中のゲーム：再生中は記録のゲーム、追いついたら今のゲーム
   const shownGame = replaying ? v.log[St.n].game : v.game;
@@ -60,7 +62,7 @@ export function renderP10(v: P10View, ui: MatchUi): { main: Child; side: Child }
       h('small', { class: 'dim' }, t('p10.rowInfo', { n: pieces.filter((q) => q.seat === i).length })), h('b', null, String(points[i])));
   }));
   const side = [
-    h('div', { class: 'box scroll grow' }, h('h4', null, t('m01.rank')), table, h('div', { class: 'small dim', style: 'margin-top:6px' }, t('p10.tableNote', { c: CAP_PTS, m: CENTER_PTS }))),
+    h('div', { class: 'box scroll grow' }, h('h4', null, t('m01.rank')), table, h('div', { class: 'small dim', style: 'margin-top:6px' }, t(K('p10.tableNote'), { c: CAP_PTS, m: CENTER_PTS }))),
     v.games === 1 ? h('div', { class: 'box' }, h('div', { class: 'small' }, t('h06.sideNote'))) : h('div', { class: 'box' }, h('h4', null, t('p10.gameTitle', { n: shownGame + 1 })), h('div', { class: 'small' }, t('p10.firstNote', { name: ui.name(v.players[(shownGame) % 2]) })),
       [0, 1].filter((g) => g <= v.game).map((g) => h('div', { class: 'small dim' }, t('p10.gameRow', { n: g + 1, na: ui.name(v.players[0]), a: v.gamePts[g][0], b: v.gamePts[g][1], nb: ui.name(v.players[1]) })))),
   ];
@@ -122,7 +124,7 @@ export function renderP10(v: P10View, ui: MatchUi): { main: Child; side: Child }
     ];
   } else {
     const nm = last && last.seat >= 0 ? ui.name(v.players[last.seat]) : '';
-    const lastText = !last ? '' : last.kind === 'score' ? t('p10.last.score', { a: last.gain![0], b: last.gain![1], na: ui.name(v.players[0]), nb: ui.name(v.players[1]) }) : last.kind === 'pass' ? t('m08.last.pass', { name: nm }) : last.cap !== undefined ? t('p10.last.cap', { name: nm, n: CAP_PTS }) : t('m08.last.move', { name: nm });
+    const lastText = !last ? '' : last.kind === 'score' ? t(K('p10.last.score'), { a: last.gain![0], b: last.gain![1], na: ui.name(v.players[0]), nb: ui.name(v.players[1]) }) : last.kind === 'pass' ? t('m08.last.pass', { name: nm }) : last.cap !== undefined ? t('p10.last.cap', { name: nm, n: CAP_PTS }) : t('m08.last.move', { name: nm });
     head = h('div', { class: 'hx7-head' },
       h('b', { class: myTurn ? 'gold' : '' }, myTurn ? t('m07.yourTurn') : turnOf ? t('p05.waitTurn', { name: turnOf === me ? t('p05.you') : ui.name(turnOf) }) : t('m09.roundEnd')),
       !watching ? h('span', { class: 'small dim row', style: 'gap:8px;align-items:center' }, t('p07.yourColor'), h('i', { class: 'hx-sw', style: `background:${P10_COLORS[seat]}` })) : null,
@@ -133,7 +135,7 @@ export function renderP10(v: P10View, ui: MatchUi): { main: Child; side: Child }
         if (!sel) note = t('m09.howPick');
         else if (!chosen) note = t('p10.howMove');
         else {
-          const gain = chosen.cap !== undefined ? t('p10.gainCap', { n: CAP_PTS }) : v.centers.includes(chosen.to) ? t('p10.gainCenter', { n: CENTER_PTS }) : '';
+          const gain = chosen.cap !== undefined ? t('p10.gainCap', { n: CAP_PTS }) : v.centers.includes(chosen.to) ? t(K('p10.gainCenter'), { n: CENTER_PTS }) : '';
           note = [gain ? h('span', { class: 'gold' }, gain) : null, danger ? h('span', { class: 'pz-warn' }, t('p10.warn')) : gain ? null : t('m08.moveReady')];
         }
         foot.push(button(t('m09.doMove'), confirm, { kind: 'primary', disabled: !chosen }));
@@ -141,7 +143,7 @@ export function renderP10(v: P10View, ui: MatchUi): { main: Child; side: Child }
       }
     }
   }
-  const main = h('div', { class: 'hx7 pz7' }, h('div', { class: 'hx7-left' }, board),
-    h('div', { class: 'hx7-panel' }, head, body, h('div', { class: 'small fb-note pz-note' }, note), h('div', { class: 'hx7-foot' }, foot), done ? null : h('div', { class: 'small dim' }, t('p10.legend'))));
+  const main = h('div', { class: `hx7 pz7${v.games === 1 ? ' h06' : ''}` }, h('div', { class: 'hx7-left' }, board),
+    h('div', { class: 'hx7-panel' }, head, body, h('div', { class: 'small fb-note pz-note' }, note), h('div', { class: 'hx7-foot' }, foot), done ? null : h('div', { class: 'small dim' }, t(K('p10.legend')))));
   return { main, side };
 }

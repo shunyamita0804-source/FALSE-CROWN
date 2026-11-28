@@ -57,6 +57,8 @@ export interface InspectDef {
   area?: [number, number, number, number];
   /** 光らせて目立たせる家具（furniture.json の props の id） */
   glow?: string;
+  /** 裏ゲームの構成で出し分ける（legacy：旧裏ルートの時だけ、two_wing：通常の 2 系統の時だけ。省略はどちらでも） */
+  layout?: 'legacy' | 'two_wing';
 }
 
 export interface RoomDef {
@@ -176,7 +178,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,28,17],[1,1,2,3],[28,1,28,3],[14,18,15,19]],
     block: [[10,4,19,5],[8,4,8,4],[21,4,21,4],[5,4,7,4],[4,4,4,4],[22,4,24,4],[25,4,26,4],[4,5,6,7],[4,9,6,11],[24,5,26,7],[24,9,26,11],[10,8,13,11],[16,8,19,11],[3,14,8,16],[21,14,26,16],[1,15,1,17],[28,15,28,17],[12,17,13,17],[16,17,18,17]],
     doors: [D('from_hall','up',1,1,2,'living_hallway','to_lounge','open','生活棟 廊下'),D('to_game','up',28,1,1,'game_room','to_hall','open','遊戯室'),D('stairs','down',14,19,2,'main_hall','stairs_l','stairs_down','1F 中央ホール'),D('to_bath','right',28,9,2,'bathroom','to_hall','door','シャワー・トイレ')],
-    inspects: [{id:'dining_buffet',x:14,y:6,text:'配膳台には温かい料理が並ぶ。好きな時間に食べられるようだ。奥は厨房で、台の向こうへは入れない。',event:'dining_meal'}],
+    inspects: [{id:'dining_buffet',x:14,y:6,text:'配膳台には温かい料理が並ぶ。好きな時間に食べられるようだ。奥は厨房で、台の向こうへは入れない。',event:'dining_meal'},{id:'living_bookcase',x:2,y:15,text:'壁際の本棚。小説や画集が並んでいる。',event:'bg_live_lock',layout:'two_wing'},{id:'living_score',x:25,y:13,text:'ソファの脇の譜面台に、短い楽譜が一枚立てかけてある。',event:'bg_live_b',layout:'two_wing'}],
     spots: S([[8,9],[21,9],[7,6],[22,6],[7,10],[22,10],[9,13],[20,13]]),
   },
   {
@@ -200,7 +202,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,20,14],[10,15,11,15]],
     block: [[8,6,13,9],[1,10,3,13],[4,11,4,13],[16,10,20,13],[1,4,1,4],[20,4,20,4],[8,14,9,14],[12,14,13,14]],
     doors: [D('to_hall','down',10,15,2,'dining','to_bath','door','リビング')],
-    inspects: [{id:'bath_toilet',x:1,y:9,text:'トイレの扉。中は小さな個室に分かれている。'},{id:'bath_mirror',x:16,y:4,text:'曇った鏡に、左右が逆になった記号が浮かんでいる。誰かの悪戯だろうか。',event:'h03_mirror'},{id:'bath_sink',x:4,y:5,text:'洗面台。石けん置きの下に、小さなメモが挟まっている。',event:'h03_sink'}],
+    inspects: [{id:'bath_toilet',x:1,y:9,text:'トイレの扉。中は小さな個室に分かれている。'},{id:'bath_mirror',x:16,y:4,text:'曇った鏡に、左右が逆になった記号が浮かんでいる。誰かの悪戯だろうか。',event:'h03_mirror'},{id:'bath_sink',x:4,y:5,text:'洗面台。石けん置きの下に、小さなメモが挟まっている。',event:'h03_sink',layout:'legacy'}],
     spots: S([[7,10],[6,7],[15,7],[10,5],[7,12]]),
   },
   {
@@ -258,7 +260,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,5,26,12],[13,13,14,17]],
     block: [[1,5,1,5],[1,6,1,8],[1,9,1,11],[2,10,3,11],[26,5,26,6],[25,7,26,8],[26,9,26,12]],
     doors: [D('to_hall','down',13,17,2,'main_hall','to_b1','iron','1F 中央ホール'),D('to_arena','up',24,5,2,'prison_arena','to_hall','iron','監獄マッチ会場'),D('secret','up',13,5,2,'cell_zero','from_cells','hidden','第零牢','h04_open')],
-    inspects: [{id:'cells_wash',x:2,y:9,text:'壁際の棚にタオルと水差し。ここで顔を洗い、身支度を整えるらしい。'},{id:'cells_wall',x:12,y:5,text:'通路脇の石壁に、数字の列が浅く刻まれている。過去の参加者の落書きらしい。',event:'h04_wall'}],
+    inspects: [{id:'cells_wash',x:2,y:9,text:'壁際の棚にタオルと水差し、小さな鏡。ここで顔を洗い、身支度を整えるらしい。',event:'bg_prison_c'},{id:'cells_plate',x:15,y:5,text:'奥の壁に、鉄の銘板がはめ込まれている。',event:'bg_prison_lock',layout:'two_wing'},{id:'cells_wall',x:12,y:5,text:'通路脇の石壁に、数字の列が浅く刻まれている。過去の参加者の落書きらしい。',event:'h04_wall'}],
     spots: S([[8,8],[19,8],[12,9],[5,9],[20,9],[11,8],[16,8]]),
   },
   {
@@ -378,6 +380,12 @@ const ROOMS_SRC: RoomSrc[] = [
 ];
 
 const ROOMS_LIST: RoomDef[] = ROOMS_SRC.map((r) => ({ ...r, props: r.props ?? [], ambient: r.image ? 1 : 0.62 }));
+
+/** いまの構成で調べられる所（旧裏ルートだけの所、2 系統だけの所を出し分ける） */
+export function inspectsOf(room: RoomDef, flags: Record<string, unknown>): InspectDef[] {
+  const legacy = flags.hiddenLayout === 'legacy';
+  return room.inspects.filter((i) => !i.layout || (i.layout === 'legacy') === legacy);
+}
 
 export const ROOMS: Record<string, RoomDef> = Object.fromEntries(ROOMS_LIST.map((r) => [r.id, r]));
 

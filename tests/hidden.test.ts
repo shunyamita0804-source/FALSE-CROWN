@@ -9,7 +9,7 @@ import { H05, makeSlide, orderOk, slidable, slideSolved, slideTo, solveSlide, ty
 import { H07, h07Wrong, type H07State } from '../src/matches/h07';
 import { H08, normalize, type H08State } from '../src/matches/h08';
 import { solveFrom, trace } from '../src/matches/p06';
-import { H06, H06_ROUNDS, type P10State } from '../src/matches/p10';
+import { H06, H06_KEEP, H06_ROUNDS, H06_SIGNALS, P10, type P10State } from '../src/matches/p10';
 import { EVIDENCE, H01_ANSWER, H03_STAGES, H04_QUESTIONS, H05_ORDER, H07_QUESTIONS, H08_LOGIC, LETTERS } from '../src/story/hiddendata';
 import { simulate } from './helpers';
 
@@ -141,11 +141,16 @@ describe('H05 時の牢獄', () => {
 });
 
 describe('H06 影の対戦者', () => {
-  it('駒 3 個ずつ、15 巡、中央は 1 マス。終わった時に残った駒 1 個につき 1 点', () => {
+  it('駒 3 個ずつの矢じり、12 巡、点は上下の端の合図のマス。終わった時に残った駒 1 個につき 2 点', () => {
     const s = H06.init(['hero', 'mask' as CharId], Rng.from(1)) as P10State;
     expect(s.pieces.length).toBe(6);
     const v = H06.view(s, 'hero');
-    expect(v.centers).toEqual([12]);
+    expect(v.centers).toEqual(H06_SIGNALS);
+    expect(H06_SIGNALS).toEqual([2, 22]);
+    // P10 とは配置と点の入るマスが違う（同じ駒の動き）
+    const p = P10.view(P10.init(['hero', 'mask' as CharId], Rng.from(1)), 'hero');
+    expect(v.centers.some((c) => p.centers.includes(c))).toBe(false);
+    expect(v.start.map((x) => x.pos).sort()).not.toEqual(p.start.map((x) => x.pos).sort());
     expect(v.rounds).toBe(H06_ROUNDS);
     expect(v.games).toBe(1);
     let pw = 0, mw = 0, dr = 0, sum = 0;
@@ -155,12 +160,14 @@ describe('H06 影の対戦者', () => {
       expect(st.round).toBeLessThanOrEqual(H06_ROUNDS);
       // 残った駒の点が入っている
       const caps = st.caps[0] * 3;
-      expect(st.points[0]).toBeGreaterThanOrEqual(caps + st.pieces.filter((p) => p.seat === 0).length);
+      expect(st.points[0]).toBeGreaterThanOrEqual(caps + H06_KEEP * st.pieces.filter((p) => p.seat === 0).length);
       const mi = st.players.indexOf('mask' as CharId);
       sum += st.points[0] + st.points[1];
       if (st.points[mi] > st.points[1 - mi]) mw++; else if (st.points[mi] < st.points[1 - mi]) pw++; else dr++;
     }
     console.log(`h06: challengerWin=${pw} maskWin=${mw} draw=${dr} avgTotal=${(sum / 60).toFixed(1)}`);
+    expect(pw).toBeGreaterThan(5);
+    expect(mw).toBeGreaterThan(5);
   }, 120_000);
 });
 

@@ -4,7 +4,7 @@ import { drawLineup } from './lineup';
 import { Rng } from './rng';
 import type { Actor, Deal, Fact, GameState, Info, Known, Relation } from './types';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 export function defaultRelation(): Relation {
   return { like: 0, trust: 40, wary: 30, debt: 0, hostility: 0, threat: 30 };

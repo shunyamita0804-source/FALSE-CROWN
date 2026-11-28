@@ -8,6 +8,7 @@ import { SAVE_VERSION } from '../core/state';
 import type { GameState } from '../core/types';
 import { relocateStranded } from '../world/sim';
 import { sweepSeats } from '../world/seats';
+import { backGames } from '../story/backgames';
 
 export interface StorageLike {
   getItem(key: string): string | null;
@@ -70,7 +71,7 @@ export function validate(raw: string | null): { ok: true; state: GameState; save
   }
 }
 
-function migrate(state: GameState, _from: number): GameState {
+function migrate(state: GameState, from: number): GameState {
   // 将来の形式変更はここで吸収する
   state.lineHist ??= {};
   state.relEvents ??= [];
@@ -78,6 +79,8 @@ function migrate(state: GameState, _from: number): GameState {
   if (state.actors?.hero) {
     relocateStranded(state);
     sweepSeats(state);
+    // 裏ゲーム 2 系統の記録（手掛かり・解放・報酬）。版 3 より前のセーブは、今までの旗から作る（旧の報酬を 2 度もらわない）
+    backGames(state, from < 3);
   }
   state.version = SAVE_VERSION;
   return state;

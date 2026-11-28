@@ -10,7 +10,9 @@ import { isPrivateRoom } from '../world/rooms';
 import { G } from '../app/game';
 import { autoAdvance } from '../core/autoplay';
 import { engineOf, newSlot, resolveTies, runToEnd } from '../core/runner';
-import { newGame, rel } from '../core/state';
+import { addInfo, learn, newGame, rel } from '../core/state';
+import { BG_DEFS, CLUE_KEYS, openLock, recOf, syncClues, type BgWing } from '../story/backgames';
+import { CLUES } from '../story/clues';
 import type { GameState, Phase } from '../core/types';
 import { DEFAULT_HERO_NAMES, NPC_IDS, type CharId } from '../data/characters';
 import { CONFIG, scheduleFor } from '../data/config';
@@ -101,7 +103,7 @@ export function devMenu(): Promise<GameState | null> {
       if (s.day !== 11 || s.phase !== 'reward') { await alertDialog('開始できません', '主人公が決勝まで残る大会を作れませんでした。もう一度試してください。'); return; }
       const other = (s.today.mainRanking ?? []).find((p) => p !== 'hero')!;
       s.today.mainRanking = kind === 'lose' || kind === 'loseReady' ? [other, 'hero'] : ['hero', other];
-      if (kind === 'true' || kind === 'loseReady') { s.flags.h08_cleared = true; s.flags.RESCUE_READY = true; s.actors.hero.items.RELEASE_AUTH = 1; }
+      if (kind === 'true' || kind === 'loseReady') { s.flags.hiddenLayout = 'legacy'; s.flags.h08_cleared = true; s.flags.RESCUE_READY = true; s.actors.hero.items.RELEASE_AUTH = 1; }
       s.deals = s.deals.filter((d) => d.from !== 'hero' && d.to !== 'hero');
       s.flags.betrayals_hero = kind === 'lone' ? ENDING_RULE.loneBetrayals : 0;
       for (const id of NPC_IDS) rel(s, id, 'hero').trust = kind === 'bond' ? 80 : 40;
@@ -159,6 +161,18 @@ export function devMenu(): Promise<GameState | null> {
       placeIn(s, 'hero', roomId);
       done(s);
     };
+    /** 旧裏ルートで遊ぶ検証 */
+    const legacyCase = (day: number, roomId: string, setup: (s: GameState) => void, phase: Phase = 'morning') => hiddenCase(day, roomId, (s) => { s.flags.hiddenLayout = 'legacy'; setup(s); }, phase);
+    /** 裏ゲームの手掛かりを 3 つとも、自分で確かめた形で持たせる */
+    const giveBgClues = (s: GameState, wing: BgWing) => {
+      for (const k of CLUE_KEYS) {
+        const id = BG_DEFS[wing].clues[k];
+        const c = CLUES.find((x) => x.id === id)!;
+        if (!s.infos[id]) addInfo(s, { id, kind: 'clue', text: c.text, truth: true, about: [], source: 'world', value: c.value, tags: c.tags });
+        learn(s, 'hero', id, 'self', 1);
+      }
+      syncClues(s);
+    };
     const render = () => {
       clear(body);
       const groups: [string, string][] = [['main', 'メインマッチ'], ['prison', '監獄マッチ'], ['hidden', '裏ゲーム'], ['sub', 'サブゲーム']];
@@ -207,14 +221,23 @@ export function devMenu(): Promise<GameState | null> {
           button('主人公が優勝（信頼の証）', () => void finalCase('bond'), { small: true }),
           button('主人公が決勝で敗北（敗者）', () => void finalCase('lose'), { small: true }),
         ),
-        h('h4', { class: 'gold' }, '裏ルートの検証（日付と持ち物は検証用に作る）'),
+        h('h4', { class: 'gold' }, '裏ゲーム 2 系統の検証（生活棟：賢者の金庫、監獄棟：影の対戦者）'),
         h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' },
-          button('DAY1 朝・図書室（入口から）', () => hiddenCase(1, 'library', () => {}), { small: true }),
-          button('DAY3 夜・展望室（ピース 6）', () => hiddenCase(3, 'observatory', (s) => { s.actors.hero.pieces = 6; }, 'night'), { small: true }),
-          button('DAY5 朝・旧書庫（H04、H05）', () => hiddenCase(5, 'old_archive', (s) => { s.flags.h04_open = true; }), { small: true }),
-          button('DAY8 朝・共用廊下（閲覧の許可あり）', () => hiddenCase(8, 'common_hall', (s) => { s.flags.v04_maintenance_notice = true; s.flags.svc_permit = true; }), { small: true }),
-          button('DAY9 朝・最深部（H08 の条件あり）', () => hiddenCase(9, 'core', (s) => { for (const k of ['KEY_SERVICE', 'DOC_CROWN', 'CORE01']) s.actors.hero.items[k] = 1; s.flags.ISOLATION_CONFIRMED = true; s.flags.h07_cleared = true; s.flags.svc_permit = true; }), { small: true }),
-          button('DAY10 朝・隔離区域（H08 済み）', () => hiddenCase(10, 'isolation', (s) => { for (const k of ['KEY_SERVICE', 'DOC_CROWN', 'CORE01', 'RELEASE_AUTH']) s.actors.hero.items[k] = 1; s.flags.ISOLATION_CONFIRMED = true; s.flags.h07_cleared = true; s.flags.h08_cleared = true; s.flags.h08_stage = 5; s.flags.svc_permit = true; }), { small: true }),
+          button('DAY1 朝・遊戯室（手掛かり無し）', () => hiddenCase(1, 'game_room', () => {}), { small: true }),
+          button('DAY2 朝・リビング（生活棟の手掛かり 3 つ）', () => hiddenCase(2, 'dining', (s) => giveBgClues(s, 'living')), { small: true }),
+          button('DAY2 朝・リビング（解放済み）', () => hiddenCase(2, 'dining', (s) => { giveBgClues(s, 'living'); recOf(s, 'living').unlockedDay = 2; }), { small: true }),
+          button('DAY3 朝・共同牢（監獄棟の手掛かり 3 つ）', () => hiddenCase(3, 'prison_cells', (s) => giveBgClues(s, 'prison')), { small: true }),
+          button('DAY3 朝・第零牢（壁を開けた）', () => hiddenCase(3, 'cell_zero', (s) => { giveBgClues(s, 'prison'); recOf(s, 'prison').unlockedDay = 3; openLock(s, 'prison'); }), { small: true }),
+          button('DAY4 朝・第零牢（報酬受領済み、腕試し）', () => hiddenCase(4, 'cell_zero', (s) => { giveBgClues(s, 'prison'); const r = recOf(s, 'prison'); r.unlockedDay = 3; openLock(s, 'prison'); r.rewardDay = 3; s.claimed.push('bg:prison:reward'); }), { small: true }),
+        ),
+        h('h4', { class: 'gold' }, '旧裏ルートの検証（通常の構成から外した地下探索・真相ルート。開くと旧裏ルートで遊ぶ）'),
+        h('div', { class: 'row', style: 'gap:6px;flex-wrap:wrap' },
+          button('DAY1 朝・図書室（入口から）', () => legacyCase(1, 'library', () => {}), { small: true }),
+          button('DAY3 夜・展望室（ピース 6）', () => legacyCase(3, 'observatory', (s) => { s.actors.hero.pieces = 6; }, 'night'), { small: true }),
+          button('DAY5 朝・旧書庫（H04、H05）', () => legacyCase(5, 'old_archive', (s) => { s.flags.h04_open = true; }), { small: true }),
+          button('DAY8 朝・共用廊下（閲覧の許可あり）', () => legacyCase(8, 'common_hall', (s) => { s.flags.v04_maintenance_notice = true; s.flags.svc_permit = true; }), { small: true }),
+          button('DAY9 朝・最深部（H08 の条件あり）', () => legacyCase(9, 'core', (s) => { for (const k of ['KEY_SERVICE', 'DOC_CROWN', 'CORE01']) s.actors.hero.items[k] = 1; s.flags.ISOLATION_CONFIRMED = true; s.flags.h07_cleared = true; s.flags.svc_permit = true; }), { small: true }),
+          button('DAY10 朝・隔離区域（H08 済み）', () => legacyCase(10, 'isolation', (s) => { for (const k of ['KEY_SERVICE', 'DOC_CROWN', 'CORE01', 'RELEASE_AUTH']) s.actors.hero.items[k] = 1; s.flags.ISOLATION_CONFIRMED = true; s.flags.h07_cleared = true; s.flags.h08_cleared = true; s.flags.h08_stage = 5; s.flags.svc_permit = true; }), { small: true }),
           button('主人公が優勝（偽りの王冠）', () => void finalCase('true'), { small: true }),
           button('決勝で敗北（解放の準備あり）', () => void finalCase('loseReady'), { small: true }),
         ),

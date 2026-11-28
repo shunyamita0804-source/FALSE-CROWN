@@ -43,7 +43,7 @@ export const H01: MatchEngine<H01State, H01Move, H01View> = {
     '数字は 1 から 6 を 1 回ずつ使います。',
     '入力は 5 回まで。制限時間は 3 分です。全部の桁が合えば開きます。',
     '違っていた時、どの桁が違うかは分かりません。条件を読み直してください。',
-    '時間切れ、または 5 回とも違った時は失敗です。次の日に、もう一度挑めます。',
+    '時間切れ、または 5 回とも違った時は失敗です。時間をおいて、もう一度挑めます。',
   ],
   init(players) {
     return { players: [...players], tries: [], solved: false, phase: 'play', stage: '0' };

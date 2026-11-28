@@ -11,10 +11,10 @@ import { CLOCK, clockMinutes, lifeSlot } from '../core/clock';
 import { Rng } from '../core/rng';
 import { activeDeals, addInfo, adjustRel, aliveIds, aliveNpcs, allied, pledged, fact, learn, nameOf, rel, rngOf } from '../core/state';
 import type { Actor, GameState, Info } from '../core/types';
-import { CLUE_BY_EVENT } from '../story/clues';
+import { activeClue } from '../story/clues';
 import { canEnter, passFn } from '../world/access';
 import { isRetired } from '../world/maps';
-import { ROOMS } from '../world/maps';
+import { ROOMS, inspectsOf } from '../world/maps';
 import { nearestFree, roomRoute } from '../world/path';
 import { actorsIn, collisionOf, distance, homeSpot, moveActor, occupiedSet, seatUsable, setPathTo, setRouteTo, speedOf } from '../world/sim';
 import { reserveSeat, seatOf, seatTile, sitDown, standUp, sweepSeats, freeSeats } from '../world/seats';
@@ -85,9 +85,9 @@ function unsearched(state: GameState, a: Actor): { room: string; id: string; x: 
   for (const room of Object.values(ROOMS)) {
     if (room.area === 'secret' || isPrivateRoom(room.id) || isRetired(room.id)) continue;
     if (!canEnter(state, a.id, room.id)) continue;
-    for (const ins of room.inspects) {
+    for (const ins of inspectsOf(room, state.flags)) {
       if (a.searched.includes(ins.id)) continue;
-      const clue = ins.event ? CLUE_BY_EVENT[ins.event] : undefined;
+      const clue = activeClue(state.flags, ins.event);
       if (!clue) continue;
       if (clue.fromDay && state.day < clue.fromDay) continue;
       if (clue.nightOnly && state.phase !== 'night') continue;
@@ -506,7 +506,7 @@ function searchSpot(state: GameState, a: Actor, events: BrainEvent[]): void {
   const insId = g.note!;
   a.searched.push(insId);
   const ins = ROOMS[a.pos.room]?.inspects.find((i) => i.id === insId);
-  const clue = ins?.event ? CLUE_BY_EVENT[ins.event] : undefined;
+  const clue = activeClue(state.flags, ins?.event);
   if (clue) {
     if (!state.infos[clue.id]) addInfo(state, { id: clue.id, kind: 'clue', text: clue.text, truth: true, about: [], source: 'world', value: clue.value, tags: clue.tags });
     learn(state, a.id, clue.id, 'self', 1);
