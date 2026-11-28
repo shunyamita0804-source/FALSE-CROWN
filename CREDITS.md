@@ -17,6 +17,11 @@
 - "Avec Soin" Kevin MacLeod (incompetech.com) — Licensed under Creative Commons: By Attribution 4.0 License（https://creativecommons.org/licenses/by/4.0/）
   - 楽曲ページ：https://remote.incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100860 （公開日 2011-10-03、ISRC USUAN1100860）
   - 使用箇所：個室。音源ファイルは未加工（avec_soin.mp3）。曲の切り替え時のフェードと繰り返しは再生時の処理で、ファイルには手を加えていない
+- "Stay the Course" Kevin MacLeod (incompetech.com)
+  - Licensed under Creative Commons: By Attribution 4.0 License
+  - https://creativecommons.org/licenses/by/4.0/
+  - 使用場面：開会式・大会説明
+  - 加工：なし（提供された MP3 のまま収録。繰り返し、音量を下げる処理、フェードアウトはゲーム内の再生処理）
 - 注意：Shiny Tech は、作者の過去の記事に Content ID の誤検出と類似旋律に関する記述がある。宣伝動画に使う前に確認すること（https://incompetech.com/wordpress/2011/11/music-plus-youtube-update/ 、https://incompetech.com/wordpress/2006/11/electronica-jam-ii/ ）。
 
 ### PeriTune

@@ -8,6 +8,7 @@ import { CHANNEL } from './app/entitlement';
 import { applyUpdateIfAny, pokeServiceWorker, updateAvailable } from './app/update';
 import { rescueFlow } from './ui/rescue';
 import { ceremonyScreen, handoutScreen } from './ui/ceremony';
+import { introductionEvent } from './ui/introduction';
 import { G, runGame } from './app/game';
 import { applyUiAssets } from './assets/registry';
 import { Sound } from './audio/audio';
@@ -58,6 +59,7 @@ G.ui = {
   rescueFlow,
   ceremony: ceremonyScreen,
   handout: handoutScreen,
+  introduction: introductionEvent,
 };
 
 // UI の操作音（ボタンの種類で音を変える）

@@ -9,6 +9,10 @@ import { announce } from '../audio/announce';
 import { HOST, NPC_BY_ID, type NpcId } from '../data/characters';
 import { CONFIG, FINAL_DAY } from '../data/config';
 import { t } from '../i18n/i18n';
+import { INTRO } from '../core/introduction';
+import { ROOMS } from '../world/maps';
+
+const introPlace = () => ROOMS[INTRO.venue.room]?.name ?? '';
 import { bgUrl, bust, emblemUrl, icon } from './art';
 import { button, clear, closeLayer, h, openLayer, type Child, type Layer } from './dom';
 
@@ -120,7 +124,8 @@ export function ceremonyScreen(opts: { review?: boolean; skippable?: boolean } =
     const say = h('div', { class: 'cer-say' });
     const foot = h('div', { class: 'tut-foot' });
     // 進行の声：始めに歓迎、終わりに開幕の宣言（見返しの時は鳴らさない）
-    const done = () => { closeLayer(layer); if (!opts.review) void announce('tournament_open'); resolve(); };
+    // 説明が終わったら、開会式の曲をゆっくり消す（このあと自己紹介の曲に切り替わる）
+    const done = () => { closeLayer(layer); if (!opts.review) { void announce('tournament_open'); Sound.bgm(null, 3200); } resolve(); };
     const next = () => {
       const st = all[si];
       if (li < st.lines.length - 1) { li++; Sound.se('page'); drawLine(); return; }
@@ -168,8 +173,8 @@ export function handoutScreen(): Promise<void> {
     Sound.se('coins');
     layer = openLayer(h('div', { class: 'overlay solid cer-bg', style: bgUrl('opening') ? `background-image:url("${bgUrl('opening')}")` : '' }, h('div', { class: 'rs' },
       h('div', { class: 'cer-row pop' }, box('', h('div', { class: 'cer-piece' }, icon('piece_gold'), h('b', null, '× 3')), h('span', null, t('cer.give1'))), box('', icon('key_gold'), h('b', null, t('cer.give2t')), h('span', null, t('cer.give2')))),
-      h('div', { class: 'rs-title' }, t('cer.free')),
-      h('div', { class: 'rs-text' }, t('cer.freeText')),
-      h('div', { class: 'rs-foot' }, button(t('cer.go'), done, { kind: 'primary', autofocus: true })))), { pausesClock: true, name: 'handout' });
+      h('div', { class: 'rs-title' }, t('cer.next')),
+      h('div', { class: 'rs-text' }, t('cer.nextText', { place: introPlace() })),
+      h('div', { class: 'rs-foot' }, button(t('cer.toIntro', { place: introPlace() }), done, { kind: 'primary', autofocus: true })))), { pausesClock: true, name: 'handout' });
   });
 }

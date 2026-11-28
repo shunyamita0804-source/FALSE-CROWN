@@ -27,7 +27,8 @@ import { deleteSave, exportSave, hasSave, importSave, saveMeta } from '../save/s
 import { canEnter } from '../world/access';
 import { ROOMS } from '../world/maps';
 import { ceremonyScreen } from './ceremony';
-import { playVoice, resetVoiceHistory } from '../audio/voice';
+import { playVoice, resetVoiceHistory, voiceClip } from '../audio/voice';
+import { introLine } from '../core/introduction';
 import { bgUrl, bust, emblemUrl, face, fxBanner, icon, logoUrl, portraitUrl, setBust, setHeroGender } from './art';
 import { alertDialog, append, button, clear, closeLayer, confirmDialog, h, openLayer, panel, toast, type Child, type Layer } from './dom';
 
@@ -367,6 +368,7 @@ function renderTab(s: GameState, tab: Tab, close: () => void, rerender: () => vo
             h('div', null, h('b', null, def.name), '　', h('span', { class: 'dim small' }, met ? `${def.age}${t('people.age')}・${def.job}` : t('people.unmet')),
               a.alive ? (a.house ? h('span', { class: `tag ${a.house === 'living' ? 'living' : ''}` }, t(a.house === 'prison' ? 'house.prison' : 'house.living')) : null) : h('span', { class: 'tag' }, t('people.out', { day: a.eliminatedDay ?? 0 }))),
             met ? h('div', { class: 'small' }, def.profile) : null,
+            s.flags[`introHeard_${id}`] ? introRow(id) : null,
             a.alive ? h('div', { class: 'small dim' }, t('people.pieces'), ' ', String(a.pieces)) : null,
             ...deals.map((d) => h('div', { class: 'small gold' }, describeDeal(s, d))),
             ...lines(facts, 'fact', t('people.fact')), ...lines(sights, '', t('people.sight')), ...lines(rumors, '', t('people.rumor')),
@@ -513,9 +515,20 @@ export function howtoScreen(): Promise<void> {
   return alertDialog(t('title.howto'), h('div', { class: 'col', style: 'gap:8px' }, items.map((k) => h('div', { class: 'entry' }, h('b', { class: 'gold' }, t(`howto.${k}.h`)), h('div', { class: 'small' }, t(`howto.${k}`))))), t('common.close'));
 }
 
+/** 手帳：自己紹介で本人が話した言葉（公開の情報だけ）。声があれば聞き直せる */
+function introRow(id: NpcId): HTMLElement {
+  const l = introLine(G.state!, id, (who) => voiceClip(who, 'introduction'));
+  const v = l.voice;
+  return h('div', { class: 'small rel-line intro-note' }, h('span', { class: 'tag fact' }, t('people.intro')), ' ', `「${l.text}」`,
+    v ? button(`♪ ${t('people.replay')}`, () => Sound.voice(v.url, v.gain, { duck: true }), { small: true, kind: 'ghost', cls: 'intro-replay' }) : null);
+}
+
 export function creditsScreen(): Promise<void> {
   return alertDialog(t('title.credits'), h('div', { class: 'col small', style: 'gap:8px' }, [
-    h('div', null, h('b', { class: 'gold' }, t('credits.bgm')), ...Object.entries(BGM_CREDITS).map(([key, c]) => { const titles = [...new Set(Object.values(BGM).filter((b) => b.file && b.by === key).map((b) => b.title))]; return titles.length ? h('div', { style: 'margin-top:4px' }, h('div', null, `${c.name}（${c.url}）`), h('div', { class: 'dim' }, titles.join(' / ')), h('div', { class: 'dim' }, c.license)) : null; })),
+    h('div', null, h('b', { class: 'gold' }, t('credits.bgm')), ...Object.entries(BGM_CREDITS).map(([key, c]) => { const titles = [...new Set(Object.values(BGM).filter((b) => b.file && b.by === key).map((b) => b.title))]; if (!titles.length) return null;
+      // 曲ごとの表記を求める配布元（Kevin MacLeod）は、曲名ごとに決まった形で並べる
+      if (c.perTitle) return h('div', { style: 'margin-top:4px' }, ...titles.map((ti) => h('div', null, c.perTitle!.replace('{title}', ti))), ...c.license.split('\n').map((x) => h('div', { class: 'dim' }, x)));
+      return h('div', { style: 'margin-top:4px' }, h('div', null, `${c.name}（${c.url}）`), h('div', { class: 'dim' }, titles.join(' / ')), h('div', { class: 'dim' }, c.license)); })),
     h('div', null, h('b', { class: 'gold' }, t('credits.se')), h('div', null, 'Kenney（https://kenney.nl/）— Casino Audio / Interface Sounds / RPG Audio'), h('div', { class: 'dim' }, t('credits.seLicense'))),
     h('div', null, h('b', { class: 'gold' }, t('credits.voice')), h('div', null, t('credits.voiceBy')), h('div', { class: 'dim' }, t('credits.voiceNote'))),
     h('div', null, h('b', { class: 'gold' }, t('credits.engine')), h('div', null, 'Phaser 4 (MIT) / Vite / TypeScript')),

@@ -1745,3 +1745,28 @@ body .vt-foot .btn.btn-s { min-height: 76px; }
 .vt-foot .btn { min-width: 128px; white-space: nowrap; }
 .vt-note { text-align: center; max-width: 900px; }
 .vt-note:empty { display: none; }
+
+/* ---- 参加者の自己紹介（DAY 1、開会式の後。フィールドの上に重ねる） ---- */
+.overlay.intro { flex-direction: column; justify-content: space-between; align-items: stretch; padding: calc(14px + var(--safe-top)) calc(28px + var(--safe-right)) calc(16px + var(--safe-bottom)) calc(28px + var(--safe-left)); pointer-events: auto; }
+.intro-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.intro-head { display: flex; align-items: baseline; gap: 18px; padding: 8px 22px; background: rgba(6, 8, 20, 0.72); border: 1px solid rgba(216, 178, 90, 0.55); border-radius: 10px; }
+.intro-head b { font-family: var(--serif); color: var(--gold2); letter-spacing: 0.14em; font-size: 1.1em; }
+.intro-head span { color: var(--ivory-dim); }
+.intro-card { position: relative; display: flex; align-items: flex-end; gap: 26px; min-height: 150px; padding: 12px 40px 12px 330px; background: linear-gradient(180deg, rgba(14, 18, 40, 0.9), rgba(6, 8, 20, 0.94)); border: 1.5px solid var(--gold); border-radius: 14px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55); cursor: pointer; }
+.intro-card.wait { padding-left: 40px; min-height: 110px; align-items: center; }
+.intro-bust { position: absolute; left: 20px; bottom: 0; height: 300px; -webkit-mask-image: linear-gradient(#000 84%, transparent); mask-image: linear-gradient(#000 84%, transparent); filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6)); pointer-events: none; animation: intro-in 260ms ease-out; }
+.intro-body { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; animation: intro-in 260ms ease-out; }
+.intro-name { display: flex; align-items: baseline; gap: 16px; }
+.intro-name b { font-family: var(--serif); font-size: 1.5em; color: var(--gold2); letter-spacing: 0.08em; }
+.intro-name small { color: var(--ivory-dim); font-size: 0.95em; letter-spacing: 0.1em; }
+.intro-meta { display: inline-block; align-self: flex-start; padding: 3px 16px; border: 1px solid rgba(216, 178, 90, 0.5); border-radius: 999px; color: #e8dcc0; font-size: 1em; }
+.intro-text { margin: 2px 0 0; font-size: 1.24em; line-height: 1.6; white-space: pre-wrap; }
+.intro-text.narration { font-family: var(--serif); color: #e6dcc4; margin: 0; flex: 1; }
+.intro-next { position: absolute; right: 22px; bottom: 10px; color: var(--gold2); animation: bob 1s ease-in-out infinite; }
+.intro-card.wait .intro-next { display: none; }
+.intro-foot { flex: none; }
+.intro-foot .btn { min-height: 76px; min-width: 220px; }
+.intro-top .btn { min-height: 76px; }
+.intro-note { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.intro-note .intro-replay { min-height: 76px; }
+@keyframes intro-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }

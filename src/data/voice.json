@@ -96,6 +96,38 @@
           "gain": 0.75,
           "lufs": -16.5
         }
+      },
+      "extra": {
+        "introduction": {
+          "file": "11_intro.mp3",
+          "text": "神崎怜です。数学者をしています。感情よりも論理を重視する人間です。よろしくお願いします。",
+          "gain": 0.902,
+          "lufs": -18.1
+        },
+        "victory": {
+          "file": "12_win.mp3",
+          "text": "予想どおりの結果ですね。",
+          "gain": 0.861,
+          "lufs": -17.7
+        },
+        "defeat": {
+          "file": "13_lose.mp3",
+          "text": "計算が甘かったようですね。見直す必要があります。",
+          "gain": 0.851,
+          "lufs": -17.6
+        },
+        "elimination": {
+          "file": "14_elimination.mp3",
+          "text": "ここまでですか……。自分の判断の結果です。受け入れましょう。",
+          "gain": 0.912,
+          "lufs": -18.2
+        },
+        "betrayal": {
+          "file": "15_betrayal.mp3",
+          "text": "なるほど。あなたを信用したことが、私の誤算でしたね。",
+          "gain": 0.966,
+          "lufs": -18.7
+        }
       }
     },
     "npc_03_kurose": {
@@ -160,6 +192,38 @@
           "text": "ありがとう。助かったわ。",
           "gain": 0.912,
           "lufs": -18.2
+        }
+      },
+      "extra": {
+        "introduction": {
+          "file": "11_introduction.mp3",
+          "text": "黒瀬美琴です。弁護士をしています。公平な勝負を期待しています。よろしくお願いします。",
+          "gain": 0.733,
+          "lufs": -16.3
+        },
+        "victory": {
+          "file": "12_victory.mp3",
+          "text": "当然の結果です。準備を怠らなかっただけですよ。",
+          "gain": 0.923,
+          "lufs": -18.3
+        },
+        "defeat": {
+          "file": "13_defeat.mp3",
+          "text": "悔しいですね……。判断を誤ったようです。",
+          "gain": 1.161,
+          "lufs": -20.3
+        },
+        "elimination": {
+          "file": "14_elimination.mp3",
+          "text": "残念ですが、ここまでですね。皆さんの健闘を祈っています。",
+          "gain": 0.741,
+          "lufs": -16.4
+        },
+        "betrayal": {
+          "file": "15_betrayal.mp3",
+          "text": "約束を破ったのですね。あなたに対する評価を改める必要がありそうです。",
+          "gain": 0.733,
+          "lufs": -16.3
         }
       }
     },
@@ -226,6 +290,38 @@
           "gain": 1.072,
           "lufs": -19.6
         }
+      },
+      "extra": {
+        "introduction": {
+          "file": "11_intro.mp3",
+          "text": "御堂隆臣だ。会社を経営している。勝負に参加する以上、頂点を目指すつもりだ。",
+          "gain": 0.832,
+          "lufs": -17.4
+        },
+        "victory": {
+          "file": "12_victory.mp3",
+          "text": "当然だ。勝つために必要なことをしたまでだ。",
+          "gain": 0.832,
+          "lufs": -17.4
+        },
+        "defeat": {
+          "file": "13_defeat.mp3",
+          "text": "屈辱的だな……。次は必ず結果を出してみせる。",
+          "gain": 0.776,
+          "lufs": -16.8
+        },
+        "elimination": {
+          "file": "14_elimination.mp3",
+          "text": "私がここで終わるとはな……。敗北は認めよう。見事だった。",
+          "gain": 0.785,
+          "lufs": -16.9
+        },
+        "betrayal": {
+          "file": "15_betrayal.mp3",
+          "text": "よくも私を裏切ったな。信用を失うことの重さを、いずれ思い知るだろう。",
+          "gain": 0.741,
+          "lufs": -16.4
+        }
       }
     },
     "npc_05_shiraishi": {
@@ -290,6 +386,38 @@
           "text": "ありがとうございます。",
           "gain": 0.741,
           "lufs": -16.4
+        }
+      },
+      "extra": {
+        "introduction": {
+          "file": "11_introduction.mp3",
+          "text": "白石紗夜です。心理学を学んでいます。人の考え方や行動に興味があるんです。よろしくお願いしますね。",
+          "gain": 1.023,
+          "lufs": -19.2
+        },
+        "victory": {
+          "file": "12_victory.mp3",
+          "text": "ふふっ、皆さんの考えていることが、少し分かった気がします。",
+          "gain": 1.035,
+          "lufs": -19.3
+        },
+        "defeat": {
+          "file": "13_defeat.mp3",
+          "text": "あら……私の読みが外れてしまいましたね。悔しいです。",
+          "gain": 1.462,
+          "lufs": -22.3
+        },
+        "elimination": {
+          "file": "14_elimination.mp3",
+          "text": "もうお別れなんですね……。皆さんと過ごした時間、楽しかったですよ。",
+          "gain": 0.933,
+          "lufs": -18.4
+        },
+        "betrayal": {
+          "file": "15_betrayal.mp3",
+          "text": "ふふ……そうだったんですね。あなたの本心、もっと早く気づくべきでした。",
+          "gain": 1.035,
+          "lufs": -19.3
         }
       }
     },
