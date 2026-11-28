@@ -50,7 +50,8 @@ describe('M10 トライアングル', () => {
     expect(r.board.soldiers.length).toBe(2);
     expect(r.board.soldiers.find((s) => s.pos === 4)).toMatchObject({ seat: 1, gem: 0 });
     // 席 1：宝石 2 個を持ち、1 個は旗の隣（6）にいる
-    expect(endBonus(r.board, 1)).toBe(3);
+    // 宝石 2 個 × 1 点 ＋ 旗の隣の兵 1 個 × 2 点（2026-11-28 本人の指示で 2 点）
+    expect(endBonus(r.board, 1)).toBe(4);
     expect(endBonus(r.board, 0)).toBe(0);
   });
 
