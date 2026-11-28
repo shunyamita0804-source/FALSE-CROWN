@@ -64,8 +64,10 @@ export interface NpcGoal {
 }
 
 export interface Actor {
-  /** 方向キーを押し続けている方向（主人公のみ、毎フレーム設定。保存しても読み込み直後に上書きされる） */
+  /** 移動の入力に近い 4 方向（向き。主人公のみ、毎フレーム設定。保存しても読み込み直後に上書きされる） */
   intent?: Dir;
+  /** 押している移動の入力（スティックかキーボード、斜めを含む。主人公のみ、毎フレーム設定。保存しても読み込み直後に上書きされる） */
+  intentV?: { x: number; y: number };
   id: CharId;
   alive: boolean;
   eliminatedDay?: number;

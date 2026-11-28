@@ -18,7 +18,8 @@ const { newPhoneContext } = require('./iphone.cjs');
   await page.getByRole('button', { name: '中央ホール', exact: true }).tap(); await page.waitForTimeout(2500);
   for (const n of ['断る', '何でもない', 'OK']) { const b = page.getByRole('button', { name: n, exact: true }); if (await b.count()) { await b.first().tap(); await page.waitForTimeout(300); } }
   const center = async (sel) => { const b = await page.locator(sel).boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; };
-  const btn = { right: await center('.touch-pad .right'), left: await center('.touch-pad .left'), up: await center('.touch-pad .up'), down: await center('.touch-pad .down') };
+  const sc = await center('.touch-stick .stick-base'); const sr = (await page.locator('.touch-stick .stick-base').boundingBox()).width * 0.4;
+  const btn = { right: { x: sc.x + sr, y: sc.y }, left: { x: sc.x - sr, y: sc.y }, up: { x: sc.x, y: sc.y - sr }, down: { x: sc.x, y: sc.y + sr } };
   const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map((p, i) => ({ x: p.x, y: p.y, id: i })) });
   const quiet = () => page.evaluate(() => { const s = window.__fc.G.state; s.phaseLeft = 1e9; for (const [id, a] of Object.entries(s.actors)) if (id !== 'hero') { a.goal = undefined; a.path = []; a.route = []; a.step = undefined; a.busyUntil = 1e15; a.nextThink = 1e15; a.talkCd = { ...(a.talkCd || {}), hero: 1e15 }; } });
   const view = () => page.evaluate(() => { const v = window.__fc.G.field.actors.get('hero'); const sp = v.sprite; return { key: sp.texture.key, fw: sp.frame.width, frame: Number(sp.frame.name), ox: sp.originX, oy: sp.originY, w: sp.displayWidth, h: sp.displayHeight, x: sp.x, y: sp.y }; });

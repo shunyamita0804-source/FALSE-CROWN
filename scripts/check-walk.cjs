@@ -34,7 +34,8 @@ const url = process.argv[2] || 'http://localhost:4173/FALSE-CROWN/';
   await quiet();
 
   // ---- 主人公：4 方向の連続歩行（生活棟の廊下は横に長く、カメラも動く） ----
-  const btn = { right: await center('.touch-pad .right'), left: await center('.touch-pad .left'), up: await center('.touch-pad .up'), down: await center('.touch-pad .down') };
+  const sc = await center('.touch-stick .stick-base'); const sr = (await page.locator('.touch-stick .stick-base').boundingBox()).width * 0.4;
+  const btn = { right: { x: sc.x + sr, y: sc.y }, left: { x: sc.x - sr, y: sc.y }, up: { x: sc.x, y: sc.y - sr }, down: { x: sc.x, y: sc.y + sr } };
   const ROW = { down: 0, up: 1, left: 2, right: 3 };
   const cases = [['right', 'living_hallway', 3, 5, 1200], ['left', 'living_hallway', 26, 5, 1200], ['down', 'bedroom_hero', 10, 4, 800], ['up', 'bedroom_hero', 10, 11, 800]];
   for (const [dir, room, x, y, ms] of cases) {
