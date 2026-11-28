@@ -53,6 +53,10 @@ export interface InspectDef {
   text: string;
   /** 探索イベントID */
   event?: string;
+  /** 家具ごと調べられる範囲（タイル。左上 x,y と右下 x,y）。この範囲に向いているか隣にいれば調べられる */
+  area?: [number, number, number, number];
+  /** 光らせて目立たせる家具（furniture.json の props の id） */
+  glow?: string;
 }
 
 export interface RoomDef {
@@ -147,7 +151,7 @@ const ROOMS_SRC: RoomSrc[] = [
     walk: [[1,4,22,14],[11,2,12,3],[11,15,12,15]],
     block: [[3,4,6,5],[1,4,2,4],[17,4,21,5],[22,4,22,4],[3,7,6,9],[17,7,21,9],[4,11,7,12],[5,13,6,13],[10,11,13,12],[17,11,19,12],[2,13,3,13],[1,12,1,13],[20,13,21,13],[22,12,22,13],[9,14,10,14],[13,14,14,14]],
     doors: [D('to_hall','down',11,15,2,'common_hall','to_game','open','昇降機（2F 共用棟）'),D('to_obs','up',11,2,2,'observatory','to_game','open','展望室')],
-    inspects: [{id:'game_sub',x:9,y:12,text:'盤と駒が揃った卓。誰かと対局できそうだ。',event:'sub_games'},{id:'game_shelf',x:8,y:4,text:'棚には各国のボードゲーム。一つだけ、王冠の刻印がある箱が空だった。',event:'game_box'}],
+    inspects: [{id:'game_sub',x:7,y:8,text:'盤と駒が揃った卓。誰かと対局できそうだ。',event:'sub_games',area:[3,7,6,9],glow:'game_table_l'},{id:'game_sub_r',x:16,y:8,text:'盤と駒が揃った卓。誰かと対局できそうだ。',event:'sub_games',area:[17,7,20,9],glow:'game_table_r'},{id:'game_shelf',x:8,y:4,text:'棚には各国のボードゲーム。一つだけ、王冠の刻印がある箱が空だった。',event:'game_box'}],
     spots: S([[12,8],[9,9],[15,9],[8,6],[15,6]]),
   },
   {

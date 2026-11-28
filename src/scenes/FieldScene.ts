@@ -69,7 +69,7 @@ export class FieldScene extends Phaser.Scene {
   private loading = new Set<string>();
   private actors = new Map<CharId, ActorView>();
   private lastFrameAt = 0;
-  private marks: (Phaser.GameObjects.Image | Phaser.GameObjects.Text)[] = [];
+  private marks: (Phaser.GameObjects.Image | Phaser.GameObjects.Text | Phaser.GameObjects.Graphics)[] = [];
   private flagsKey = '';
   private camTarget = new Phaser.Math.Vector2();
   target: Target = null;
@@ -379,8 +379,23 @@ export class FieldScene extends Phaser.Scene {
         .setOrigin(0.5, 0.5).setDepth(8592).setResolution(Math.max(1, Math.ceil(this.view.zoom * 2) / 2));
       this.marks.push(lab);
     }
+    // 遊べる卓など、家具ごと光らせて目立たせる所
+    for (const ins of room.inspects) {
+      const prop = ins.glow ? furnitureOf(room.id)?.props.find((p) => p.id === ins.glow) : undefined;
+      if (!prop) continue;
+      const g = this.add.graphics().setDepth(prop.depth + 6).setBlendMode(Phaser.BlendModes.ADD);
+      for (let i = 0; i < 4; i++) {
+        g.lineStyle(10 - i * 2, 0xf1c86a, 0.16 + i * 0.12);
+        g.strokeRoundedRect(prop.x + 4 - i * 3, prop.y + 4 - i * 3, prop.w - 8 + i * 6, prop.h - 8 + i * 6, 18);
+      }
+      g.fillStyle(0xf1c86a, 0.1);
+      g.fillRoundedRect(prop.x + 6, prop.y + 6, prop.w - 12, prop.h - 12, 14);
+      this.tweens.add({ targets: g, alpha: 0.35, duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      this.marks.push(g);
+    }
     // 調査地点の目印
     for (const ins of room.inspects) {
+      if (ins.glow) continue;
       const m = this.add.image((ins.x + 0.5) * TILE, (ins.y + 0.3) * TILE, 'mark').setDisplaySize(30, 30).setDepth(8600).setAlpha(0.8).setBlendMode(Phaser.BlendModes.ADD);
       this.tweens.add({ targets: m, alpha: 0.25, scale: m.scale * 0.7, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       this.marks.push(m);
@@ -547,6 +562,11 @@ export class FieldScene extends Phaser.Scene {
       const df = Math.abs(ins.x - f.x) + Math.abs(ins.y - f.y);
       const dh = Math.abs(ins.x - hero.pos.x) + Math.abs(ins.y - hero.pos.y);
       if (df <= 1 || dh <= 1) return { kind: 'inspect', ins };
+      // 卓などの家具ごと調べられる所：家具に向いている時
+      if (ins.area) {
+        const [x0, y0, x1, y1] = ins.area;
+        if (f.x >= x0 && f.x <= x1 && f.y >= y0 && f.y <= y1) return { kind: 'inspect', ins };
+      }
     }
     // 隣にいる NPC（向きが合っていなくても話せる）
     for (const a of actorsIn(s, room.id)) {

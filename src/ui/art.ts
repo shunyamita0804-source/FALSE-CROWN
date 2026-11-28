@@ -36,8 +36,16 @@ export function faceUrl(id: string): string {
   return url;
 }
 
+/**
+ * 表情の立ち絵に不具合がある人物（2026-11-28 確認）。笑顔・怒りなど normal 以外の 7 表情に、頭の横へ別の顔が半透明で
+ * 重なって描かれている（桐生は背景の四角も残る）。素材は加工しないので、差し替えが届くまで normal の立ち絵を出す。
+ * 差し替えが届いたら、ここから外す。
+ */
+const BROKEN_EXPR = new Set(['npc_06_kiryu', 'npc_07_tachibana', 'npc_10_kujo']);
+
 export function portraitUrl(id: string, expr = 'normal'): string {
   const folder = charFolder(id === 'host' ? 'host_observer' : id, heroGender);
+  if (BROKEN_EXPR.has(folder)) expr = 'normal';
   const key = `portrait:${folder}:${expr}`;
   let url = cache.get(key);
   if (!url) {

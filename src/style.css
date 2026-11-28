@@ -1538,9 +1538,15 @@ button.xc-card { cursor: pointer; }
 .tut-fig .sg-s01.prac .sg-key { width: 64px; height: 64px; } .tut-fig .sg-s01.prac .sg-keys { grid-template-columns: repeat(6, 64px); } .tut-fig .sg-s01.prac .sg-slot { width: 60px; height: 70px; font-size: 2em; } .tut-fig .sg-s01.prac .sg-ok { min-height: 52px; }
 .tut-fig .sg-cond { width: 250px; }
 .subhub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.subhub-game { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; text-align: left; min-height: 124px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(216,178,90,0.45); background: #1c2340; color: var(--ivory); }
+.subhub-game { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; text-align: left; min-height: 124px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(216,178,90,0.45); background: #1c2340; color: var(--ivory); }
 .subhub-game b { font-family: var(--serif); font-size: 1.15em; color: var(--gold2); letter-spacing: 0.06em; }
 .subhub-game small { color: var(--ivory-dim); font-size: 0.82em; line-height: 1.4; flex: 1; }
+/* 説明文は大きめに、ゲームの画面の見本を上に出す（2026-11-28 実機の指摘） */
+.subhub-sum { color: var(--ivory); font-size: 1.02em; line-height: 1.5; flex: 1; }
+.subhub-shot { width: 100%; height: 118px; object-fit: cover; object-position: center; border-radius: 8px; border: 1px solid rgba(216,178,90,0.35); background: #0b1022; }
+.subhub-pick { display: flex; gap: 18px; align-items: center; }
+.subhub-pick .subhub-shot { width: 380px; height: auto; aspect-ratio: 661 / 342; flex: none; }
+.subhub-pick .subhub-sum { font-size: 1.1em; }
 .subhub-game .tag { font-size: 0.78em; padding: 2px 8px; border-radius: 6px; background: rgba(120,220,140,0.2); color: #a8ecb2; } .subhub-game .tag.got { background: rgba(255,255,255,0.08); color: var(--ivory-dim); }
 .subhub-opp { display: flex; align-items: center; gap: 8px; min-height: 64px; padding: 6px 16px 6px 8px; border-radius: 10px; border: 1px solid rgba(216,178,90,0.45); background: #1c2340; color: var(--ivory); }
 .subhub-opp .face { width: 46px; height: 46px; } .subhub-opp.solo { padding: 6px 20px; }
@@ -1770,3 +1776,14 @@ body .vt-foot .btn.btn-s { min-height: 76px; }
 .intro-note { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .intro-note .intro-replay { min-height: 76px; }
 @keyframes intro-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* 会話中の「所持」の札は右上へ（2026-11-28 実機の指摘：左の立ち絵の頭と重なっていた） */
+.dlg-screen .talk-info, html[data-ui-assets~="panel/hud"] .dlg-screen .talk-info { left: auto; right: calc(40px + var(--safe-right)); }
+/* 説明の図：本来の大きさで並べ（折り返さない）、入りきらない時は voicetut.ts が縮める */
+.vt-fig { overflow: visible; }
+.vt-fit { flex: none; width: max-content; max-width: none; display: flex; flex-direction: column; align-items: center; justify-content: center; transform-origin: 50% 50%; }
+.vt-between .vt-facts { flex-direction: column; gap: 10px; }
+.vt-between .tg-arrow { line-height: 1; margin: 0; }
+.m01-play { min-width: 0; align-self: stretch; }
+.m01-fit { flex: none; display: flex; align-items: center; gap: 26px; padding: 18px; transform-origin: 50% 50%; }
+.fit-in { transform-origin: 50% 50%; }

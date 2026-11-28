@@ -13,7 +13,7 @@ import { Sound } from '../audio/audio';
 import { fitsScene } from '../audio/voicefit';
 import { t } from '../i18n/i18n';
 import { bust } from './art';
-import { append, button, clear, closeLayer, h, openLayer, type Child, type Layer } from './dom';
+import { append, button, clear, closeLayer, autoFit, h, openLayer, type Child, type Layer } from './dom';
 
 /** fits：この収録が合う場面（競技の順番、組の数、ステージ数など）。合わない時は部品の声と字幕に切り替える */
 interface StepVoice { file: string; text: string; gain: number; fits?: Record<string, number> }
@@ -131,6 +131,9 @@ export function voicedTutorial(matchId: string, g: VoicedGuide, opts: { review?:
     const head = h('div', { class: 'vt-head' });
     const fig = h('div', { class: 'vt-fig' });
     const prompt = h('div', { class: 'vt-prompt' });
+    // 図は本来の大きさで並べ、枠に入りきらない時だけ全体を縮めて出す（ノッチのある iPhone など。2026-11-28 実機の指摘）
+    const fitBox = h('div', { class: 'vt-fit' });
+    autoFit(fig, fitBox);
     const sub = h('div', { class: 'vt-sub' });
     const subText = h('span', { class: 'vt-subtext' });
     const subRest = h('span', { class: 'vt-subrest' });
@@ -266,7 +269,8 @@ export function voicedTutorial(matchId: string, g: VoicedGuide, opts: { review?:
       view = g.steps[idx].build();
       clear(fig);
       const el = view.el;
-      fig.append(...(Array.isArray(el) ? (el as Node[]) : [el as Node]));
+      fitBox.replaceChildren(...(Array.isArray(el) ? (el as Node[]) : [el as Node]));
+      fig.append(fitBox);
       note.textContent = idx === g.steps.length - 1 && !opts.review ? (opts.cutNote ?? '') : '';
       prompt.textContent = view.prompt ?? '';
       prompt.classList.toggle('on', !!view.prompt);

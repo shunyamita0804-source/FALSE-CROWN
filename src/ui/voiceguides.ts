@@ -84,13 +84,15 @@ function m01Voiced(ctx: TutCtx = {}): VoicedGuide {
         build: () => {
           const row = (gs: CharId[][], label: string, k: string) => h('div', { class: 'vt-regroup', 'data-k': k }, h('small', null, label),
             h('div', { class: 'vt-groups' }, gs.map((g, i) => h('div', { class: 'vt-group' }, h('small', null, t('vt.m01.group', { n: i + 1 })), h('div', { class: 'row' }, g.map((id) => face(id)))))));
-          const el = h('div', { class: 'col', style: 'gap:14px;align-items:center' },
-            h('div', { class: 'tg-facts vt-facts' },
+          // 数字の札は左に縦に並べ、組の図を上下 2 段にする（縦の高さを抑え、狭い画面でも顔を小さくしすぎない）
+          const el = h('div', { class: 'row vt-between', style: 'gap:22px;align-items:center' },
+            h('div', { class: 'tg-facts vt-facts col' },
               h('div', { class: 'tg-fact', 'data-f': 'break' }, h('b', null, String(BREAK_MS / 1000)), h('small', null, t('vt.m01.breakSec'))),
               h('div', { class: 'tg-fact', 'data-f': 'size' }, h('b', null, '4×4 → 6×6'), h('small', null, t('vt.m01.grow')))),
-            row(groups, t('vt.m01.firstHalf', { n: Math.floor(STAGES / 2) }), 'a'),
-            h('span', { class: 'tg-arrow' }, '↓'),
-            row(after, t('vt.m01.secondHalf', { n: Math.floor(STAGES / 2) + 1 }), 'b'));
+            h('div', { class: 'col', style: 'gap:2px;align-items:center' },
+              row(groups, t('vt.m01.firstHalf', { n: Math.floor(STAGES / 2) }), 'a'),
+              h('span', { class: 'tg-arrow' }, '↓'),
+              row(after, t('vt.m01.secondHalf', { n: Math.floor(STAGES / 2) + 1 }), 'b')));
           return { el, cues: [{ at: 0.02, run: () => focus(el, '[data-f="break"]') }, { at: 0.3, run: () => focus(el, '[data-k="b"]') }, { at: 0.75, run: () => focus(el, '[data-f="size"]') }] };
         },
       },

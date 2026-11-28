@@ -349,3 +349,58 @@ export function installErrorScreen(version: string): void {
     show(msg.slice(0, 600));
   });
 }
+
+/**
+ * box の中に content を本来の大きさで置き、入りきらない時だけ content 全体を縮めて見せる（大きくはしない）。
+ * ノッチのある iPhone など、使える幅・高さが足りない画面で、盤面や図が見切れたり他と重なったりしないようにする。
+ * 縮めても座標は getBoundingClientRect で取り直すので、タップの位置はずれない。
+ */
+export function autoFit(box: HTMLElement, content: HTMLElement): void {
+  content.classList.add('fit-in');
+  const fit = () => {
+    if (!box.isConnected) { obs?.disconnect(); return; }
+    content.style.transform = '';
+    const w = content.offsetWidth, hh = content.offsetHeight;
+    const fw = box.clientWidth, fh = box.clientHeight;
+    if (!w || !hh || !fw || !fh) return;
+    const k = Math.min(1, fw / w, fh / hh);
+    content.style.transform = k < 0.995 ? `scale(${k})` : '';
+  };
+  const obs = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => fit()) : null;
+  obs?.observe(box);
+  obs?.observe(content);
+  requestAnimationFrame(fit);
+}
+
+/**
+ * 競技の画面のように「全体で 1 枚」の画面を、使える幅が minW（論理 px）より狭い時だけ、minW の幅で組んでから全体を縮めて見せる。
+ * ノッチのある iPhone では左右の余白のぶん幅が足りず、盤面や数字の札が端で切れていた（2026-11-28 実機の指摘）。
+ * 余白（--safe-*）は縮める前の値に直して渡すので、縮めた後もノッチの内側に収まる。
+ */
+export function fitMinWidth(el: HTMLElement, minW: number): void {
+  const host = el.parentElement;
+  if (!host) return;
+  const safe = (side: string) => parseFloat(getComputedStyle(stage).getPropertyValue(`--safe-${side}`)) || 0;
+  const apply = () => {
+    if (!el.isConnected) { obs?.disconnect(); return; }
+    const W = host.clientWidth, H = host.clientHeight;
+    const s = { top: safe('top'), right: safe('right'), bottom: safe('bottom'), left: safe('left') };
+    // minW は余白（ノッチ）を除いた幅。競技の画面の左右の内側の余白 14px ずつも含めて比べる
+    const k = Math.min(1, (W - s.left - s.right) / (minW + 28));
+    if (k >= 0.999) {
+      for (const p of ['width', 'height', 'transform', 'transform-origin', 'right', 'bottom']) el.style.removeProperty(p);
+      for (const side of Object.keys(s)) el.style.removeProperty(`--safe-${side}`);
+      return;
+    }
+    for (const [side, v] of Object.entries(s)) el.style.setProperty(`--safe-${side}`, `${v / k}px`);
+    el.style.right = 'auto';
+    el.style.bottom = 'auto';
+    el.style.width = `${W / k}px`;
+    el.style.height = `${H / k}px`;
+    el.style.transformOrigin = '0 0';
+    el.style.transform = `scale(${k})`;
+  };
+  const obs = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => apply()) : null;
+  obs?.observe(host);
+  apply();
+}

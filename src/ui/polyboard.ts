@@ -16,6 +16,8 @@ export interface PolyBoardOpts {
   cell?: number;
   /** 置き場のピースの 1 マスの大きさ（省略時は盤面から決める） */
   trayCell?: number;
+  /** 置き場の 1 枠に入る大きさ（px）。長いピースはこの中に収まるよう小さく描く */
+  trayFit?: number;
   /** ピースを回した時（説明で、操作を見届けるため） */
   onRotate?: (piece: number) => void;
   onChange?: (placed: Placement[]) => void;
@@ -156,7 +158,11 @@ export class PolyBoard {
     const ts = this.opts.trayCell ?? (this.opts.readonly ? Math.min(34, Math.floor(S * 0.5)) : Math.min(38, Math.floor(S * 0.46)));
     this.puzzle.pieces.forEach((_, i) => {
       const used = !!this.isPlaced(i);
-      this.trayEl.append(h('div', { class: `pb-slot${used ? ' used' : ''}${this.selected === i ? ' sel' : ''}`, 'data-piece': String(i) }, used ? null : this.pieceEl(i, ts)));
+      const cells = this.puzzle.pieces[i];
+      const xs = cells.map((c) => c[0]), ys = cells.map((c) => c[1]);
+      const ext = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) + 1;
+      const tsi = this.opts.trayFit ? Math.min(ts, Math.floor(this.opts.trayFit / Math.max(1, ext))) : ts;
+      this.trayEl.append(h('div', { class: `pb-slot${used ? ' used' : ''}${this.selected === i ? ' sel' : ''}`, 'data-piece': String(i) }, used ? null : this.pieceEl(i, tsi)));
     });
     clear(this.ctlEl);
     if (!this.opts.readonly) {

@@ -1,10 +1,11 @@
 // 新 M01（ピース・アセンブル）を画面の操作だけで最後まで遊ぶ確認。npm run build と npx vite preview --port 4173 の後に実行する。
 // node scripts/check-m01.cjs [スクリーンショットの保存先]
 const { chromium } = require('playwright');
+const { newPhoneContext, offscreen } = require('./iphone.cjs');
 (async () => {
   const out = process.argv[2] || null;
   const browser = await chromium.launch();
-  const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+  const ctx = await newPhoneContext(browser);
   const page = await ctx.newPage();
   const errs = []; page.on('pageerror', (e) => errs.push(String(e))); page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
   const res = []; const check = (n, ok, d = '') => { res.push(ok); console.log(`${ok ? 'OK  ' : 'FAIL'} ${n} ${d}`); };
@@ -48,6 +49,7 @@ const { chromium } = require('playwright');
       await shot('m01_stage1');
     }
     for (const pl of data.sol) { await place(pl, pl.c); if (process.env.DBG) console.log(stage, JSON.stringify(pl), await page.locator('.pb-piece.on-board').count(), await page.locator('.pb-slot.sel').count()); }
+    if (stage === 0 || stage === 3 || stage === 5) { const bad = await offscreen(page, '.pb-board, .pb-slot, .pb-ctl .btn, .m01-strip, .mhud, .pb-tray'); check(`ステージ ${stage + 1}：盤面と置き場が画面の中に収まる`, bad.length === 0, bad.join(' | ')); }
     if (stage === 3) await shot('m01_stage4_done');
     await page.waitForTimeout(900);
     const txt = (await page.locator('.m01-break').innerText().catch(() => '')).replace(/\s+/g, ' ');
