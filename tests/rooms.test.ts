@@ -9,8 +9,9 @@ import { addInvite, visitVerdict } from '../src/npc/social';
 import { canEnter, denyReason } from '../src/world/access';
 import { ROOMS } from '../src/world/maps';
 import { findPath } from '../src/world/path';
-import { awayOwner, homeOf, isCell, knockable, LIVING_ROOMS, ownerOfRoom, plateOf, PRISON_ROOMS, PRIVATE_ROOMS, roomTitle } from '../src/world/rooms';
-import { collisionOf, enterDoor, placeIn } from '../src/world/sim';
+import { awayOwner, homeOf, isCell, knockable, LIVING_ROOMS, ownerOfRoom, plateOf, PRIVATE_ROOMS, roomTitle } from '../src/world/rooms';
+import { CELLS, cellOf, cellOwner, cellPlates, gateOpen } from '../src/world/cells';
+import { cellSleepTile, collisionOf, placeIn } from '../src/world/sim';
 import { freshState } from './helpers';
 
 const K = 'npc_02_kanzaki';
@@ -25,10 +26,11 @@ function morning(seed: number) {
 }
 
 describe('個室の割り当て', () => {
-  it('部屋の表：生活棟は参加者と同じ数、監獄棟は 11 室。どの部屋もマップにあり、通路の扉と行き来できる', () => {
+  it('部屋の表：生活棟は参加者と同じ数、監獄棟の房は 11 室（家具の表から数える）。どの個室もマップにあり、通路の扉と行き来できる', () => {
     expect(LIVING_ROOMS.length).toBe(ALL_IDS.length);
-    expect(PRISON_ROOMS.length).toBe(11);
-    expect(new Set(PRIVATE_ROOMS.map((r) => r.no)).size).toBe(PRIVATE_ROOMS.length);
+    expect(CELLS.length).toBe(11);
+    expect(new Set(CELLS.map((c) => c.no)).size).toBe(CELLS.length);
+    expect(PRIVATE_ROOMS.every((r) => r.wing === 'living')).toBe(true);
     for (const r of PRIVATE_ROOMS) {
       const room = ROOMS[r.room];
       expect(room, r.room).toBeTruthy();
@@ -37,7 +39,6 @@ describe('個室の割り当て', () => {
       const back = corridor.doors.find((d) => d.id === out.toDoor)!;
       expect(back.to).toBe(r.room);
       expect(back.toDoor).toBe(out.id);
-      // 扉の前のマスは歩ける
       const g = collisionOf(freshState(1), corridor.id);
       for (const tl of back.tiles) expect(g[tl.y][tl.x], `${corridor.id} ${back.id}`).toBe(false);
     }
@@ -58,40 +59,42 @@ describe('個室の割り当て', () => {
     expect(knockable(s, homeOf(s, 'hero'))).toBe(false);
   });
 
-  it('監獄棟へ送られると監獄棟の部屋に替わり、生活棟の部屋は閉鎖される。戻ると元の部屋を使う', () => {
+  it('監獄棟へ送られると共同牢の房が 1 人 1 つ割り当てられ、生活棟の部屋は閉鎖される。消灯の間は格子が閉まる。戻ると元の部屋を使う', () => {
     const s = morning(2);
     const prison = ['hero', K, M] as const;
     for (const id of ALL_IDS) s.actors[id].house = (prison as readonly string[]).includes(id) ? 'prison' : 'living';
-    const cells = prison.map((id) => homeOf(s, id));
-    expect(cells.every(isCell)).toBe(true);
-    expect(new Set(cells).size).toBe(3);
-    expect(plateOf(s, cells[0])).toMatchObject({ no: 'B01', owner: 'hero' });
+    const homes = prison.map((id) => homeOf(s, id));
+    expect(homes.every((h) => h === 'prison_cells')).toBe(true);
+    expect(homes.every(isCell)).toBe(true);
+    const mine = prison.map((id) => cellOf(s, id)!);
+    expect(new Set(mine.map((c) => c.cell.id)).size).toBe(3);
+    expect(mine[0].no).toBe('B01');
+    expect(cellOwner(s, 'prison_cells', mine[0].cell.id)).toBe('hero');
+    expect(cellPlates(s, 'prison_cells').filter((p) => p.owner).length).toBe(3);
     // 生活棟の部屋：名札は残るが、誰も入れない
     expect(ownerOfRoom(s, 'bedroom_hero')).toBeNull();
     expect(awayOwner(s, 'bedroom_hero')).toBe('hero');
     expect(roomTitle(s, `bedroom_${K}`)).toBe('302 神崎の個室（閉鎖中）');
     expect(denyReason(s, `bedroom_${K}`)).toMatch(/閉鎖/);
     for (const id of ALL_IDS) expect(canEnter(s, id, 'bedroom_hero')).toBe(false);
-    // 自分の部屋には入れる。寝台の前まで歩ける
-    expect(canEnter(s, 'hero', cells[0])).toBe(true);
-    expect(canEnter(s, K, cells[0])).toBe(false);
+    // 昼は格子が開いていて、房の寝台の脇まで歩ける
     placeIn(s, 'hero', 'prison_cells');
-    const door = ROOMS.prison_cells.doors.find((d) => d.to === cells[0])!;
-    s.actors.hero.pos = { room: 'prison_cells', x: door.tiles[0].x, y: door.tiles[0].y, dir: door.dir };
-    expect(enterDoor(s, s.actors.hero, door)).toBe(true);
-    const bed = ROOMS[cells[0]].inspects[0];
-    expect(findPath(collisionOf(s, cells[0]), s.actors.hero.pos, { x: bed.x, y: bed.y }, new Set())).toBeTruthy();
-    // 棟分けが解けた夜も、割り当ては監獄棟の部屋のまま。消灯後はその部屋にだけ居られる
+    const bed = cellSleepTile(s, mine[0]);
+    expect(gateOpen(s, 'prison_cells', mine[0].cell.id)).toBe(true);
+    expect(findPath(collisionOf(s, 'prison_cells'), s.actors.hero.pos, bed, new Set())).toBeTruthy();
+    // 消灯の間は、人の入っている房の格子が閉まる（空いている房は開いたまま）
     for (const id of ALL_IDS) s.actors[id].house = null;
-    expect(homeOf(s, 'hero')).toBe(cells[0]);
+    expect(homeOf(s, 'hero')).toBe('prison_cells');
     s.phase = 'curfew';
-    expect(canEnter(s, 'hero', cells[0])).toBe(true);
-    expect(canEnter(s, 'hero', 'bedroom_hero')).toBe(false);
-    // 翌日、生活棟に入れば元の部屋へ戻る
+    expect(gateOpen(s, 'prison_cells', mine[0].cell.id)).toBe(false);
+    const empty = CELLS.find((c) => !cellOwner(s, c.room, c.cell.id))!;
+    expect(gateOpen(s, 'prison_cells', empty.cell.id)).toBe(true);
+    expect(findPath(collisionOf(s, 'prison_cells'), s.actors.hero.pos, bed, new Set())).toBeNull();
+    // 翌日、生活棟に入れば元の部屋へ戻り、房は空く
     s.phase = 'house';
     s.actors.hero.house = 'living';
     expect(homeOf(s, 'hero')).toBe('bedroom_hero');
-    expect(ownerOfRoom(s, cells[0])).toBeNull();
+    expect(cellOf(s, 'hero')).toBeNull();
   });
 
   it('脱落した人の部屋は空室になり、誰も入れない', () => {

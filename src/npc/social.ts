@@ -45,6 +45,8 @@ export function invited(state: GameState, host: CharId, guest: CharId): boolean 
 /** 招待を出す。定員を超える場合は出せない */
 export function addInvite(state: GameState, host: CharId, guest: CharId, ms = INVITE_TIME): boolean {
   if (host === guest || state.phase === 'curfew') return false;
+  // 招く先は自分の個室。監獄棟の房（格子の向こうは丸見え）へは招けない
+  if (!isPrivateRoom(homeOf(state, host))) return false;
   const list = invitesOf(state);
   const cur = list.find((i) => i.host === host && i.guest === guest);
   if (cur) {

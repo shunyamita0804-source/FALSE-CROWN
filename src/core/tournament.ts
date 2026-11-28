@@ -9,7 +9,8 @@ import { CONFIG, FINAL_DAY, scheduleFor } from '../data/config';
 import { expireDeals } from '../npc/negotiation';
 import { dailyDecay } from '../npc/brain';
 import { ROOMS } from '../world/maps';
-import { placeIn } from '../world/sim';
+import { placeHome, placeIn } from '../world/sim';
+import { releaseSeat, seatPlayers } from '../world/seats';
 import { aliveIds, fact, log, nameOf, publish, rel, transfer } from './state';
 import type { DayRecord, GameState } from './types';
 
@@ -62,7 +63,8 @@ export function applyMainResult(state: GameState, ranking: CharId[], scores: Par
 export function moveToHouses(state: GameState): void {
   for (const id of aliveIds(state)) {
     const a = state.actors[id];
-    if (a.house === 'prison') placeIn(state, id, 'prison_cells');
+    // 監獄棟へ送られた人は、割り当てられた房の前から始める
+    if (a.house === 'prison') placeHome(state, id);
     else placeIn(state, id, id === 'hero' ? 'living_lounge' : 'living_lounge');
     a.goal = undefined;
   }
@@ -85,6 +87,8 @@ export function eliminate(state: GameState, id: CharId): void {
   a.goal = undefined;
   a.path = [];
   a.route = [];
+  // 座っていた席、取っていた席を空ける（椅子は空席として残る）
+  releaseSeat(state, id);
   // 脱落者のピースは主催者が回収
   const p = a.pieces;
   a.pieces = 0;
@@ -123,7 +127,8 @@ export function endDay(state: GameState): string[] {
     a.house = null;
     a.goal = undefined;
     a.talkCd = {};
-    placeIn(state, id, id === 'hero' ? homeOf(state, 'hero') : 'dining');
+    if (id === 'hero') placeHome(state, id);
+    else placeIn(state, id, 'dining');
   }
   log(state, `DAY${state.day} の朝を迎えた。`, 'day');
   return notes;
@@ -139,13 +144,18 @@ export function startMorning(state: GameState): void {
     a.path = [];
     a.route = [];
     a.step = undefined;
-    placeIn(state, id, homeOf(state, id));
+    placeHome(state, id);
   }
 }
 
+/**
+ * 全員を 1 つの部屋へ集める。競技の参加者席がある部屋（大会会場）では、参加者を席へ着かせる。
+ * 席は表の参加者席だけを使い、人数より多い席は空席のまま残す。部屋を出る時（placeIn）に全員が立つ。
+ */
 export function gatherAt(state: GameState, room: string, ids: CharId[] = aliveIds(state)): void {
   const spots = ROOMS[room].spots;
   ids.forEach((id, i) => placeIn(state, id, room, spots[i % spots.length]));
+  seatPlayers(state, room, ids);
 }
 
 /** 決勝の日か（最後の 2 人が M11 で戦う日。監獄マッチも夜もなく、その場で大会が終わる） */

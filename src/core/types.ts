@@ -53,6 +53,10 @@ export interface NpcGoal {
   spot?: { x: number; y: number };
   until: number; // simTime
   note?: string;
+  /** 向かっている席、座っている席の id（world/seats.ts）。'-' は「席を使わない」と決めた印 */
+  seat?: string;
+  /** 席へ歩き直した回数 */
+  tries?: number;
 }
 
 export interface Actor {
@@ -87,6 +91,8 @@ export interface Actor {
   waitUntil?: number;
   /** 次に立ち止まって待てる時刻（待ち続けないための間隔） */
   waitCd?: number;
+  /** 座っている席（建物改修の家具。world/furniture.ts の席。座っている間は pos がその席の立つ位置のマス） */
+  seat?: { room: string; id: string };
 }
 
 export type DealKind =
@@ -221,4 +227,10 @@ export interface GameState {
   board: { day: number; text: string }[];
   /** プレイヤー向けの通知ログ */
   log: { t: number; day: number; text: string; kind?: string }[];
+  /** 席の予約（world/seats.ts。鍵は seatKey(部屋, 席)、値は取っている人）。古いセーブには無い */
+  seatsTaken?: Record<string, CharId>;
+  /** 監獄棟の房の割り当て（world/cells.ts。人物 → cellKey(部屋, 房)）。古いセーブには無い */
+  cells?: Partial<Record<CharId, string>>;
+  /** 個室の割り当て（world/rooms.ts。人物 → 寝起きする部屋）。古いセーブには無い */
+  rooms?: Partial<Record<CharId, string>>;
 }

@@ -3,6 +3,8 @@
  * 競技の勝敗、棟分け、脱落はすべて core/ のルールで決まり、ここは結果に従って画面と物語を進めるだけ。
  * 主人公専用の分岐は「プレイヤーが操作するか」「プレイヤーが脱落したら終局」だけで、勝敗への補正は一切ない。
  */
+import { reserveSeat, seatTile, sitDown, standUp } from '../world/seats';
+import { cellOf } from '../world/cells';
 import { homeOf, isCell, isPrivateRoom, knockable, ownerOfRoom, roomTitle } from '../world/rooms';
 import { Sound, type BgmId } from '../audio/audio';
 import { announce } from '../audio/announce';
@@ -159,7 +161,19 @@ export const G = {
   interact(target: Target, quiet = false): void {
     const s = G.state;
     if (!s || !target || !G.fieldActive || anyModal()) return;
-    if (target.kind === 'npc') {
+    if (target.kind === 'sit') {
+      // 椅子に座る（立つ位置へ寄せてから座る。歩き出すと立つ）
+      const hero = s.actors.hero;
+      const t0 = seatTile(target.seat);
+      if (reserveSeat(s, 'hero', hero.pos.room, target.seat.id)) {
+        hero.pos = { ...hero.pos, x: t0.x, y: t0.y };
+        if (!sitDown(s, 'hero')) standUp(s, 'hero');
+      }
+    } else if (target.kind === 'stand') {
+      standUp(s, 'hero');
+    } else if (target.kind === 'bed') {
+      void inspect('cell_bed', t('cell.bedText'), 'rest_bed');
+    } else if (target.kind === 'npc') {
       void G.ui.talkTo(target.id as NpcId);
     } else if (target.kind === 'door') {
       const d = target.door;
@@ -416,7 +430,7 @@ async function inspect(id: string, text: string, event?: string): Promise<void> 
     return;
   }
   // 寝台と机の出来事は、自分に割り当てられた個室でだけ起きる（他人の部屋では眺めるだけ）
-  if ((event === 'rest_bed' || event === 'desk_map') && ownerOfRoom(s, hero.pos.room) !== 'hero') event = undefined;
+  if ((event === 'rest_bed' || event === 'desk_map') && ownerOfRoom(s, hero.pos.room) !== 'hero' && !(id === 'cell_bed' && cellOf(s, 'hero')?.room === hero.pos.room)) event = undefined;
   await G.ui.showInspect(text);
   if (!hero.searched.includes(id)) hero.searched.push(id);
   const clue = event ? CLUE_BY_EVENT[event] : undefined;

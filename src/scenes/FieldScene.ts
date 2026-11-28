@@ -1,5 +1,6 @@
 import { Sound } from '../audio/audio';
-import { isPrivateRoom, plateOf } from '../world/rooms';
+import { isPrivateRoom, plateOf, refreshHomes } from '../world/rooms';
+import { cellPlates, gateOpen, isCellRoom } from '../world/cells';
 import Phaser from 'phaser';
 import { G } from '../app/game';
 import { assetFile, CHAR_FOOT, CHAR_H, CHAR_SCALE, CHAR_W, charFolder, TILE } from '../assets/registry';
@@ -14,7 +15,8 @@ import { Input } from '../input/InputState';
 import { anyModal } from '../ui/dom';
 import { ROOMS, doorApproach, doorDir, propVisible, type DoorDef, type InspectDef, type RoomDef } from '../world/maps';
 import { PROPS } from '../world/props';
-import { DIRS, actorsIn, drainDoorPasses, facingTile, tryStep } from '../world/sim';
+import { furnitureOf, seatDepth, type Facing, type FurnitureProp, type Seat } from '../world/furniture';
+import { DIRS, actorsIn, drainDoorPasses, facingTile, nearbyAction, tryStep } from '../world/sim';
 import { WALK_LINGER_MS, walkFrame } from '../world/walk';
 import standAlign from '../data/stand_align.json';
 
@@ -23,6 +25,14 @@ const STAND_ALIGN = standAlign as Record<string, Record<string, { x: number; y: 
 /** 仮素材テクスチャの解像度倍率（論理 64px/タイル に対して） */
 const TEX = 1.5;
 const DIR_ROW: Record<Dir, number> = { down: 0, up: 1, left: 2, right: 3 };
+/** 席の向き → 立ち絵の向き（斜めは左右に寄せる） */
+const SEAT_DIR: Record<Facing, Dir> = { N: 'up', S: 'down', E: 'right', W: 'left', NE: 'right', SE: 'right', NW: 'left', SW: 'left' };
+/**
+ * 座っている人の仮の描き方（正式の着席の絵が届くまで）。立ち絵の腰の線（セル内 y）を席の腰の位置に合わせ、
+ * 腿から下を表示の時だけ隠す（絵は加工しない）。家具の前の絵が、その上に重なる。
+ */
+const SEAT_HIP_Y = 82;
+const SEAT_CROP_Y = 96;
 
 
 interface ActorView {
@@ -39,7 +49,7 @@ interface ActorView {
   lastY: number;
 }
 
-export type Target = { kind: 'npc'; id: CharId } | { kind: 'inspect'; ins: InspectDef } | { kind: 'door'; door: DoorDef } | null;
+export type Target = { kind: 'npc'; id: CharId } | { kind: 'inspect'; ins: InspectDef } | { kind: 'door'; door: DoorDef } | { kind: 'sit'; seat: Seat } | { kind: 'stand' } | { kind: 'bed' } | null;
 
 /**
  * フィールド描画レイヤー。UI（DOM）とは別レイヤーで、端末の実解像度で描く。
@@ -201,7 +211,7 @@ export class FieldScene extends Phaser.Scene {
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {
       for (const key of keys) this.loading.delete(key);
       const room = G.state ? ROOMS[G.state.actors.hero.pos.room] : null;
-      if (room && this.roomId === room.id && keys.some((k) => k === `asset:${room.image}` || k === `asset:${room.overlay?.image}`)) this.buildRoom();
+      if (room && this.roomId === room.id && keys.some((k) => k === `asset:${room.image}` || k === `asset:${room.overlay?.image}` || this.furnitureKeys(room.id).includes(k))) this.buildRoom();
     });
     this.load.start();
   }
@@ -250,7 +260,41 @@ export class FieldScene extends Phaser.Scene {
     if (room.overlay) keys.add(room.overlay.flag);
     // 個室の名札（持ち主、空室、閉鎖中）が変わった時も描き直す
     const plates = room.doors.filter((d) => isPrivateRoom(d.to)).map((d) => { const p = plateOf(s, d.to)!; return `${p.owner ?? ''}/${p.away ?? ''}`; }).join(',');
-    return [...keys].map((k) => (s.flags[k] ? 1 : 0)).join('') + (s.phase === 'night' ? 'n' : 'd') + plates;
+    // 監獄棟の房：持ち主と格子の扉の開け閉めが変わった時も描き直す
+    if (isCellRoom(room.id)) refreshHomes(s);
+    const cells = cellPlates(s, room.id).map((c) => `${c.owner ?? ''}${c.open ? 'o' : 'c'}`).join(',');
+    return [...keys].map((k) => (s.flags[k] ? 1 : 0)).join('') + (s.phase === 'night' ? 'n' : 'd') + plates + '|' + cells;
+  }
+
+  /** 建物改修の家具の絵のキー（後ろの絵、前の絵、扉の開閉） */
+  private furnitureKeys(roomId: string): string[] {
+    const f = furnitureOf(roomId);
+    if (!f) return [];
+    return f.props.flatMap((p) => [p.img, p.fg?.img, p.door?.open, p.door?.closed].filter((x): x is string => !!x)).map((x) => `asset:${x}`);
+  }
+
+  /**
+   * 建物改修の家具を、背景の上に原寸の位置で置く（絵は加工しない）。
+   * 分けた絵は、後ろの絵を家具の奥行き、前の絵をその少し手前に描く。座った人はその間に入る（furniture.ts の seatDepth）。
+   * 房の扉は、開いているか閉じているかで絵を替える。
+   */
+  private addFurniture(roomId: string): void {
+    const f = furnitureOf(roomId);
+    if (!f) return;
+    const need = [...new Set(this.furnitureKeys(roomId))].filter((k) => !this.textures.exists(k));
+    if (need.length) { this.requestAssets(need); return; }
+    const put = (key: string, p: FurnitureProp, depth: number) => this.roomObjects.push(this.add.image(p.x, p.y, `asset:${key}`).setOrigin(0).setDisplaySize(p.w, p.h).setDepth(depth));
+    for (const p of f.props) {
+      if (p.door) { put(this.gateOpen(roomId, p) ? p.door.open : p.door.closed, p, p.depth); continue; }
+      put(p.img, p, p.fg ? Math.min(p.depth, p.fg.depth - 2) : p.depth);
+      if (p.fg) put(p.fg.img, p, p.fg.depth);
+    }
+  }
+
+  /** 房の扉が開いているか（房の持ち主の出入りに合わせる。決まりは world/cells.ts） */
+  private gateOpen(roomId: string, p: FurnitureProp): boolean {
+    const cell = p.door?.cell ?? p.cell;
+    return cell ? gateOpen(G.state!, roomId, cell) : p.door?.initial === 'open';
   }
 
   /** 部屋を描画し直す */
@@ -278,6 +322,7 @@ export class FieldScene extends Phaser.Scene {
         this.touchMap(key);
         this.roomObjects.push(this.add.image(0, 0, key).setOrigin(0).setDisplaySize(W, H).setDepth(0));
         if (ovKey && this.textures.exists(ovKey)) this.roomObjects.push(this.add.image(0, 0, ovKey).setOrigin(0).setDisplaySize(W, H).setDepth(0.6));
+        this.addFurniture(room.id);
       }
       this.preloadNeighbours(room);
     } else {
@@ -319,6 +364,15 @@ export class FieldScene extends Phaser.Scene {
       const ly = cy * TILE + (d.dir === 'up' ? 30 : d.dir === 'down' ? -30 : 0);
       const lab = this.add.text(lx, ly, name, { fontFamily: '"Noto Sans JP", "Hiragino Sans", sans-serif', fontSize: '17px', color: closed ? '#8f96ad' : plate?.owner === 'hero' ? '#f1d88a' : '#f3ead2', backgroundColor: 'rgba(8,12,28,0.78)', padding: { x: 7, y: 3 } })
         .setOrigin(d.dir === 'left' ? 0 : d.dir === 'right' ? 1 : 0.5, 0.5).setDepth(8592).setResolution(Math.max(1, Math.ceil(this.view.zoom * 2) / 2));
+      this.marks.push(lab);
+    }
+    // 監獄棟の房：番号と持ち主の名前を、格子の前にプログラムで表示する
+    for (const c of cellPlates(s, room.id)) {
+      const name = `${c.no}　${c.owner === 'hero' ? t('door.mine') : c.owner ? shortName(s, c.owner) : t('door.vacant')}`;
+      // 上の列の房は、廊下より上（房の中の立つ位置が、外の立つ位置より上）。名札は格子の高さに出す
+      const upper = c.y > (furnitureOf(room.id)?.cells.find((x) => x.id === c.cell)?.inside[1] ?? 0);
+      const lab = this.add.text(c.x, c.y + (upper ? -56 : 48), name, { fontFamily: '"Noto Sans JP", "Hiragino Sans", sans-serif', fontSize: '15px', color: !c.owner ? '#8f96ad' : c.owner === 'hero' ? '#f1d88a' : '#f3ead2', backgroundColor: 'rgba(8,12,28,0.78)', padding: { x: 6, y: 2 } })
+        .setOrigin(0.5, 0.5).setDepth(8592).setResolution(Math.max(1, Math.ceil(this.view.zoom * 2) / 2));
       this.marks.push(lab);
     }
     // 調査地点の目印
@@ -381,6 +435,27 @@ export class FieldScene extends Phaser.Scene {
       }
       const px = (tx + 0.5) * TILE;
       const py = (ty + 1) * TILE - 10;
+      // 座っている人：席の腰の位置に、席の向きで描く（仮。正式の着席の絵が届いたら差し替える）
+      const seat = a.seat && a.seat.room === this.roomId ? furnitureOf(this.roomId)?.seats.find((q) => q.id === a.seat!.id) : undefined;
+      if (seat) {
+        const folder = charFolder(a.id, s.hero.gender);
+        const standKey = `stand:${folder}`;
+        const key = this.textures.exists(standKey) ? standKey : `char:${folder}`;
+        if (v.sprite.texture.key !== key) v.sprite.setTexture(key);
+        const row = DIR_ROW[SEAT_DIR[seat.facing] ?? 'down'];
+        v.sprite.setFrame(key === standKey ? row : row * 4 + 1);
+        v.sprite.setOrigin(0.5, SEAT_HIP_Y / CHAR_H).setDisplaySize(CHAR_W * CHAR_SCALE, CHAR_H * CHAR_SCALE);
+        v.sprite.setCrop(0, 0, CHAR_W, SEAT_CROP_Y);
+        v.sprite.setPosition(seat.hip[0], seat.hip[1]).setDepth(seatDepth(this.roomId, seat));
+        v.shadow.setVisible(false);
+        v.label.setPosition(seat.hip[0], seat.hip[1] - (SEAT_HIP_Y - 8) * CHAR_SCALE).setDepth(8700);
+        if (a.bubble && a.bubble.until > s.simTime) v.bubble.setText(a.bubble.text).setPosition(seat.hip[0], seat.hip[1] - (SEAT_HIP_Y + 4) * CHAR_SCALE).setDepth(8701).setVisible(true);
+        else v.bubble.setVisible(false);
+        v.lastX = NaN;
+        continue;
+      }
+      if (v.sprite.isCropped) v.sprite.setCrop();
+      v.shadow.setVisible(true);
       v.sprite.setPosition(px, py);
       v.shadow.setPosition(px, py - 2);
       // 歩行アニメーションは主人公と NPC で共通。進んだ距離でコマを送るので、移動速度と足の動きが常に一致する。
@@ -467,6 +542,9 @@ export class FieldScene extends Phaser.Scene {
     for (const d of room.doors) {
       if (doorDir(d) === hero.pos.dir && doorApproach(room, d).some((t) => t.x === hero.pos.x && t.y === hero.pos.y)) return { kind: 'door', door: d };
     }
+    // 椅子に座る、立つ、房の寝台で休む
+    const na = nearbyAction(s);
+    if (na) return na.kind === 'sit' ? { kind: 'sit', seat: na.seat } : { kind: na.kind };
     return null;
   }
 
