@@ -1753,21 +1753,27 @@ body .vt-foot .btn.btn-s { min-height: 76px; }
 .vt-note:empty { display: none; }
 
 /* ---- 参加者の自己紹介（DAY 1、開会式の後。フィールドの上に重ねる） ---- */
-.overlay.intro { flex-direction: column; justify-content: space-between; align-items: stretch; padding: calc(14px + var(--safe-top)) calc(28px + var(--safe-right)) calc(16px + var(--safe-bottom)) calc(28px + var(--safe-left)); pointer-events: auto; }
-.intro-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.intro-head { display: flex; align-items: baseline; gap: 18px; padding: 8px 22px; background: rgba(6, 8, 20, 0.72); border: 1px solid rgba(216, 178, 90, 0.55); border-radius: 10px; }
+.overlay.intro { flex-direction: column; justify-content: space-between; align-items: stretch; padding: calc(10px + var(--safe-top)) calc(24px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(24px + var(--safe-left)); pointer-events: auto; }
+/* 上の帯：進み具合（左）と、全員の紹介を飛ばす（右） */
+.intro-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+/* 下側：人物紹介（絵 → 名前 → 年齢・職業）と、その下に台詞だけの横長の枠 */
+.intro-bottom { display: flex; flex-direction: column; align-items: stretch; gap: 10px; width: min(1240px, 100%); margin: 0 auto; }
+.intro-head { display: flex; align-items: baseline; gap: 18px; padding: 8px 22px; background: rgba(6, 8, 20, 0.78); border: 1px solid rgba(216, 178, 90, 0.55); border-radius: 10px; }
 .intro-head b { font-family: var(--serif); color: var(--gold2); letter-spacing: 0.14em; font-size: 1.1em; }
 .intro-head span { color: var(--ivory-dim); }
-.intro-card { position: relative; display: flex; align-items: flex-end; gap: 26px; min-height: 150px; padding: 12px 40px 12px 330px; background: linear-gradient(180deg, rgba(14, 18, 40, 0.9), rgba(6, 8, 20, 0.94)); border: 1.5px solid var(--gold); border-radius: 14px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55); cursor: pointer; }
-.intro-card.wait { padding-left: 40px; min-height: 110px; align-items: center; }
-.intro-bust { position: absolute; left: 20px; bottom: 0; height: 300px; -webkit-mask-image: linear-gradient(#000 84%, transparent); mask-image: linear-gradient(#000 84%, transparent); filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6)); pointer-events: none; animation: intro-in 260ms ease-out; }
-.intro-body { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; animation: intro-in 260ms ease-out; }
-.intro-name { display: flex; align-items: baseline; gap: 16px; }
-.intro-name b { font-family: var(--serif); font-size: 1.5em; color: var(--gold2); letter-spacing: 0.08em; }
+.intro-profile { display: none; }
+.intro-profile.on { align-self: flex-start; margin-left: 40px; display: flex; align-items: center; gap: 24px; padding: 6px 30px 6px 6px; background: linear-gradient(180deg, rgba(14, 18, 40, 0.9), rgba(6, 8, 20, 0.94)); border: 1.5px solid var(--gold); border-radius: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); min-width: 0; animation: intro-in 260ms ease-out; }
+.intro-portrait { flex: none; width: 112px; height: 112px; overflow: hidden; border-radius: 10px; border: 1px solid rgba(216, 178, 90, 0.5); background: radial-gradient(ellipse at 50% 30%, #2a3460, #0c1024); }
+.intro-portrait .intro-bust { width: 100%; height: auto; aspect-ratio: 1 / 1; background-size: 185% auto; background-position: 50% 4%; }
+.intro-name { display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; }
+.intro-name b { font-family: var(--serif); font-size: 1.7em; color: var(--gold2); letter-spacing: 0.08em; white-space: nowrap; }
 .intro-name small { color: var(--ivory-dim); font-size: 0.95em; letter-spacing: 0.1em; }
-.intro-meta { display: inline-block; align-self: flex-start; padding: 3px 16px; border: 1px solid rgba(216, 178, 90, 0.5); border-radius: 999px; color: #e8dcc0; font-size: 1em; }
-.intro-text { margin: 2px 0 0; font-size: 1.24em; line-height: 1.6; white-space: pre-wrap; }
-.intro-text.narration { font-family: var(--serif); color: #e6dcc4; margin: 0; flex: 1; }
+.intro-meta { flex: none; padding: 6px 20px; border: 1px solid rgba(216, 178, 90, 0.5); border-radius: 999px; color: #e8dcc0; font-size: 1.15em; white-space: nowrap; }
+/* 下段：台詞だけの横長の枠 */
+.intro-card { position: relative; display: flex; align-items: center; gap: 26px; min-height: 92px; padding: 12px 70px 12px 40px; background: linear-gradient(180deg, rgba(14, 18, 40, 0.9), rgba(6, 8, 20, 0.94)); border: 1.5px solid var(--gold); border-radius: 14px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55); cursor: pointer; }
+.intro-card.wait { padding-right: 40px; }
+.intro-text { margin: 0; flex: 1; font-size: 1.3em; line-height: 1.6; white-space: pre-wrap; animation: intro-in 260ms ease-out; }
+.intro-text.narration { font-family: var(--serif); color: #e6dcc4; }
 .intro-next { position: absolute; right: 22px; bottom: 10px; color: var(--gold2); animation: bob 1s ease-in-out infinite; }
 .intro-card.wait .intro-next { display: none; }
 .intro-foot { flex: none; }

@@ -34,7 +34,11 @@ const { chromium, devices } = require('playwright');
   for (let i = 0; i < 40 && !(await page.locator('.intro-name').count()); i++) await page.waitForTimeout(500);
   const ring = await ev(() => { const s = window.__fc.G.state; return Object.values(s.actors).filter((x) => x.alive).map((x) => [x.id, x.pos.room, x.pos.x, x.pos.y, !!x.step]); });
   check('12 人全員が中央ホールで立ち止まっている', ring.length === 12 && ring.every((r) => r[1] === 'main_hall' && !r[4]), JSON.stringify(ring.map((r) => r.slice(2, 4))));
-  const card1 = (await page.locator('.intro-card').innerText()).replace(/\s+/g, ' ');
+  const card1 = ((await page.locator('.intro-profile').innerText()) + ' | ' + (await page.locator('.intro-card').innerText())).replace(/\s+/g, ' ');
+  const box = async (sel) => page.locator(sel).first().boundingBox();
+  const [pb, cb, sb] = [await box('.intro-profile'), await box('.intro-card'), await box('.intro-top')];
+  check('上段の人物紹介と下段の台詞の枠が重ならない', pb && cb && sb && pb.y + pb.height <= cb.y && pb.y >= sb.y + sb.height, JSON.stringify([pb, cb, sb]));
+  check('下段の枠には台詞だけ（名前と年齢は上段）', !(await page.locator('.intro-card .intro-name, .intro-card .intro-meta, .intro-card .bust').count()));
   check('話す人の名前、年齢、職業、字幕が出る', /歳/.test(card1) && card1.length > 20, card1);
   const v1 = await ev(() => window.__fc.Sound.lastVoice);
   // 改名した人の古い自己紹介（旧名を名乗る声）は鳴らさない。新しい名前で録り直した声が届いていれば鳴らす
@@ -56,13 +60,18 @@ const { chromium, devices } = require('playwright');
   check('画面を押すと次の人へ送る', (await page.locator('.intro-name b').innerText()) !== second);
   // 全員分を送って、主人公（最後）は声なし
   let heroSeen = false;
+  let overlapOk = 0;
   for (let i = 0; i < 14; i++) {
     if (!(await page.locator('.intro-name').count())) break;
     const meta = await page.locator('.intro-meta').innerText();
+    { const [p1, c1, s1] = [await box('.intro-profile'), await box('.intro-card'), await box('.intro-top')];
+      const t1 = await box('.intro-card .intro-text');
+      if (!(p1.y + p1.height <= c1.y && p1.y >= s1.y + s1.height && t1.y + t1.height <= c1.y + c1.height + 1)) check('全員：枠と文字が重ならない', false, meta + JSON.stringify([p1, c1, s1, t1])); else overlapOk++; }
     if (meta.includes('あなた')) { heroSeen = true; const lv = await ev(() => window.__fc.Sound.voicePlaying); check('主人公は文字だけ（声を鳴らさない）', !lv); if (out) await page.screenshot({ path: out + '/intro_3_hero.png' }); }
     await page.locator('.intro-card').tap(); await page.waitForTimeout(350);
   }
   check('主人公の自己紹介がある', heroSeen);
+  check('全員：上段・下段・文字が重ならない', overlapOk >= 10, String(overlapOk));
   const done = (await page.locator('.intro-card').innerText()).replace(/\s+/g, ' ');
   check('紹介が終わると解散の案内', done.includes('自由時間'), done);
   await page.waitForTimeout(1500);
