@@ -57,6 +57,10 @@ export interface NpcGoal {
   seat?: string;
   /** 席へ歩き直した回数 */
   tries?: number;
+  /** 目当ての部屋に着いたあと、入口から部屋の中の目当ての地点（spot）まで歩き終えた印 */
+  inside?: boolean;
+  /** 目当ての部屋に入った時刻（simTime）。人にふさがれて席や地点へ着けない時、待つのをやめる目安 */
+  since?: number;
 }
 
 export interface Actor {
