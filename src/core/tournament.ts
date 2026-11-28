@@ -65,7 +65,7 @@ export function moveToHouses(state: GameState): void {
     const a = state.actors[id];
     // 監獄棟へ送られた人は、割り当てられた房の前から始める
     if (a.house === 'prison') placeHome(state, id);
-    else placeIn(state, id, id === 'hero' ? 'living_lounge' : 'living_lounge');
+    else placeIn(state, id, 'dining');
     a.goal = undefined;
   }
 }

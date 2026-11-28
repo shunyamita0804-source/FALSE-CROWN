@@ -13,6 +13,7 @@ import { activeDeals, addInfo, adjustRel, aliveIds, aliveNpcs, allied, pledged, 
 import type { Actor, GameState, Info } from '../core/types';
 import { CLUE_BY_EVENT } from '../story/clues';
 import { canEnter, passFn } from '../world/access';
+import { isRetired } from '../world/maps';
 import { ROOMS } from '../world/maps';
 import { nearestFree, roomRoute } from '../world/path';
 import { actorsIn, collisionOf, distance, homeSpot, moveActor, occupiedSet, seatUsable, setPathTo, setRouteTo, speedOf } from '../world/sim';
@@ -81,7 +82,7 @@ function reachable(state: GameState, a: Actor, room: string): number | null {
 function unsearched(state: GameState, a: Actor): { room: string; id: string; x: number; y: number; event?: string }[] {
   const out: { room: string; id: string; x: number; y: number; event?: string }[] = [];
   for (const room of Object.values(ROOMS)) {
-    if (room.area === 'secret' || isPrivateRoom(room.id)) continue;
+    if (room.area === 'secret' || isPrivateRoom(room.id) || isRetired(room.id)) continue;
     if (!canEnter(state, a.id, room.id)) continue;
     for (const ins of room.inspects) {
       if (a.searched.includes(ins.id)) continue;

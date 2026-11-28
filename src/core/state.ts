@@ -3,7 +3,7 @@ import { CONFIG, type Difficulty } from '../data/config';
 import { Rng } from './rng';
 import type { Actor, Deal, Fact, GameState, Info, Known, Relation } from './types';
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 export function defaultRelation(): Relation {
   return { like: 0, trust: 40, wary: 30, debt: 0, hostility: 0, threat: 30 };
