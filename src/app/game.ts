@@ -39,6 +39,8 @@ import { canEnter, denyReason } from '../world/access';
 import { ROOMS, type DoorDef } from '../world/maps';
 import { enterDoor, moveActor, placeIn, setRouteTo, speedOf } from '../world/sim';
 import { CHANNEL, dayUnlocked } from './entitlement';
+import { heroGoes, newGather, runGatherOffscreen } from '../core/gather';
+import { gatherDoor, gatherNote, gatherTalk, runGather, type GatherCtx } from '../ui/gather';
 
 export interface StoryLine {
   speaker: string;
@@ -105,6 +107,8 @@ interface FieldLike {
 }
 
 let freeEnd: (() => void) | null = null;
+/** 自由時間の締切の直前に主人公と同行していた人（集合移動で一緒に向かう） */
+let lastCompanions: CharId[] = [];
 let lastStepKey = '';
 let running = false;
 
@@ -128,6 +132,8 @@ export const G = {
   cutscene: null as ((dt: number) => void) | null,
   /** 競技の作戦時間（ルール説明の後の相談。ui/strategy.ts）。null なら作戦時間ではない */
   strategy: null as import('../ui/strategy').StrategyCtx | null,
+  /** 競技会場への集合移動中（ui/gather.ts）。null なら集合移動中ではない */
+  gather: null as GatherCtx | null,
   /** カメラを向ける位置（マス単位）。null なら主人公を追う */
   camFocus: null as { x: number; y: number } | null,
 
@@ -170,6 +176,12 @@ export const G = {
   interact(target: Target, quiet = false): void {
     const s = G.state;
     if (!s || !target || !G.fieldActive || anyModal()) return;
+    // 集合移動中：会場への道の扉だけ通れる。人には短い一言、ほかの物は「今は集合が先だ」
+    if (G.gather && target.kind !== 'stand') {
+      if (target.kind === 'npc') { void gatherTalk(target.id as NpcId); return; }
+      if (target.kind !== 'door') { if (!quiet) gatherNote(); return; }
+      if (!gatherDoor(target.door)) return;
+    }
     if (target.kind === 'sit') {
       // 椅子に座る（立つ位置へ寄せてから座る。歩き出すと立つ）
       const hero = s.actors.hero;
@@ -438,7 +450,7 @@ export function setFieldBgm(): void {
   let id: BgmId = 'living';
   if (room.area === 'secret') id = 'hidden';
   else if (room.area === 'prison') id = 'prison';
-  else if (s.phase === 'strategy' || s.phase === 'rules') id = 'match_main';
+  else if (s.phase === 'strategy' || s.phase === 'rules' || s.phase === 'gather') id = 'match_main';
   else if (isPrivateRoom(room.id) && !isCell(room.id)) id = 'room';
   else if (room.id === 'living_hallway') id = 'corridor';
   else if (room.id.endsWith('lounge')) id = 'lounge';
@@ -591,6 +603,8 @@ function freePhase(): Promise<void> {
   return new Promise((res) => {
     freeEnd = () => {
       freeEnd = null;
+      // 締切の直前に同行していた仲間は、集合の時に一緒に会場へ向かう
+      lastCompanions = followersOf(s, 'hero').map((a) => a.id);
       // 締切：同行と招待を解く（成立済みの取引は残る）
       clearSocial(s);
       G.fieldActive = false;
@@ -759,18 +773,46 @@ async function step(s: GameState): Promise<boolean> {
       }
       await story(`S${dd(s.day)}A`);
       if (await freeOrEnd()) return false;
-      await fade(true);
-      enter('rules');
+      enter('gather');
+      return true;
+    }
+    case 'gather':
+    case 'gatherPrison': {
+      // 集合移動（本人の依頼 2026-11-28）：集合案内の後、全員が今いる場所から会場へ歩く。時計と競技の制限時間は止まったまま
+      const prison = s.phase === 'gatherPrison';
+      const pid = prisonMatchId(s, s.day);
+      const ids = prison ? aliveIds(s).filter((p) => s.actors[p].house === 'prison') : aliveIds(s);
+      if (prison && (!pid || ids.length < 2)) { enter('prison'); return true; }
+      if (!s.gather || s.gather.day !== s.day || s.gather.kind !== (prison ? 'prison' : 'main') || s.gather.done) {
+        s.gather = newGather(s, prison ? 'prison' : 'main', prison ? 'prison_arena' : 'main_arena', ids, lastCompanions);
+        lastCompanions = [];
+      }
+      const g = s.gather;
+      if (heroGoes(g)) {
+        showField(true);
+        setFieldBgm();
+        await fade(false);
+        if (!prison && isFinalDay(s.day)) void announce('final');
+        await runGather(g);
+      } else {
+        // 監獄マッチの日の生活棟：監獄棟の参加者だけが会場へ向かい、生活棟の人はリビングで過ごす（主人公は歩かない）
+        runGatherOffscreen(s, g);
+      }
+      s.flags[`gathered:${s.day}:${prison ? 'prison' : 'main'}`] = true;
+      s.gather = undefined;
+      enter(prison ? 'prison' : 'rules');
       return true;
     }
     case 'rules': {
-      if (first()) gatherAt(s, 'main_arena');
+      if (first() && !s.flags[`gathered:${s.day}:main`]) gatherAt(s, 'main_arena');
       showField(true);
       Sound.bgm('match_main');
       await fade(false);
-      // 進行の声：決勝の日は「最後の戦い」
-      if (isFinalDay(s.day)) void announce('final');
-      await banner(t('banner.gather'));
+      // 進行の声：決勝の日は「最後の戦い」（集合移動を経た時は、集合案内の時に流している）
+      if (!s.flags[`gathered:${s.day}:main`]) {
+        if (isFinalDay(s.day)) void announce('final');
+        await banner(t('banner.gather'));
+      }
       await G.ui.rulesScreen(mainMatchId(s, s.day), { prison: false });
       // ルール説明の後の作戦時間（試作、まず M01。本人の決定 2026-11-28）
       enter(strategyEnabled(mainMatchId(s, s.day)) && !isFinalDay(s.day) ? 'strategy' : 'main');
@@ -863,8 +905,7 @@ async function step(s: GameState): Promise<boolean> {
         await alertDialog(t(inPrison ? 'house.prisonTitle' : 'house.livingTitle'), t(inPrison ? 'house.prisonText' : 'house.livingText'), t('common.next'));
       }
       if (await freeOrEnd()) return false;
-      await fade(true);
-      enter('prison');
+      enter('gatherPrison');
       return true;
     }
     case 'prison': {
@@ -878,7 +919,7 @@ async function step(s: GameState): Promise<boolean> {
       if (!s.match || s.match.kind !== 'prison' || s.match.day !== s.day) {
         // 参加順は当日メインマッチの順位が低い順（全員に同じ規則）
         s.match = newSlot(s, id, prisoners, 'prison');
-        if (heroIn) gatherAt(s, 'prison_arena', prisoners);
+        if (heroIn && !s.flags[`gathered:${s.day}:prison`]) gatherAt(s, 'prison_arena', prisoners);
       }
       if (heroIn) {
         showField(true);

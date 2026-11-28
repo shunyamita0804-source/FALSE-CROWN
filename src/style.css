@@ -2012,3 +2012,11 @@ body.touch .rl-seg { min-height: 76px; }
 .match-side:has(.mk-talk) { width: 520px; }
 .match-body:has(.mk-talk) .mk-row { grid-template-columns: 110px 64px 190px 96px 56px 1fr 0px; }
 .match-side:has(.mk-talk) .mk-face { width: 76px; }
+
+/* 集合移動中（ui/gather.ts） */
+.gather-panel { min-width: 560px; }
+.gather-dest { font-size: 1.05em; color: var(--gold2); }
+.gather-next { font-size: 0.98em; }
+.gather-count { font-size: 0.9em; }
+.strat-time.low { color: #ff9b7a; }
+.gather-talk .gather-talk-menu { justify-content: flex-end; }
