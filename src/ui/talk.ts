@@ -13,15 +13,16 @@ import { activeDeals, adjustRel, allied, pledged, aliveIds, learn, nameOf, rel, 
 import type { GameState, Info, MatchSlot, PlanTerm } from '../core/types';
 import { NPC_BY_ID, PROFILES, type CharId, type NpcId } from '../data/characters';
 import { CONFIG } from '../data/config';
-import storyJson from '../data/story_events.json';
 import { t } from '../i18n/i18n';
 import type { BrainEvent } from '../npc/brain';
 import { say, type LineKey } from '../npc/lines';
 import { absorb, accuse, commit, dealLabel, describeDeal, evaluate, noteDeal, type Proposal } from '../npc/negotiation';
 import { answerHint, askTip, cancelCooperation, giveTip, newStrategy, talkRule, tipsOf } from '../core/strategy';
 import { engagedElsewhere, inviteToRoom } from './strategy';
-import { aboutTarget, addInvite, endInvite, INVITE_TIME, inviteVerdict, isPrivate, observeAttitude } from '../npc/social';
+import { aboutTarget, addInvite, dismissGuest, personalState, INVITE_TIME, inviteVerdict, isPrivate, observeAttitude } from '../npc/social';
 import { actorsIn, distance } from '../world/sim';
+import { homeOf, isPrivateRoom } from '../world/rooms';
+import { ROOMS } from '../world/maps';
 import { bust, icon, setBust } from './art';
 import { button, choose, clear, closeLayer, confirmDialog, h, openLayer, panel, type Layer } from './dom';
 import { pieces } from './screens';
@@ -39,8 +40,6 @@ const ATTITUDE: Partial<Record<LineKey, [number, boolean]>> = {
   reject_price: [-2, false], reject_principle: [-8, false], trust_low: [-8, true], refuse: [-5, false], greetWary: [-4, true], accuseDoubt: [-3, false],
 };
 
-interface OptEvent { id: string; day: number; lines: { speaker: string; text: string }[]; trigger?: string }
-const OPTIONAL = (storyJson as unknown as { events: OptEvent[] }).events.filter((e) => e.trigger === 'talk_optional');
 
 /** 数値入力（ピースの数など） */
 export function askNumber(title: string, text: string, min: number, max: number, init = min): Promise<number | null> {
@@ -71,6 +70,17 @@ function witnesses(s: GameState, npc: NpcId): CharId[] {
 
 function infoLabel(i: Info): string {
   return t(i.kind === 'clue' ? 'talk.infoClue' : i.kind === 'betrayal' ? 'talk.infoBetrayal' : 'talk.infoRumor');
+}
+
+/** 競技中に話せるか：none＝雑談だけ、ownTurn＝自分の手番なので話さない、ok＝相談できる */
+function matchGate(slot: MatchSlot): 'none' | 'ownTurn' | 'ok' {
+  const rule = talkRule(slot.id);
+  const eng = engineOf(slot.id);
+  const st = eng.stage(slot.state);
+  if (rule.window === 'none') return 'none';
+  if (st.negotiation) return 'ok';
+  if (rule.window === 'during' && !eng.pending(slot.state).includes('hero')) return 'ok';
+  return 'ownTurn';
 }
 
 export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot } = {}): Promise<void> {
@@ -112,10 +122,18 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
       text.textContent = str;
       setBust(portrait, npc, expr);
     };
+    /** いまの場所と、そこで使える話の範囲（生活棟・個室・監獄棟・競技ごと） */
+    const whereLabel = () => {
+      if (inMatch) return t(`talk.rule.${talkRule(inMatch.id).window}`);
+      if (G.strategy) return t('talk.where.strategy');
+      if (priv()) return t('talk.where.private');
+      const area = ROOMS[s.actors.hero.pos.room]?.area;
+      return t(area === 'prison' ? 'talk.where.prison' : area === 'living' ? 'talk.where.living' : 'talk.where.public');
+    };
     const refreshInfo = () => {
       clear(info);
       const deals = activeDeals(s, 'hero', npc);
-      info.append(h('span', null, t('talk.myPieces')), pieces(hero.pieces), ...deals.map((d) => h('span', { class: 'tag fact' }, dealLabel(d.kind))));
+      info.append(h('span', { class: 'tag where' }, whereLabel()), h('span', null, t('talk.myPieces')), pieces(hero.pieces), ...deals.map((d) => h('span', { class: 'tag fact' }, dealLabel(d.kind))));
     };
     const close = () => {
       stopVoice();
@@ -251,14 +269,15 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
 
     /** 個人的な話（私的な場所だけ）。既存の解放条件（日数と信頼）はそのまま */
     const personal = async () => {
-      const ev = OPTIONAL.find((e) => e.lines[0]?.speaker === npc && s.day >= e.day && !s.seen.includes(e.id));
-      if (ev && rel(s, npc, 'hero').trust >= 45) {
-        s.seen.push(ev.id);
+      const st = personalState(s, npc);
+      if (st.kind === 'ready') {
+        s.seen.push(st.ev.id);
         observeAttitude(s, npc, 6);
-        raw(ev.lines.map((l) => l.text).join('\n'), 'think');
+        raw(st.ev.lines.map((l) => l.text).join('\n'), 'think');
         return;
       }
-      raw(t('talk.personalNone', { name: def.short }));
+      // 「まだ話す気がない（条件を満たしていない）」と「聞ける話を聞き終えた」を分けて伝える。条件の中身（信頼の値）は出さない
+      raw(t(st.kind === 'done' ? 'talk.personalDone' : 'talk.personalNone', { name: def.short }));
     };
 
     /** 公の場で聞ける話：誰でも見て分かることだけ */
@@ -293,10 +312,11 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
     /** 密談に誘う：応じたら同行してもらい、自分の個室で話す */
     const invite = async () => {
       if (A.goal?.kind === 'follow' && A.goal.target === 'hero') {
-        endInvite(s, 'hero', npc);
-        A.goal = undefined;
-        return raw(t('talk.followEnd', { name: def.short }));
+        dismissGuest(s, npc);
+        return raw(t(priv() ? 'talk.dismissDone' : 'talk.followEnd', { name: def.short }));
       }
+      // 監獄棟の房は格子越しに丸見えで、2 人きりにはなれない（招く先がない）
+      if (!isPrivateRoom(homeOf(s, 'hero'))) return raw(t('talk.invite.cell'));
       const v = inviteVerdict(s, 'hero', npc, rngOf(s));
       if (!v.accept || !addInvite(s, 'hero', npc)) {
         observeAttitude(s, npc, v.reason === 'distrust' ? -4 : 0);
@@ -438,7 +458,7 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
 
     const secretMenu = async () => {
       const pick = await choose<string | null>(t('talk.secret'), t('talk.secretText'), [
-        { label: t('talk.secretInfo'), value: 'buy' }, { label: t('talk.secretSell'), value: 'sell' }, { label: t('talk.about'), value: 'about' }, { label: t('talk.personal'), value: 'personal' }, { label: t('common.cancel'), value: null },
+        { label: t('talk.secretInfo'), value: 'buy' }, { label: t('talk.secretSell'), value: 'sell' }, { label: t('talk.about'), value: 'about' }, { label: personalState(s, npc).kind === 'done' ? t('talk.personalDoneTag') : t('talk.personal'), value: 'personal' }, { label: t('common.cancel'), value: null },
       ], { cancel: null, pauses: false });
       if (pick === 'buy') await buyInfo();
       else if (pick === 'sell') await sellInfo();
@@ -492,7 +512,14 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
         if (!closed) buildMenu();
       }, { small: true }));
       const busy = strat ? engagedElsewhere(npc) : null;
-      if (busy) {
+      const gate = inMatch ? matchGate(inMatch) : null;
+      if (gate === 'ownTurn') {
+        // 自分の手番の間は話さない（自分の操作を会話で妨げない。本人の補足 2026-11-28）
+        text.textContent = t('talk.rule.ownTurn');
+      } else if (gate === 'none') {
+        // 相談できない競技：休憩に話せるのは雑談だけ
+        add(t('talk.smalltalk'), smalltalk);
+      } else if (busy) {
         // 作戦時間に、ほかの人との相談へ向かっている人とは話せない（NPC 同士と同じ：1 枠に 1 組）
         text.textContent = busy;
       } else if (v2) {
@@ -503,9 +530,13 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
         add(t('strat.cmdTeach'), tipTeach);
         add(t('strat.cmdPromise'), promiseMenu, 'contract');
       } else if (inMatch) {
-        add(t('talk.planAsk'), () => planMenu('npc'));
-        add(t('talk.planOffer'), () => planMenu('hero'));
-        add(t('talk.intent'), askIntent, 'help');
+        // 作戦の約束と「次の手」は、競技側にその部品（約束できる行動、本人の予定の手）がある時だけ出す（v11 の競技はまだ無い）
+        const eng = engineOf(inMatch.id);
+        if (eng.clauses) {
+          add(t('talk.planAsk'), () => planMenu('npc'));
+          add(t('talk.planOffer'), () => planMenu('hero'));
+        }
+        if (eng.intent) add(t('talk.intent'), askIntent, 'help');
         add(t('talk.alliance'), () => proposeTreaty('alliance'), 'alliance');
         add(t('talk.nonaggression'), () => proposeTreaty('nonaggression'), 'contract');
         add(t('talk.gift'), gift);
@@ -517,7 +548,7 @@ export function talkTo(npc: NpcId, opts: { event?: BrainEvent; match?: MatchSlot
         add(t('talk.trade'), tradeMenu);
         add(t('talk.treaty'), treatyMenu, 'alliance');
         if (priv()) add(t('talk.secret'), secretMenu, 'contract');
-        if (!priv() || following) add(following ? t('talk.followStop') : t('talk.inviteAsk'), invite);
+        if (!priv() || following) add(following ? t(priv() ? 'talk.dismiss' : 'talk.followStop') : t('talk.inviteAsk'), invite);
       }
       menu.append(button([icon('back'), t(inMatch || strat ? 'talk.leave' : priv() ? 'talk.end' : 'talk.nothing')], () => {
         Sound.se('back');
