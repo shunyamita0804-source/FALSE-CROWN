@@ -37,7 +37,10 @@ const { chromium, devices } = require('playwright');
   const card1 = (await page.locator('.intro-card').innerText()).replace(/\s+/g, ' ');
   check('話す人の名前、年齢、職業、字幕が出る', /歳/.test(card1) && card1.length > 20, card1);
   const v1 = await ev(() => window.__fc.Sound.lastVoice);
-  check('自己紹介の声を鳴らす', /11_intro/.test(v1), v1);
+  // 改名した人の古い自己紹介（旧名を名乗る声）は鳴らさない。新しい名前で録り直した声が届いていれば鳴らす
+  const fresh = await ev(() => { const id = window.__fc.G.cutscene?.speaker ?? null; return id; });
+  const named = /♪/.test(card1);
+  check(named ? '自己紹介の声を鳴らす' : '旧名を名乗る古い声は鳴らさない（字幕だけ）', named ? /11_intro/.test(v1) : !/11_intro/.test(v1 || ''), `${v1} ${fresh ?? ''}`);
   if (out) await page.screenshot({ path: out + '/intro_2_talk.png' });
   const b = await st();
   await page.waitForTimeout(1500);

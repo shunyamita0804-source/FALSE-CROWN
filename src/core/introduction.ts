@@ -4,7 +4,7 @@
  * 顔ぶれや人数が変わっても（2 周目以降の入れ替え）、この関数群がそのまま合わせる。
  */
 import table from '../data/introductions.json';
-import { NPC_BY_ID, type CharId, type NpcId } from '../data/characters';
+import { NPC_BY_ID, fillNames, type CharId, type NpcId } from '../data/characters';
 import type { GameState } from './types';
 import { aliveIds } from './state';
 import { Rng } from './rng';
@@ -97,7 +97,8 @@ export function introLine(s: GameState, id: CharId, voiceOf: (id: string) => { u
   }
   const def = NPC_BY_ID[id as NpcId];
   const v = voiceOf(id);
-  const text = v?.text ?? t.entries[id]?.text ?? `${def.name}です。よろしくお願いします。`;
+  // 声が無い時（改名して古い声を止めた時も）は表の文に、いまの表示名を差し込む
+  const text = v?.text ?? fillNames(t.entries[id]?.text ?? `{name:${id}}です。よろしくお願いします。`);
   return { id, name: def.name, kana: def.kana, age: def.age, job: def.job, text, voice: v ? { url: v.url, gain: v.gain } : null };
 }
 

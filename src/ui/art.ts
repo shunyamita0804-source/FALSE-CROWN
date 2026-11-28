@@ -5,9 +5,17 @@ import { assetUrl, charFolder, emblemOf, EXPRESSIONS, FX_ASSETS, iconUrl, type F
 import { drawEmblem, drawFace, drawPortrait } from '../assets/placeholders';
 import { HERO_PALETTES, NPC_BY_ID, type NpcId } from '../data/characters';
 import { hashString } from '../core/rng';
+import portraitsJson from '../data/portraits.json';
 import { h } from './dom';
 
 const cache = new Map<string, string>();
+
+/** 立ち絵の描き方（data/portraits.json）。bust は胸から上の新しい絵 */
+interface PortraitStyle { style?: 'bust'; normal?: string }
+const STYLES = (portraitsJson as unknown as { characters: Record<string, PortraitStyle> }).characters;
+const styleOf = (id: string): PortraitStyle | undefined => STYLES[id];
+/** 胸から上の新しい絵の人か */
+export const isBustArt = (id: string): boolean => styleOf(id)?.style === 'bust';
 let heroGender: 'm' | 'f' = 'm';
 
 export function setHeroGender(g: 'm' | 'f'): void {
@@ -27,7 +35,9 @@ export function faceUrl(id: string): string {
   const key = `face:${folder}`;
   let url = cache.get(key);
   if (!url) {
-    url = assetUrl(`characters/${folder}/face`) ?? (() => {
+    // 新しい絵の人は、旧デザインの face.png を使わず、立ち絵の上側を丸く切り取って見せる（CSS の .face.face-bust）
+    if (isBustArt(id)) url = portraitUrl(id, 'normal');
+    url ??= assetUrl(`characters/${folder}/face`) ?? (() => {
       const { pal, gender } = palette(id);
       return drawFace(pal, gender, 128, hashString(id)).toDataURL();
     })();
@@ -38,6 +48,8 @@ export function faceUrl(id: string): string {
 
 
 export function portraitUrl(id: string, expr = 'normal'): string {
+  // 通常絵の代用（透過の通常絵が届くまで、決めた表情を通常として使う）
+  if (expr === 'normal' && styleOf(id)?.normal) expr = styleOf(id)!.normal!;
   const folder = charFolder(id === 'host' ? 'host_observer' : id, heroGender);
   const key = `portrait:${folder}:${expr}`;
   let url = cache.get(key);
@@ -51,7 +63,9 @@ export function portraitUrl(id: string, expr = 'normal'): string {
   return url;
 }
 
-export function face(id: string, cls = ''): HTMLImageElement {
+export function face(id: string, cls = ''): HTMLElement {
+  // 新しい絵の人は、立ち絵の頭のあたりを丸い枠に拡大して見せる（画像は加工しない）
+  if (isBustArt(id)) return h('span', { class: `face face-bust ${cls}`, style: `background-image:url("${faceUrl(id)}")`, role: 'img' });
   return h('img', { class: `face ${cls}`, src: faceUrl(id), alt: '', draggable: false });
 }
 
@@ -152,6 +166,7 @@ export function fxPop(name: FxName, text: string, ms = 2600): void {
 
 /**
  * 人物の胸から上の表示。立ち絵の画像は加工せず、表示する範囲だけを絞る（上から約 45%、左右は中央寄り）。
+ * 胸から上の新しい絵（portraits.json の bust）は絞らず、絵全体を枠の下端に合わせる（.bust-art）。どの表情も同じ寸法・同じ位置で出す。
  * 表情を替える時は setBust を使う。
  */
 const preloaded = new Set<string>();
@@ -169,11 +184,14 @@ function preloadExpressions(id: string): void {
 export function bust(id: string, expr = 'normal', cls = ''): HTMLElement {
   preloadExpressions(id);
   const el = document.createElement('div');
-  el.className = `bust ${cls}`;
+  el.className = `bust${isBustArt(id) ? ' bust-art' : ''} ${cls}`;
   setBust(el, id, expr);
   return el;
 }
 
 export function setBust(el: HTMLElement, id: string, expr = 'normal'): void {
+  // 同じ枠で話し手が替わる場面もあるので、描き方はその都度合わせる
+  el.classList.toggle('bust-art', isBustArt(id));
+  preloadExpressions(id);
   el.style.backgroundImage = `url("${portraitUrl(id, expr)}")`;
 }

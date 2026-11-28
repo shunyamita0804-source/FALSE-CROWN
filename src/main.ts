@@ -24,7 +24,7 @@ import { t } from './i18n/i18n';
 import { deleteSave, loadGame } from './save/save';
 import { BootScene } from './scenes/BootScene';
 import { FieldScene } from './scenes/FieldScene';
-import { setHeroGender } from './ui/art';
+import { bust, face, setBust, setHeroGender } from './ui/art';
 import { alertDialog, initStage, installErrorScreen, toast, uiKey } from './ui/dom';
 import { playMatch } from './ui/matchui';
 import { playVoice } from './audio/voice';
@@ -141,7 +141,7 @@ document.addEventListener('visibilitychange', () => {
     toast(t('update.available'), 'info', 6000);
   });
 });
-if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input, Sound, sim: { placeIn, placeHome, setPathTo, setRouteTo, gatherAt, seatActor, assignCell, standAll, furnitureOf }, rooms: ROOMS };
+if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input, Sound, sim: { placeIn, placeHome, setPathTo, setRouteTo, gatherAt, seatActor, assignCell, standAll, furnitureOf }, rooms: ROOMS, art: { bust, setBust, face } };
 void boot();
 
 if (!isNative && 'serviceWorker' in navigator) registerSW({ immediate: true });

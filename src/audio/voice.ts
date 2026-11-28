@@ -5,12 +5,14 @@
  */
 import { availableAssets } from '../assets/registry';
 import table from '../data/voice.json';
+import { saysCurrentName } from '../data/characters';
 import { Sound } from './audio';
 import type { ExtraVoice, VoiceCategory } from './voicemap';
 
 export { categoryForLine, type ExtraVoice, type VoiceCategory } from './voicemap';
 
-interface Clip { file: string; text: string; gain: number }
+/** spokenName：音声の中で名乗っている名前（自己紹介など）。いまの表示名と違えば、改名後の古い音声なので鳴らさない */
+interface Clip { file: string; text: string; gain: number; spokenName?: string }
 interface CharVoice { dir: string; clips: Partial<Record<VoiceCategory, Clip>>; extra?: Partial<Record<ExtraVoice, Clip>> }
 
 const CHARS = (table as unknown as { characters: Record<string, CharVoice> }).characters;
@@ -29,6 +31,7 @@ export function voiceClip(charId: string, cat: VoiceCategory | ExtraVoice): { ur
   const c = CHARS[charId];
   const clip = c?.clips[cat as VoiceCategory] ?? c?.extra?.[cat as ExtraVoice];
   if (!c || !clip) return null;
+  if (clip.spokenName && !saysCurrentName(charId, clip.spokenName)) return null;
   const path = `${c.dir}/${clip.file}`;
   if (!files.has(path)) return null;
   return { url: `${BASE}assets/${path}`, gain: clip.gain, text: clip.text };

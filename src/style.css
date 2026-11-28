@@ -1852,3 +1852,8 @@ html[data-ui-assets~="v11/bg/match_sub"] .match.venue-sub { background: linear-g
 .vt-pairs .vt-group .face { width: 54px; height: 54px; }
 .vt-fig .m02-tellbtn .face { width: 56px; height: 56px; }
 .vt-fig .tg-cap { max-width: 620px; text-align: center; }
+
+/* 胸から上の新しい立ち絵（data/portraits.json の bust）。絞らずに絵全体を出し、下端をそろえる。どの表情も同じ寸法・同じ位置 */
+.bust.bust-art { background-size: contain !important; background-position: 50% 100% !important; }
+/* 顔アイコン：立ち絵の上側（頭から肩）を丸く切り取って見せる。画像は加工しない */
+.face.face-bust { display: inline-block; flex: none; background-repeat: no-repeat; background-size: 175% auto; background-position: 50% 8%; }
