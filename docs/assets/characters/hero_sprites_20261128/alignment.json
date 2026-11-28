@@ -1,0 +1,770 @@
+[
+  {
+    "hero": "hero_m",
+    "kind": "walk",
+    "row": 0,
+    "column": 0,
+    "bbox": [
+      52,
+      16,
+      141,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "walk",
+    "row": 0,
+    "column": 1,
+    "bbox": [
+      52,
+      16,
+      140,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "walk",
+    "row": 0,
+    "column": 2,
+    "bbox": [
+      52,
+      16,
+      140,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "walk",
+    "row": 0,
+    "column": 3,
+    "bbox": [
+      52,
+      16,
+      141,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "walk",
+    "row": 1,
+    "column": 0,
+    "bbox": [
+      52,
+      16,
+      141,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "walk",
+    "row": 1,
+    "column": 1,
+    "bbox": [
+      53,
+      16,
+      140,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "walk",
+    "row": 1,
+    "column": 2,
+    "bbox": [
+      53,
+      16,
+      140,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "walk",
+    "row": 1,
+    "column": 3,
+    "bbox": [
+      53,
+      16,
+      140,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "walk",
+    "row": 2,
+    "column": 0,
+    "bbox": [
+      47,
+      16,
+      146,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "walk",
+    "row": 2,
+    "column": 1,
+    "bbox": [
+      48,
+      16,
+      146,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "walk",
+    "row": 2,
+    "column": 2,
+    "bbox": [
+      44,
+      16,
+      146,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "walk",
+    "row": 2,
+    "column": 3,
+    "bbox": [
+      48,
+      16,
+      146,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "walk",
+    "row": 3,
+    "column": 0,
+    "bbox": [
+      48,
+      16,
+      148,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "walk",
+    "row": 3,
+    "column": 1,
+    "bbox": [
+      48,
+      16,
+      146,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "walk",
+    "row": 3,
+    "column": 2,
+    "bbox": [
+      48,
+      16,
+      148,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "walk",
+    "row": 3,
+    "column": 3,
+    "bbox": [
+      48,
+      16,
+      145,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "stand",
+    "row": 0,
+    "column": 0,
+    "bbox": [
+      50,
+      16,
+      142,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "stand",
+    "row": 0,
+    "column": 1,
+    "bbox": [
+      50,
+      16,
+      143,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "stand",
+    "row": 0,
+    "column": 2,
+    "bbox": [
+      46,
+      16,
+      147,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "stand",
+    "row": 0,
+    "column": 3,
+    "bbox": [
+      46,
+      16,
+      147,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "sit",
+    "row": 0,
+    "column": 0,
+    "bbox": [
+      50,
+      40,
+      142,
+      240
+    ],
+    "anchor": [
+      96,
+      180
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "sit",
+    "row": 0,
+    "column": 1,
+    "bbox": [
+      50,
+      40,
+      143,
+      240
+    ],
+    "anchor": [
+      96,
+      180
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "sit",
+    "row": 0,
+    "column": 2,
+    "bbox": [
+      16,
+      40,
+      134,
+      240
+    ],
+    "anchor": [
+      96,
+      180
+    ]
+  },
+  {
+    "hero": "hero_m",
+    "kind": "sit",
+    "row": 0,
+    "column": 3,
+    "bbox": [
+      58,
+      40,
+      176,
+      240
+    ],
+    "anchor": [
+      96,
+      180
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "walk",
+    "row": 0,
+    "column": 0,
+    "bbox": [
+      52,
+      16,
+      141,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "walk",
+    "row": 0,
+    "column": 1,
+    "bbox": [
+      52,
+      16,
+      142,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "walk",
+    "row": 0,
+    "column": 2,
+    "bbox": [
+      52,
+      16,
+      141,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "walk",
+    "row": 0,
+    "column": 3,
+    "bbox": [
+      52,
+      16,
+      141,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "walk",
+    "row": 1,
+    "column": 0,
+    "bbox": [
+      54,
+      16,
+      140,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "walk",
+    "row": 1,
+    "column": 1,
+    "bbox": [
+      54,
+      16,
+      139,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "walk",
+    "row": 1,
+    "column": 2,
+    "bbox": [
+      54,
+      16,
+      140,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "walk",
+    "row": 1,
+    "column": 3,
+    "bbox": [
+      54,
+      16,
+      140,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "walk",
+    "row": 2,
+    "column": 0,
+    "bbox": [
+      44,
+      16,
+      145,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "walk",
+    "row": 2,
+    "column": 1,
+    "bbox": [
+      51,
+      16,
+      142,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "walk",
+    "row": 2,
+    "column": 2,
+    "bbox": [
+      38,
+      16,
+      143,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "walk",
+    "row": 2,
+    "column": 3,
+    "bbox": [
+      50,
+      16,
+      142,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "walk",
+    "row": 3,
+    "column": 0,
+    "bbox": [
+      48,
+      16,
+      156,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "walk",
+    "row": 3,
+    "column": 1,
+    "bbox": [
+      49,
+      16,
+      144,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "walk",
+    "row": 3,
+    "column": 2,
+    "bbox": [
+      46,
+      16,
+      151,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "walk",
+    "row": 3,
+    "column": 3,
+    "bbox": [
+      49,
+      16,
+      144,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "stand",
+    "row": 0,
+    "column": 0,
+    "bbox": [
+      54,
+      16,
+      140,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "stand",
+    "row": 0,
+    "column": 1,
+    "bbox": [
+      54,
+      16,
+      139,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "stand",
+    "row": 0,
+    "column": 2,
+    "bbox": [
+      52,
+      16,
+      141,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "stand",
+    "row": 0,
+    "column": 3,
+    "bbox": [
+      50,
+      16,
+      142,
+      240
+    ],
+    "anchor": [
+      96,
+      240
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "sit",
+    "row": 0,
+    "column": 0,
+    "bbox": [
+      52,
+      40,
+      139,
+      240
+    ],
+    "anchor": [
+      96,
+      180
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "sit",
+    "row": 0,
+    "column": 1,
+    "bbox": [
+      54,
+      40,
+      139,
+      240
+    ],
+    "anchor": [
+      96,
+      180
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "sit",
+    "row": 0,
+    "column": 2,
+    "bbox": [
+      19,
+      40,
+      132,
+      240
+    ],
+    "anchor": [
+      96,
+      180
+    ]
+  },
+  {
+    "hero": "hero_f",
+    "kind": "sit",
+    "row": 0,
+    "column": 3,
+    "bbox": [
+      59,
+      40,
+      175,
+      240
+    ],
+    "anchor": [
+      96,
+      180
+    ]
+  }
+]

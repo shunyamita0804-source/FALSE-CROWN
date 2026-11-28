@@ -39,97 +39,98 @@
         "greeting": {
           "file": "01_greeting.mp3",
           "text": "おはようございます。",
-          "gain": 0.661,
-          "lufs": -15.4
+          "gain": 0.556,
+          "lufs": -13.9
         },
         "hello": {
           "file": "02_hello.mp3",
           "text": "何か用ですか？",
-          "gain": 0.794,
-          "lufs": -17.0
+          "gain": 0.708,
+          "lufs": -16.0
         },
         "understand": {
           "file": "03_understand.mp3",
           "text": "なるほど。",
-          "gain": 0.966,
-          "lufs": -18.7
+          "gain": 2.455,
+          "lufs": -26.8
         },
         "accept": {
           "file": "04_accept.mp3",
           "text": "分かりました。",
-          "gain": 0.841,
-          "lufs": -17.5
+          "gain": 0.933,
+          "lufs": -18.4
         },
         "refuse": {
           "file": "05_refuse.mp3",
           "text": "お断りします。",
-          "gain": 0.767,
-          "lufs": -16.7
+          "gain": 1.216,
+          "lufs": -20.7
         },
         "thinking": {
           "file": "06_thinking.mp3",
           "text": "そうですね……。",
-          "gain": 1.318,
-          "lufs": -21.4
+          "gain": 2.541,
+          "lufs": -27.1
         },
         "surprise": {
           "file": "07_surprise.mp3",
           "text": "まさか……。",
-          "gain": 1.531,
-          "lufs": -22.7
+          "gain": 1.072,
+          "lufs": -19.6
         },
         "happy": {
           "file": "08_happy.mp3",
           "text": "悪くないですね。",
-          "gain": 0.902,
-          "lufs": -18.1
+          "gain": 0.881,
+          "lufs": -17.9
         },
         "disappointed": {
           "file": "09_disappointed.mp3",
           "text": "困りましたね。",
-          "gain": 0.977,
-          "lufs": -18.8
+          "gain": 1.429,
+          "lufs": -22.1
         },
         "thanks": {
           "file": "10_thanks.mp3",
           "text": "ありがとうございます。",
-          "gain": 0.75,
-          "lufs": -16.5
+          "gain": 0.575,
+          "lufs": -14.2
         }
       },
       "extra": {
         "introduction": {
           "file": "11_intro.mp3",
-          "text": "神崎怜です。数学者をしています。感情よりも論理を重視する人間です。よろしくお願いします。",
-          "spokenName": "神崎怜",
-          "gain": 0.902,
-          "lufs": -18.1
+          "text": "レオンです。数学者をしています。感情よりも論理を重視する人間です。よろしくお願いします。",
+          "spokenName": "レオン",
+          "gain": 0.733,
+          "lufs": -16.3
         },
         "victory": {
           "file": "12_win.mp3",
           "text": "予想どおりの結果ですね。",
-          "gain": 0.861,
-          "lufs": -17.7
+          "gain": 0.891,
+          "lufs": -18.0
         },
         "defeat": {
           "file": "13_lose.mp3",
           "text": "計算が甘かったようですね。見直す必要があります。",
-          "gain": 0.851,
-          "lufs": -17.6
+          "gain": 1.012,
+          "lufs": -19.1
         },
         "elimination": {
           "file": "14_elimination.mp3",
           "text": "ここまでですか……。自分の判断の結果です。受け入れましょう。",
-          "gain": 0.912,
-          "lufs": -18.2
+          "gain": 0.902,
+          "lufs": -18.1
         },
         "betrayal": {
           "file": "15_betrayal.mp3",
           "text": "なるほど。あなたを信用したことが、私の誤算でしたね。",
-          "gain": 0.966,
-          "lufs": -18.7
+          "gain": 1.122,
+          "lufs": -20.0
         }
-      }
+      },
+      "source": "resources/voice_original/npc_02_kanzaki.mp3（区間は docs/voice/npc_02_kanzaki_lines.csv）"
     },
     "npc_03_kurose": {
       "dir": "audio/voice/npc_03_kurose",
@@ -143,91 +144,92 @@
         "hello": {
           "file": "02_hello.mp3",
           "text": "何か用かしら？",
-          "gain": 0.923,
-          "lufs": -18.3
+          "gain": 1.047,
+          "lufs": -19.4
         },
         "understand": {
           "file": "03_understand.mp3",
           "text": "なるほどね。",
-          "gain": 1.0,
-          "lufs": -19.0
+          "gain": 2.63,
+          "lufs": -27.4
         },
         "accept": {
           "file": "04_accept.mp3",
           "text": "いいわ、分かった。",
-          "gain": 1.0,
-          "lufs": -19.0
+          "gain": 0.861,
+          "lufs": -17.7
         },
         "refuse": {
           "file": "05_refuse.mp3",
           "text": "それはお断りするわ。",
-          "gain": 0.822,
-          "lufs": -17.3
+          "gain": 0.646,
+          "lufs": -15.2
         },
         "thinking": {
           "file": "06_thinking.mp3",
           "text": "そうね……。",
-          "gain": 1.288,
-          "lufs": -21.2
+          "gain": 4.027,
+          "lufs": -31.1
         },
         "surprise": {
           "file": "07_surprise.mp3",
           "text": "そんな……。",
-          "gain": 1.047,
-          "lufs": -19.4
+          "gain": 2.427,
+          "lufs": -26.7
         },
         "happy": {
           "file": "08_happy.mp3",
           "text": "悪くないわね。",
-          "gain": 0.794,
-          "lufs": -17.0
+          "gain": 0.977,
+          "lufs": -18.8
         },
         "disappointed": {
           "file": "09_disappointed.mp3",
           "text": "困ったものね。",
-          "gain": 1.012,
-          "lufs": -19.1
+          "gain": 1.479,
+          "lufs": -22.4
         },
         "thanks": {
           "file": "10_thanks.mp3",
           "text": "ありがとう。助かったわ。",
-          "gain": 0.912,
-          "lufs": -18.2
+          "gain": 0.785,
+          "lufs": -16.9
         }
       },
       "extra": {
         "introduction": {
           "file": "11_introduction.mp3",
-          "text": "黒瀬美琴です。弁護士をしています。公平な勝負を期待しています。よろしくお願いします。",
-          "spokenName": "黒瀬美琴",
-          "gain": 0.733,
-          "lufs": -16.3
+          "text": "ヴィクトリアです。弁護士をしています。公平な勝負を期待しています。よろしくお願いします。",
+          "spokenName": "ヴィクトリア",
+          "gain": 0.708,
+          "lufs": -16.0
         },
         "victory": {
           "file": "12_victory.mp3",
           "text": "当然の結果です。準備を怠らなかっただけですよ。",
-          "gain": 0.923,
-          "lufs": -18.3
+          "gain": 0.851,
+          "lufs": -17.6
         },
         "defeat": {
           "file": "13_defeat.mp3",
           "text": "悔しいですね……。判断を誤ったようです。",
-          "gain": 1.161,
-          "lufs": -20.3
+          "gain": 0.881,
+          "lufs": -17.9
         },
         "elimination": {
           "file": "14_elimination.mp3",
           "text": "残念ですが、ここまでですね。皆さんの健闘を祈っています。",
-          "gain": 0.741,
-          "lufs": -16.4
+          "gain": 0.733,
+          "lufs": -16.3
         },
         "betrayal": {
           "file": "15_betrayal.mp3",
           "text": "約束を破ったのですね。あなたに対する評価を改める必要がありそうです。",
-          "gain": 0.733,
-          "lufs": -16.3
+          "gain": 0.902,
+          "lufs": -18.1
         }
-      }
+      },
+      "source": "resources/voice_original/npc_03_kurose.mp3（区間は docs/voice/npc_03_kurose_lines.csv）"
     },
     "npc_04_mido": {
       "dir": "audio/voice/npc_04_mido",

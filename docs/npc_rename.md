@@ -46,6 +46,7 @@ npc_02_kanzaki レオン／npc_03_kurose ヴィクトリア／npc_04_mido リチ
 
 - 呼び名も同じ（`short` ＝ `name`）、読み（`kana`）は空。旧名は表の `previous` に残す（画面では使わない）。英語名（Leon など）は暫定。
 - 声を作り直す 4 人（15 種すべて新規収録）：レオン、ヴィクトリア、ヨウコ、ヴィクター。届いたら同じフォルダ・同じファイル名で置き換え、`voice.json` の text と自己紹介の `spokenName` を新しい台本に合わせる。ヴィクターの旧 01〜10 は確認不要（本人）。
+- レオンとヴィクトリアも 2026-11-28 に受領し、同じ手順で組み込んだ（v0.28.8）。これで改名に伴う音声はすべて届いた。
 - ヨウコとヴィクターは 2026-11-28 に受領（15 種を 1 本にまとめた MP3）。元の音声は `resources/voice_original/<内部ID>.mp3`、区間と台本は `docs/voice/<内部ID>_lines.csv`、切り出しは `python3 -I scripts/split-npc-voice.py <内部ID>` の後に `python3 -I scripts/level-voices.py`（v0.28.4）。区間は音声認識（sherpa-onnx の日本語モデル ReazonSpeech、リポジトリには入れていない）の結果を台本で束ね、切れ目は前後のセリフの間の無音の真ん中。確認は `scripts/check-npc-voice.cjs`。
 - 残り 7 人は今の声を使い続け、自己紹介（11）だけ新しい名前で録り直す。2026-11-28 に 7 本とも受領して置き換え、`voice.json` の text と `spokenName` を新しい台本にした（v0.28.3）。確認は `scripts/check-intro-voice.cjs`（7 人の声、字幕の全文、送りと「飛ばす」で声が止まる）。
 - 教授枠は「アルバート、62 歳、元大学教授、退職済み」に統一（`job` は元大学教授）。新しい自己紹介は過去形。自己紹介は「以前は大学で教鞭を執っておりました」（声と字幕）。人物紹介は「大学を退職した博識な元教授。」
@@ -66,4 +67,5 @@ npc_02_kanzaki レオン／npc_03_kurose ヴィクトリア／npc_04_mido リチ
 
 - 依頼 ZIP：共有フォルダ `walk_sit_request/FALSE_CROWN_walk_sit_request_20261128.zip`（基準座標、表示倍率、ファイル構成、正式通常絵と旧素材の参照）。
 - 2 倍の解像度（`walk@2x.png` など、1 コマ 192×256）を推奨。`BootScene` は `@2x` があればそちらを読む（表示の大きさと基準点は比率なので同じ）。
+- 主人公男女は 2026-11-28 に受領し組み込み済み（v0.28.9、`walk@2x.png`・`stand@2x.png`・`sit@2x.png`。補正を外し、`scripts/check-hero-sprites.cjs` で確認）。
 - 届いたら：加工せず置く → `src/data/stand_align.json` のその人の補正を外す（旧デザイン用）→ 足元・中心軸・止まった時の跳ね・小物の一致を測ってから公開。

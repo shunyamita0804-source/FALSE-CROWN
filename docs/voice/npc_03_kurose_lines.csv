@@ -1,0 +1,16 @@
+key,file,voiced_from,voiced_to,start,end,text
+greeting,01_greeting.mp3,0.07,0.65,0.0,0.84,おはよう。
+hello,02_hello.mp3,1.03,1.95,0.84,2.37,何か用かしら？
+understand,03_understand.mp3,2.79,3.79,2.37,4.04,なるほどね。
+accept,04_accept.mp3,4.29,5.53,4.04,5.68,いいわ、分かった。
+refuse,05_refuse.mp3,5.83,7.1,5.68,7.46,それはお断りするわ。
+thinking,06_thinking.mp3,7.82,8.64,7.46,8.89,そうね……。
+surprise,07_surprise.mp3,9.15,9.94,8.89,10.31,そんな……。
+happy,08_happy.mp3,10.69,11.69,10.31,11.9,悪くないわね。
+disappointed,09_disappointed.mp3,12.12,13.04,11.9,13.36,困ったものね。
+thanks,10_thanks.mp3,13.68,15.14,13.36,15.61,ありがとう。助かったわ。
+introduction,11_introduction.mp3,16.07,22.22,15.61,22.64,ヴィクトリアです。弁護士をしています。公平な勝負を期待しています。よろしくお願いします。
+victory,12_victory.mp3,23.06,26.68,22.64,27.02,当然の結果です。準備を怠らなかっただけですよ。
+defeat,13_defeat.mp3,27.36,30.77,27.02,31.16,悔しいですね……。判断を誤ったようです。
+elimination,14_elimination.mp3,31.54,35.64,31.16,36.12,残念ですが、ここまでですね。皆さんの健闘を祈っています。
+betrayal,15_betrayal.mp3,36.59,41.93,36.12,42.19,約束を破ったのですね。あなたに対する評価を改める必要がありそうです。

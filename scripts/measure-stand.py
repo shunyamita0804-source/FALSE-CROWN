@@ -20,6 +20,9 @@ for d in sorted(glob.glob('public/assets/characters/*/')):
     cid = os.path.basename(d.rstrip('/'))
     if not os.path.exists(d + 'walk.png') or not os.path.exists(d + 'stand.png'):
         continue
+    # 2 倍の新しい絵（walk@2x.png）の人は、足元・中心を納品の基準どおりにそろえてあるので補正しない（旧素材用の補正を重ねない）
+    if os.path.exists(d + 'walk@2x.png'):
+        continue
     wim = np.array(Image.open(d + 'walk.png').convert('RGBA'))
     w = wim[:, :, 3]
     st = np.array(Image.open(d + 'stand.png').convert('RGBA'))[:, :, 3]
