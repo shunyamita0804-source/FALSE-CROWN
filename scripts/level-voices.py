@@ -7,7 +7,7 @@
 import json, os, re, subprocess
 
 TARGET = -19.0
-LO, HI = 0.25, 3.0
+LO, HI = 0.25, 4.5  # 上限 4.5：ささやくように小さく収録されたセリフ（ヴィクトリア 06、山 -18 dB）も揃える。掛けても山は 0 dB を超えない
 
 def measure(p):
     out = subprocess.run(['ffmpeg', '-hide_banner', '-nostats', '-i', p, '-af', 'ebur128', '-f', 'null', '-'], capture_output=True, text=True).stderr

@@ -17,7 +17,7 @@ describe('汎用ボイスの対応表', () => {
         expect(clip.file).toMatch(new RegExp(`^\\d\\d_${cat}\\.mp3$`));
         expect(clip.text.length).toBeGreaterThan(0);
         expect(clip.gain).toBeGreaterThanOrEqual(0.25);
-        expect(clip.gain).toBeLessThanOrEqual(3);
+        expect(clip.gain).toBeLessThanOrEqual(4.5);
       }
     }
   });
