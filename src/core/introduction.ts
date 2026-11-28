@@ -12,7 +12,7 @@ import { nearestFree } from '../world/path';
 
 export interface IntroTable {
   venue: { room: string; center: [number, number]; radius: [number, number]; heroAngle: number; slots: [number, number][]; camera?: [number, number] };
-  order: { mode: 'ring' | 'roster' | 'random'; hero: 'first' | 'last' | 'inline' };
+  order: { mode: 'ring' | 'roster' | 'random'; hero: 'first' | 'last' | 'inline'; first?: string[] };
   bgm: string;
   timing: { gatherTimeoutMs: number; settleMs: number; afterVoiceMs: number; textMsPerChar: number; minTextMs: number; maxTextMs: number; departStaggerMs: number; departShowMs: number };
   entries: Record<string, { text: string }>;
@@ -67,6 +67,9 @@ export function introOrder(seats: Seat[], seed: number, t: IntroTable = INTRO): 
     // 主人公の隣（時計回りの次）から一周する
     order = [...ring.slice(1), ring[0]];
   }
+  // 先頭に固定する人（その周に参加している人だけ。いなければ飛ばす）
+  const lead = (t.order.first ?? []).filter((x): x is CharId => ring.includes(x as CharId) && x !== 'hero');
+  order = [...lead, ...order.filter((x) => !lead.includes(x))];
   if (!ring.includes('hero') || t.order.hero === 'inline') return order;
   const rest = order.filter((x) => x !== 'hero');
   return t.order.hero === 'first' ? ['hero', ...rest] : [...rest, 'hero'];

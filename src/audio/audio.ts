@@ -10,7 +10,7 @@ import bgmTable from '../data/bgm.json';
 const BASE = import.meta.env.BASE_URL;
 
 export type BgmId = 'title' | 'opening' | 'introduction' | 'corridor' | 'room' | 'living' | 'common' | 'lounge' | 'prison' | 'hidden' | 'match_main' | 'match_prison' | 'final' | 'elimination' | 'ending';
-export interface BgmDef { label: string; file: string; title: string; loop: boolean; xfade?: boolean; resume?: boolean; by: string }
+export interface BgmDef { label: string; file: string; title: string; loop: boolean; xfade?: boolean; resume?: boolean; by: string; /** 曲ごとの音量の倍率（曲の大きさを揃えるため。scripts/level-bgm.py で測って書く） */ gain?: number }
 /** 場面 → 音源の対応は src/data/bgm.json で管理する（差し替え手順は docs/bgm.md） */
 export const BGM = (bgmTable as unknown as { scenes: Record<BgmId, BgmDef> }).scenes;
 export const BGM_CREDITS = (bgmTable as unknown as { credits: Record<string, { name: string; url: string; license: string; perTitle?: string }> }).credits;
@@ -196,7 +196,7 @@ class AudioManager {
     (el as HTMLAudioElement & { playsInline?: boolean }).playsInline = true;
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(1, now + (old ? fadeMs * 1.4 : fadeMs) / 1000);
+    gain.gain.linearRampToValueAtTime(def.gain ?? 1, now + (old ? fadeMs * 1.4 : fadeMs) / 1000);
     try {
       ctx.createMediaElementSource(el).connect(gain);
       gain.connect(this.bgmGain!);
@@ -238,7 +238,7 @@ class AudioManager {
       const g2 = ctx.createGain();
       const now = ctx.currentTime;
       g2.gain.setValueAtTime(0, now);
-      g2.gain.linearRampToValueAtTime(1, now + FADE);
+      g2.gain.linearRampToValueAtTime(BGM[id]?.gain ?? 1, now + FADE);
       gain.gain.cancelScheduledValues(now);
       gain.gain.setValueAtTime(gain.gain.value, now);
       gain.gain.linearRampToValueAtTime(0, now + FADE);
