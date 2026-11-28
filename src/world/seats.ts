@@ -8,7 +8,7 @@
  */
 import { ALL_IDS, type CharId } from '../data/characters';
 import type { Dir, GameState } from '../core/types';
-import { FURNITURE, seatKey, seatsOf, type Facing, type Seat } from './furniture';
+import { FURNITURE, furnitureId, seatKey, seatsOf, type Facing, type Seat } from './furniture';
 import { ROOMS, buildCollision } from './maps';
 
 const TILE = 64;
@@ -46,7 +46,8 @@ const standCache = new Map<string, Map<string, Tile>>();
 
 function standTiles(room: string): Map<string, Tile> {
   const out = new Map<string, Tile>();
-  const def = ROOMS[room];
+  // 個室のように表を共有する部屋は、その表を使う最初の部屋の形で決める（12 室とも同じ形）
+  const def = ROOMS[room] ?? ROOMS[Object.keys(ROOMS).find((id) => furnitureId(id) === room) ?? ''];
   if (!def) return out;
   const g = buildCollision(def);
   // 出入口から歩いて行けるマス

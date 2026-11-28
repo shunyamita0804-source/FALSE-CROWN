@@ -5487,7 +5487,16 @@
     }
    ],
    "cells": [],
-   "anchors": [],
+   "anchors": [
+    {
+     "id": "maze_center",
+     "kind": "maze_floor_emblem",
+     "x": 768,
+     "y": 528,
+     "ax": 768,
+     "ay": 600
+    }
+   ],
    "exits": [
     {
      "id": "maze_north",
@@ -5906,7 +5915,44 @@
     }
    ],
    "cells": [],
-   "anchors": [],
+   "anchors": [
+    {
+     "id": "mirror_01",
+     "kind": "mirror_gimmick",
+     "x": 573,
+     "y": 480,
+     "ax": 573,
+     "ay": 480,
+     "facing": "W"
+    },
+    {
+     "id": "mirror_02",
+     "kind": "mirror_gimmick",
+     "x": 961,
+     "y": 480,
+     "ax": 961,
+     "ay": 480,
+     "facing": "E"
+    },
+    {
+     "id": "mirror_03",
+     "kind": "mirror_gimmick",
+     "x": 573,
+     "y": 880,
+     "ax": 573,
+     "ay": 880,
+     "facing": "W"
+    },
+    {
+     "id": "mirror_04",
+     "kind": "mirror_gimmick",
+     "x": 961,
+     "y": 880,
+     "ax": 961,
+     "ay": 880,
+     "facing": "E"
+    }
+   ],
    "exits": [
     {
      "id": "mirror_north",

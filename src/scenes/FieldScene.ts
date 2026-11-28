@@ -26,6 +26,10 @@ const STAND_ALIGN = standAlign as Record<string, Record<string, { x: number; y: 
 const TEX = 1.5;
 const DIR_ROW: Record<Dir, number> = { down: 0, up: 1, left: 2, right: 3 };
 /** 席の向き → 立ち絵の向き（斜めは左右に寄せる） */
+/** 正式の着席の絵（sit.png）で、腰が乗る点のセル内の高さ（制作依頼の取り決め：x=48, y=90） */
+const SIT_HIP_Y = 90;
+/** 斜めの着席の絵（sit_diag.png）のコマ：右下・左下・右上・左上 */
+const SIT_DIAG: Partial<Record<Facing, number>> = { SE: 0, SW: 1, NE: 2, NW: 3 };
 const SEAT_DIR: Record<Facing, Dir> = { N: 'up', S: 'down', E: 'right', W: 'left', NE: 'right', SE: 'right', NW: 'left', SW: 'left' };
 /**
  * 座っている人の仮の描き方（正式の着席の絵が届くまで）。立ち絵の腰の線（セル内 y）を席の腰の位置に合わせ、
@@ -439,13 +443,29 @@ export class FieldScene extends Phaser.Scene {
       const seat = a.seat && a.seat.room === this.roomId ? furnitureOf(this.roomId)?.seats.find((q) => q.id === a.seat!.id) : undefined;
       if (seat) {
         const folder = charFolder(a.id, s.hero.gender);
-        const standKey = `stand:${folder}`;
-        const key = this.textures.exists(standKey) ? standKey : `char:${folder}`;
-        if (v.sprite.texture.key !== key) v.sprite.setTexture(key);
-        const row = DIR_ROW[SEAT_DIR[seat.facing] ?? 'down'];
-        v.sprite.setFrame(key === standKey ? row : row * 4 + 1);
-        v.sprite.setOrigin(0.5, SEAT_HIP_Y / CHAR_H).setDisplaySize(CHAR_W * CHAR_SCALE, CHAR_H * CHAR_SCALE);
-        v.sprite.setCrop(0, 0, CHAR_W, SEAT_CROP_Y);
+        const sitKey = `sit:${folder}`;
+        const diagKey = `sitd:${folder}`;
+        if (this.textures.exists(diagKey) && SIT_DIAG[seat.facing] !== undefined) {
+          // 正式の着席の絵（斜め）
+          if (v.sprite.texture.key !== diagKey) v.sprite.setTexture(diagKey);
+          v.sprite.setFrame(SIT_DIAG[seat.facing]!).setOrigin(0.5, SIT_HIP_Y / CHAR_H);
+          if (v.sprite.isCropped) v.sprite.setCrop();
+        } else if (this.textures.exists(sitKey)) {
+          // 正式の着席の絵（正面・後ろ・左・右。斜めの席は近い向き）
+          if (v.sprite.texture.key !== sitKey) v.sprite.setTexture(sitKey);
+          v.sprite.setFrame(DIR_ROW[SEAT_DIR[seat.facing] ?? 'down']).setOrigin(0.5, SIT_HIP_Y / CHAR_H);
+          if (v.sprite.isCropped) v.sprite.setCrop();
+        } else {
+          // 仮：立ち絵の腿から下を表示の時だけ隠す
+          const standKey = `stand:${folder}`;
+          const key = this.textures.exists(standKey) ? standKey : `char:${folder}`;
+          if (v.sprite.texture.key !== key) v.sprite.setTexture(key);
+          const row = DIR_ROW[SEAT_DIR[seat.facing] ?? 'down'];
+          v.sprite.setFrame(key === standKey ? row : row * 4 + 1);
+          v.sprite.setOrigin(0.5, SEAT_HIP_Y / CHAR_H);
+          v.sprite.setCrop(0, 0, CHAR_W, SEAT_CROP_Y);
+        }
+        v.sprite.setDisplaySize(CHAR_W * CHAR_SCALE, CHAR_H * CHAR_SCALE);
         v.sprite.setPosition(seat.hip[0], seat.hip[1]).setDepth(seatDepth(this.roomId, seat));
         v.shadow.setVisible(false);
         v.label.setPosition(seat.hip[0], seat.hip[1] - (SEAT_HIP_Y - 8) * CHAR_SCALE).setDepth(8700);
@@ -455,6 +475,8 @@ export class FieldScene extends Phaser.Scene {
         continue;
       }
       if (v.sprite.isCropped) v.sprite.setCrop();
+      // 座っていた人が立った時は、足元の基準に戻す
+      if (v.sprite.originY !== CHAR_FOOT.y / CHAR_H) v.sprite.setOrigin(CHAR_FOOT.x / CHAR_W, CHAR_FOOT.y / CHAR_H);
       v.shadow.setVisible(true);
       v.sprite.setPosition(px, py);
       v.shadow.setPosition(px, py - 2);

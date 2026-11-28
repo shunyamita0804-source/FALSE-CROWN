@@ -29,14 +29,19 @@ export interface RoomFurniture {
 
 export const FURNITURE = (table as unknown as { rooms: Record<string, RoomFurniture> }).rooms;
 
-export const furnitureOf = (roomId: string): RoomFurniture | undefined => FURNITURE[roomId];
-export const seatsOf = (roomId: string): Seat[] => FURNITURE[roomId]?.seats ?? [];
+/**
+ * 部屋の家具の表の名前。生活棟の個室（bedroom_<持ち主>）は 12 室とも同じ絵なので、表は living_bedroom の 1 つを共有する
+ * （席の予約は部屋ごとに別。seatKey は部屋 ID で作る）。
+ */
+export const furnitureId = (roomId: string): string => (roomId.startsWith('bedroom_') && !FURNITURE[roomId] ? 'living_bedroom' : roomId);
+export const furnitureOf = (roomId: string): RoomFurniture | undefined => FURNITURE[furnitureId(roomId)];
+export const seatsOf = (roomId: string): Seat[] => furnitureOf(roomId)?.seats ?? [];
 /** 席の予約の鍵（部屋と席で 1 つ） */
 export const seatKey = (roomId: string, seatId: string) => `${roomId}:${seatId}`;
 
 /** 席の前後の描き順：前の絵があればその直前、無ければ席の値か家具の少し手前 */
 export function seatDepth(roomId: string, seat: Seat): number {
-  const p = FURNITURE[roomId]?.props.find((q) => q.id === seat.prop);
+  const p = furnitureOf(roomId)?.props.find((q) => q.id === seat.prop);
   if (p?.fg) return p.fg.depth - 1;
   return seat.depth ?? (p ? p.depth + 1 : seat.hip[1]);
 }

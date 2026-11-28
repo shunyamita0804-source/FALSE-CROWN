@@ -10,7 +10,7 @@
  * DOM にも Phaser にも依存しない。
  */
 import maskTable from '../data/furniture_mask.json';
-import { furnitureOf, type RoomFurniture } from './furniture';
+import { furnitureId, furnitureOf, type RoomFurniture } from './furniture';
 
 const T = 64;
 /** マス全体のうち、接地範囲がおおう割合がこれ以上なら歩けない */
@@ -102,7 +102,7 @@ function build(roomId: string, f: RoomFurniture): FurnitureTiles {
   const free = new Set([...approach, ...keep, ...cellFloor, ...gates].map((t) => key(t.x, t.y)));
   const gateProps = new Set(gates.map((g) => g.prop));
   const byPoly = f.colliders.filter((c) => !c.when && !gateProps.has(c.id)).flatMap((c) => polyTiles(c.poly));
-  const byMask = Object.entries(MASK[roomId] ?? {}).filter(([, pct]) => pct >= COVER_MASK).map(([k]) => ({ x: Number(k.split(',')[0]), y: Number(k.split(',')[1]) }));
+  const byMask = Object.entries(MASK[furnitureId(roomId)] ?? {}).filter(([, pct]) => pct >= COVER_MASK).map(([k]) => ({ x: Number(k.split(',')[0]), y: Number(k.split(',')[1]) }));
   const blocked = uniq([...byPoly, ...byMask]).filter((t) => !free.has(key(t.x, t.y)));
   return { blocked, approach, keep, gates, cellFloor };
 }
@@ -175,7 +175,7 @@ function fixes(g0: boolean[][], room: RoomHint, ft: FurnitureTiles): FurnitureFi
     }
   }
   // 2. 出入口から行けない「席の前」へ、家具のおおいが少ないマスを通って道を空ける
-  const mask = MASK[room.id] ?? {};
+  const mask = MASK[furnitureId(room.id)] ?? {};
   const links: Tile[] = [];
   for (const a of ft.approach) {
     if (g[a.y]?.[a.x] !== false) continue; // 床の外（絵の壁の中）の席は、ここでは扱わない
