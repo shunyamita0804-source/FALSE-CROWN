@@ -76,8 +76,14 @@ const path = require('path');
       check('線を全部結ぶと、声が終わったあと自動で次へ進む', (await title()) !== tt);
       continue;
     }
-    await page.locator('.vt-next.ready').waitFor({ timeout: 40000 }).catch(() => null);
-    check(`「${tt}」声と読む時間が終わると「次へ」が光る`, await page.locator('.vt-next.ready').count() === 1);
+    if (await page.locator('.vt-prompt.on').count()) {
+      // 操作を求める段階：操作が済むまで「次へ」は光らない。声が終わるのを待ち、「次へ」で飛ばせるかを見る
+      await page.waitForFunction(() => !window.__fc.Sound.voicePlaying, null, { timeout: 40000 }).catch(() => null);
+      check(`「${tt}」操作の段階は、やることを一言で出す`, (await page.locator('.vt-prompt.on').innerText()).length > 0);
+    } else {
+      await page.locator('.vt-next.ready').waitFor({ timeout: 40000 }).catch(() => null);
+      check(`「${tt}」声と読む時間が終わると「次へ」が光る`, await page.locator('.vt-next.ready').count() === 1);
+    }
     await page.locator('.vt-next').tap(); await W(400);
   }
   check('練習へ進む', (await title()) === '練習', seen.join(' / '));

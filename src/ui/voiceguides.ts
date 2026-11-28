@@ -8,9 +8,9 @@ import { BREAK_MS, GROUP_SIZE, HINT_COST, L4, M01_DEMO, M01_PRACTICE, STAGES, ST
 import { solve } from '../matches/poly';
 import { ALL_IDS, type CharId } from '../data/characters';
 import { face } from './art';
-import { button, h } from './dom';
+import { button, clear, h } from './dom';
 import { PolyBoard } from './polyboard';
-import { focus, type TutCtx, type VoicedGuide } from './voicetut';
+import { focus, type TutCtx, type VoicedGuide, type VoicedStep } from './voicetut';
 import { BOOST_COST, BOOST_MAX, BOOST_MS, BREAK_MS as M02_BREAK_MS, M02_PRACTICE, QUESTIONS } from '../matches/m02';
 import { AID_COST, M03_DEMO, M03_PRACTICE, PAIR_BONUS, POINTS, PREP_MS as M03_PREP_MS, PUZZLES, ROUNDS as M03_ROUNDS, ROUND_MS as M03_ROUND_MS, schedule } from '../matches/m03';
 import { candCard } from './games/m02';
@@ -20,6 +20,17 @@ import { CARD_MAX, CORRECT, EXTRA_COST, EXTRA_MAX, M05_PRACTICE, PER_CARD, PREP_
 import { ExprPad, exprEl } from './exprpad';
 import { AID_COST as M06_AID_COST, BREAK_MS as M06_BREAK_MS, FLUSH_PTS, MATCH_PTS, ROUNDS as M06_ROUNDS, TOP_PTS, TRIPLE_PTS, matchesIn } from '../matches/m06';
 import { cardBack, cardEl } from './cards';
+import { AID_COST as M07_AID_COST, BREAK_MS as M07_BREAK_MS, CENTER_PTS, G as HEX7, LINK_PTS, ROUNDS as M07_ROUNDS, START_TILES, beaconCell, isCenter, startCell as hexStart } from '../matches/m07';
+import { cellAt as hexAt } from '../matches/hex';
+import { TilePlacer, type PlacerSel } from './tileplacer';
+import { BREAK_MS as M08_BREAK_MS, EDGES as M08_EDGES, MOVE_MS as M08_MOVE_MS, ROUNDS as M08_ROUNDS, WALLS as M08_WALLS, edgeBetween as m08Edge, movesFor as m08Moves, nodeOf as m08Node, startNode as m08Start, wallsFor as m08Walls } from '../matches/m08';
+import { ringBoard } from './ringboard';
+import { practiceOf } from './tutorial';
+import { ALIVE_PTS, BREAK_MS as M09_BREAK_MS, CENTER as M09_CENTER, CENTER_PTS as M09_CENTER_PTS, KING_PTS, MOVE_MS as M09_MOVE_MS, ROUNDS as M09_ROUNDS, SOLDIER_PTS, startPieces as m09Start, type Piece as M09Piece } from '../matches/m09';
+import { M09_COLORS } from './games/m09';
+import { pieceBoard } from './pieceboard';
+import { BREAK_MS as M10_BREAK_MS, CAP_PTS, DELIVER_PTS, GEM_USES, HOLD_PTS, HOME_PTS, MOVE_MS as M10_MOVE_MS, PEACE, ROUNDS as M10_ROUNDS, startBoard as m10Start, type Board as M10Board } from '../matches/m10';
+import { triBoard } from './triboard';
 import { RailMap, SEAT_COLORS, type RailMapData } from './railmap';
 import { LinkBoard } from './linkboard';
 import { boardFigure, MemQuiz } from './memquiz';
@@ -785,5 +796,539 @@ function m06Voiced(ctx: TutCtx = {}): VoicedGuide {
   };
 }
 
+/** 六角盤の 2 マスを結ぶ直線のマス（説明の図用） */
+function hexLine(a: number, b: number): number[] {
+  const [q1, r1] = HEX7.cells[a];
+  const [q2, r2] = HEX7.cells[b];
+  const n = Math.max(Math.abs(q1 - q2), Math.abs(r1 - r2), Math.abs(q1 + r1 - q2 - r2));
+  const out: number[] = [];
+  for (let i = 0; i <= n; i++) {
+    const k = n ? i / n : 0;
+    const q = q1 + (q2 - q1) * k + 1e-6;
+    const r = r1 + (r2 - r1) * k + 1e-6;
+    const x = -q - r;
+    let rq = Math.round(q); let rr = Math.round(r); const rx = Math.round(x);
+    const dq = Math.abs(rq - q); const dr = Math.abs(rr - r); const dx = Math.abs(rx - x);
+    if (dq > dr && dq > dx) rq = -rr - rx; else if (dr > dx) rr = -rq - rx;
+    const c = hexAt(HEX7, rq, rr);
+    if (c >= 0 && !out.includes(c)) out.push(c);
+  }
+  return out;
+}
+
+/**
+ * M07 六角領域。収録の「参加者6人」は 6 人の時だけ使い、違えば字幕だけにする。
+ * 収録はまとめ録りではなく 1 本ずつ（本人の対応表と、発話内容で 07・09 を対応づけた）。
+ */
+function m07Voiced(ctx: TutCtx = {}): VoicedGuide {
+  const players = playersOf(ctx);
+  const seats = [0, 1, 2, 3, 4, 5];
+  const base = () => { const o = new Array<number>(HEX7.cells.length).fill(-1); seats.forEach((x) => { o[hexStart(x)] = x; }); return o; };
+  const at = (q: number, r: number) => hexAt(HEX7, q, r);
+  const withCells = (list: [number, number, number][]) => { const o = base(); for (const [q, r, x] of list) o[at(q, r)] = x; return o; };
+  const placer = (owner: number[], size = 24, fresh: number[] = [], tiles: string[] = []) => new TilePlacer({ owner, seat: 0, seats, tiles, cap: 4, size, active: false, fresh, sel: { rot: 0 }, onChange: () => {} });
+  const fig = (owner: number[], size = 24, fresh: number[] = []) => placer(owner, size, fresh).board;
+  const mine: [number, number, number][] = [[3, 0, 0], [3, 1, 0]];
+  const center = HEX7.cells.map((_, c) => c).filter(isCenter);
+  const link = hexLine(hexStart(0), beaconCell(0));
+  const linked = () => { const o = base(); link.forEach((c) => { o[c] = 0; }); return o; };
+  /** 置く操作の板（操作の段階と練習で使う）。置けたら task が済む */
+  const placeBoard = (tilesStart: string[], cap: number): { el: HTMLElement; task: Promise<void> } => {
+          let done: () => void = () => undefined;
+          const task = new Promise<void>((res) => { done = res; });
+          const box = h('div', { class: 'hx7 prac' });
+          let owner = withCells(mine);
+          const sel: PlacerSel = { rot: 0 };
+          let placed = false;
+          const draw = (): void => {
+            clear(box);
+            const foot = h('div', { class: 'hx7-foot' });
+            const note = h('div', { class: 'small hx7-note' });
+            const upd = (): void => {
+              const g = pl.ghost();
+              note.textContent = placed ? t('tut.m07.pracDone') : !sel.shape ? t('m07.howPick', { n: cap }) : !g ? t('m07.howPut') : g.ok ? t('m07.howOk', { n: g.cells.length }) : t('m07.howBad');
+              clear(foot);
+              if (placed) return;
+              foot.append(
+                button('⟲', () => pl.rotate(-1), { small: true, disabled: !sel.shape }),
+                button('⟳', () => pl.rotate(1), { small: true, disabled: !sel.shape }),
+                button(t('m07.put'), () => {
+                  const gg = pl.ghost();
+                  if (!gg?.ok) return;
+                  owner = [...owner];
+                  for (const c of gg.cells) owner[c] = 0;
+                  placed = true;
+                  Sound.se('chip');
+                  draw();
+                  done();
+                }, { kind: 'primary', disabled: !g?.ok }));
+            };
+            const pl = new TilePlacer({ owner, seat: 0, seats, tiles: placed ? [] : tilesStart, cap, size: 24, active: !placed, sel, onChange: upd });
+            upd();
+            box.append(h('div', { class: 'hx7-left' }, pl.board), h('div', { class: 'hx7-panel' }, pl.tray, note, foot));
+          };
+          draw();
+    return { el: box, task };
+  };
+  return {
+    name: '六角領域',
+    steps: [
+      { id: 'title', title: t('vt.m07.title'), build: () => ({ el: titleCard('07', '六角領域', 'HEX DOMAIN') }) },
+      {
+        id: 'board', title: t('vt.m07.board'),
+        facts: { players: players.length },
+        alt: () => ({ text: t('vt.m07.boardAlt', { n: players.length }) }),
+        build: () => {
+          const el = h('div', { class: 'row', style: 'gap:22px;align-items:center' }, fig(base(), 26),
+            col(factRow(fact('cells', String(HEX7.cells.length), t('vt.m07.cells'))), cap('tower', t('vt.m07.tower'))));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-f="cells"]') }, { at: 0.55, run: () => focus(el, '[data-k="tower"]') }] };
+        },
+      },
+      {
+        id: 'start_tiles', title: t('vt.m07.tiles'),
+        build: () => {
+          const pl = placer(base(), 20, [hexStart(0)], START_TILES);
+          const el = h('div', { class: 'row', style: 'gap:22px;align-items:center' }, pl.board, col(h('div', { 'data-k': 'tray' }, pl.tray), cap('size', t('vt.m07.sizes'))));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '.hx7-board, svg') }, { at: 0.35, run: () => focus(el, '[data-k="tray"]') }, { at: 0.8, run: () => focus(el, '[data-k="size"]') }] };
+        },
+      },
+      {
+        id: 'placement', title: t('vt.m07.place'),
+        build: () => {
+          const el = h('div', { class: 'tg-row' },
+            h('div', { class: 'tg-fig ok' }, fig(withCells([...mine, [2, 1, 0], [2, 0, 0], [1, 1, 0]]), 20, [at(2, 1), at(2, 0), at(1, 1)]), h('div', { class: 'tg-mark ok' }, '○'), h('div', { class: 'tg-cap' }, t('tut.m07.ok'))),
+            h('div', { class: 'tg-fig ng' }, fig(withCells([...mine, [0, 1, 0], [0, 2, 0], [-1, 2, 0]]), 20, [at(0, 1), at(0, 2), at(-1, 2)]), h('div', { class: 'tg-mark ng' }, '✕'), h('div', { class: 'tg-cap' }, t('tut.m07.ng'))));
+          return { el, cues: [{ at: 0.3, run: () => focus(el, '.tg-fig.ok') }, { at: 0.65, run: () => focus(el, '.tg-fig.ng') }] };
+        },
+      },
+      {
+        id: 'controls', title: t('vt.m07.controls'),
+        build: () => {
+          const { el: box, task } = placeBoard(['two'], 2);
+          return { el: box, task, prompt: t('vt.m07.doPlace'), cues: [{ at: 0.05, run: () => focus(box, '.hx7-panel') }, { at: 0.5, run: () => focus(box, '.hx7-foot') }] };
+        },
+      },
+      {
+        id: 'size_limit', title: t('vt.m07.limit'),
+        build: () => {
+          const el = h('div', { class: 'row', style: 'gap:10px' }, [['1', '1'], ['2', '2'], ['3', '3'], ['4', '1〜4']].map(([r, v]) => chip(`r${r}`, t('vt.m07.round', { n: r }), v)));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-k="r1"]') }, { at: 0.35, run: () => focus(el, '[data-k="r2"]') }, { at: 0.5, run: () => focus(el, '[data-k="r3"]') }, { at: 0.7, run: () => focus(el, '[data-k="r4"]') }] };
+        },
+      },
+      {
+        id: 'turns_pass', title: t('vt.m07.turns'),
+        build: () => {
+          const el = col(h('div', { class: 'col vt-tiers', style: 'gap:8px;align-items:stretch' }, h('div', { class: 'tg-cap', 'data-k': 'low' }, t('vt.m07.lowFirst')), h('div', { class: 'tg-cap', 'data-k': 'lot' }, t('vt.m07.lots'))),
+            h('span', { class: 'btn', 'data-k': 'pass' }, t('vt.m07.pass')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-k="low"]') }, { at: 0.4, run: () => focus(el, '[data-k="lot"]') }, { at: 0.65, run: () => focus(el, '[data-k="pass"]') }] };
+        },
+      },
+      {
+        id: 'area_score', title: t('vt.m07.score'),
+        build: () => {
+          const el = h('div', { class: 'row', style: 'gap:22px;align-items:center' }, fig(base(), 22, center), factRow(fact('one', '+1', t('tut.m07.f1')), fact('center', `+${CENTER_PTS}`, t('tut.m07.f2'))));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-f="one"]') }, { at: 0.5, run: () => focus(el, '[data-f="center"]') }] };
+        },
+      },
+      {
+        id: 'link_goal', title: t('vt.m07.link'),
+        build: () => {
+          const el = h('div', { class: 'row', style: 'gap:22px;align-items:center' }, fig(base(), 22, [hexStart(0), beaconCell(0)]), col(factRow(fact('link', `+${LINK_PTS}`, t('tut.m07.f3'))), cap('lost', t('vt.m07.lost'))));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, 'svg') }, { at: 0.4, run: () => { el.firstElementChild?.replaceWith(fig(linked(), 22, link)); focus(el, '[data-f="link"]'); } }, { at: 0.75, run: () => focus(el, '[data-k="lost"]') }] };
+        },
+      },
+      {
+        id: 'negotiation', title: t('vt.m07.talk'),
+        build: () => {
+          const el = col(factRow(fact('break', String(M07_BREAK_MS / 1000), t('vt.m07.breakSec'))), cap('promise', t('vt.m07.promise')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-f="break"]') }, { at: 0.7, run: () => focus(el, '[data-k="promise"]') }] };
+        },
+      },
+      {
+        id: 'piece_help', title: t('vt.m07.aid'),
+        build: () => {
+          const a = placer(base(), 16, [], ['line3']);
+          const b = placer(base(), 16, [], ['bend3', 'tri3']);
+          const el = col(h('div', { class: 'row', style: 'gap:14px;align-items:center' }, h('div', { 'data-k': 'old' }, a.tray), h('span', { class: 'tg-arrow' }, '→'), h('div', { 'data-k': 'new' }, b.tray)),
+            h('div', { class: 'm01-score' }, chip('cost', t('vt.m04.aidChip'), String(M07_AID_COST))), cap('once', t('vt.m07.once')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-k="cost"]') }, { at: 0.3, run: () => focus(el, '[data-k="new"]') }, { at: 0.7, run: () => focus(el, '[data-k="once"]') }] };
+        },
+      },
+      {
+        id: 'end_ranking', title: t('vt.m07.end'),
+        build: () => {
+          const el = h('div', { class: 'row', style: 'gap:22px;align-items:center' }, factRow(fact('rounds', String(M07_ROUNDS), t('vt.m07.maxRounds'))),
+            h('div', { class: 'col vt-tiers', style: 'gap:8px;align-items:stretch' }, ['tie1', 'tie2', 'tie3', 'tie4'].map((k, i) => h('div', { class: 'tg-cap', 'data-k': k }, `${i + 1}. ${t(`vt.m07.${k}`)}`))));
+          return { el, cues: [{ at: 0.02, run: () => focus(el, '[data-f="rounds"]') }, { at: 0.35, run: () => focus(el, '[data-k="tie1"]') }, { at: 0.55, run: () => focus(el, '[data-k="tie2"]') }, { at: 0.8, run: () => focus(el, '[data-k="tie3"]') }] };
+        },
+      },
+      {
+        // 収録に無い段階（字幕と盤面だけ）。tutorial.ts の練習と同じ
+        id: 'practice', title: t('tut.practice'), text: t('tut.m07.practice'),
+        build: () => {
+          const { el, task } = placeBoard(['bend3', 'line3'], 3);
+          return { el, task, prompt: t('tut.m07.practice'), final: true };
+        },
+      },
+    ],
+  };
+}
+
+/**
+ * M08 バリケード。声は 1 本にまとめて届いたものを、説明ごとに区切って使う（docs/voice/m08_segments.csv）。
+ * 収録の「参加者5人」は 5 人の時だけ使い、違えば字幕だけにする。
+ */
+function m08Voiced(ctx: TutCtx = {}): VoicedGuide {
+  const players = playersOf(ctx);
+  const seats = [0, 1, 2, 3, 4];
+  const noWalls = () => new Array<boolean>(M08_EDGES.length).fill(false);
+  const starts = () => seats.map(m08Start);
+  const fig = (pos: number[], walls: boolean[], scale = 0.6, canMove: number[] = []) => ringBoard({ seats, pos, walls, me: 0, mode: canMove.length ? 'move' : 'none', canMove, canWall: [], showPath: true, scale });
+  const swap = (el: HTMLElement, next: HTMLElement) => { el.firstElementChild?.replaceWith(next); };
+  const jumpPos = () => { const p = starts(); p[0] = m08Node(3, 1); p[1] = m08Node(3, 2); return p; };
+  const oneWall = () => { const w = noWalls(); w[m08Edge(m08Node(3, 1), m08Node(3, 2))] = true; return w; };
+  return {
+    name: 'バリケード',
+    steps: [
+      { id: 'title', title: t('vt.m08.title'), build: () => ({ el: titleCard('08', 'バリケード', 'BARRICADE') }) },
+      {
+        id: 'board', title: t('vt.m08.board'),
+        facts: { players: players.length },
+        alt: () => ({ text: t('vt.m08.boardAlt', { n: players.length }) }),
+        build: () => {
+          const el = h('div', { class: 'vt-demo' }, fig(starts(), noWalls(), 0.72));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, 'svg') }] };
+        },
+      },
+      {
+        id: 'actions', title: t('vt.m08.actions'),
+        build: () => {
+          const el = col(h('div', { class: 'row', style: 'gap:14px' }, chip('move', t('vt.m08.aMove'), '1'), chip('wall', t('vt.m08.aWall'), '1')), factRow(fact('walls', String(M08_WALLS), t('vt.m08.walls'))));
+          return { el, cues: [{ at: 0.1, run: () => focus(el, '[data-k="move"]') }, { at: 0.3, run: () => focus(el, '[data-k="wall"]') }, { at: 0.75, run: () => focus(el, '[data-f="walls"]') }] };
+        },
+      },
+      {
+        id: 'move', title: t('vt.m08.move'),
+        build: () => {
+          const st = { players: seats.map((x) => `p${x}` as CharId), seats, pos: starts(), walls: noWalls(), wallsLeft: seats.map(() => 3), arrived: seats.map(() => -1) };
+          const el = h('div', { class: 'vt-demo' }, fig(starts(), noWalls(), 0.68, m08Moves(st, 0)));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, 'svg') }] };
+        },
+      },
+      {
+        id: 'jump', title: t('vt.m08.jump'),
+        build: () => {
+          const el = h('div', { class: 'row', style: 'gap:22px;align-items:center' }, fig(jumpPos(), noWalls(), 0.6), cap('jump', t('tut.m08.jumpCap')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, 'svg') }, { at: 0.5, run: () => focus(el, '[data-k="jump"]') }] };
+        },
+      },
+      {
+        id: 'walls', title: t('vt.m08.wallsT'),
+        build: () => {
+          const el = h('div', { class: 'row', style: 'gap:22px;align-items:center' }, fig(starts(), noWalls(), 0.6), cap('wall', t('tut.m08.wallCap')));
+          return { el, cues: [{ at: 0.05, run: () => { swap(el, fig(starts(), oneWall(), 0.6)); focus(el, 'svg'); } }, { at: 0.5, run: () => focus(el, '[data-k="wall"]') }] };
+        },
+      },
+      {
+        id: 'no_block', title: t('vt.m08.noBlock'),
+        build: () => {
+          const el = h('div', { class: 'row', style: 'gap:22px;align-items:center' }, fig(starts(), oneWall(), 0.55), cap('ng', t('vt.m08.noBlockNote')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-k="ng"]') }] };
+        },
+      },
+      {
+        id: 'time', title: t('vt.m08.time'),
+        build: () => {
+          const el = col(factRow(fact('sec', String(M08_MOVE_MS / 1000), t('vt.m08.sec'))), cap('auto', t('vt.m08.auto')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-f="sec"]') }, { at: 0.35, run: () => focus(el, '[data-k="auto"]') }] };
+        },
+      },
+      {
+        id: 'order', title: t('vt.m08.order'),
+        build: () => {
+          const el = h('div', { class: 'col vt-tiers', style: 'gap:8px;align-items:stretch' }, h('div', { class: 'tg-cap', 'data-k': 'first' }, t('vt.m08.first')), h('div', { class: 'tg-cap', 'data-k': 'goal' }, t('vt.m08.goalOut')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-k="first"]') }, { at: 0.45, run: () => focus(el, '[data-k="goal"]') }] };
+        },
+      },
+      {
+        id: 'talk', title: t('vt.m08.talk'),
+        build: () => {
+          const el = col(factRow(fact('break', String(M08_BREAK_MS / 1000), t('vt.m08.breakSec'))), cap('promise', t('vt.m07.promise')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-f="break"]') }, { at: 0.75, run: () => focus(el, '[data-k="promise"]') }] };
+        },
+      },
+      {
+        id: 'end', title: t('vt.m08.end'),
+        build: () => {
+          const el = col(factRow(fact('rounds', String(M08_ROUNDS), t('vt.m08.maxRounds'))), cap('none', t('vt.m08.noAid')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-f="rounds"]') }, { at: 0.75, run: () => focus(el, '[data-k="none"]') }] };
+        },
+      },
+      {
+        id: 'ranking', title: t('vt.m08.ranking'),
+        build: () => {
+          const el = h('div', { class: 'col vt-tiers', style: 'gap:8px;align-items:stretch' }, ['r1', 'r2', 'r3', 'r4', 'r5'].map((k, i) => h('div', { class: 'tg-cap', 'data-k': k }, `${i + 1}. ${t(`vt.m08.${k}`)}`)));
+          return { el, cues: [{ at: 0.02, run: () => focus(el, '[data-k="r1"]') }, { at: 0.2, run: () => focus(el, '[data-k="r2"]') }, { at: 0.45, run: () => focus(el, '[data-k="r3"]') }, { at: 0.75, run: () => focus(el, '[data-k="r4"]') }] };
+        },
+      },
+      {
+        // 収録に無い段階（字幕と盤面だけ）。tutorial.ts の練習と同じ
+        id: 'practice', title: t('tut.practice'), text: t('tut.m08.practice'),
+        build: () => {
+          let finish: () => void = () => undefined;
+          const task = new Promise<void>((res) => { finish = res; });
+          const box = h('div', { class: 'hx7 rb7 prac' });
+          const st = { players: seats.map((x) => `p${x}` as CharId), seats, pos: starts(), walls: noWalls(), wallsLeft: seats.map(() => 3), arrived: seats.map(() => -1) };
+          let step = 0;
+          let mode: 'move' | 'wall' = 'move';
+          let node: number | undefined;
+          let edge: number | undefined;
+          const draw = (): void => {
+            clear(box);
+            const canMove = step === 0 ? m08Moves(st, 0) : [];
+            const canWall = step === 1 && mode === 'wall' ? m08Walls(st, 0) : [];
+            const board = ringBoard({ seats, pos: st.pos, walls: st.walls, me: 0, mode: step === 0 ? 'move' : step === 1 && mode === 'wall' ? 'wall' : 'none', canMove, canWall, selNode: node, selEdge: edge, showPath: true, scale: 0.7 },
+              (n) => { if (step !== 0 || !canMove.includes(n)) return; node = n; Sound.se('select'); draw(); },
+              (e) => { if (step !== 1) return; edge = e; Sound.se('select'); draw(); });
+            const foot = h('div', { class: 'hx7-foot' });
+            if (step === 0) foot.append(button(t('m08.doMove'), () => { if (node === undefined) return; st.pos[0] = node; node = undefined; step = 1; Sound.se('chip'); draw(); }, { kind: 'primary', disabled: node === undefined }));
+            else if (step === 1) foot.append(
+              button(t('m08.modeWall', { n: 3 }), () => { mode = 'wall'; Sound.se('click'); draw(); }, { small: true, kind: mode === 'wall' ? 'primary' : undefined }),
+              button(t('m08.doWall'), () => { if (edge === undefined) return; st.walls[edge] = true; edge = undefined; step = 2; Sound.se('chipsHit'); draw(); finish(); }, { kind: 'primary', disabled: edge === undefined }));
+            box.append(h('div', { class: 'hx7-left' }, board), h('div', { class: 'hx7-panel' }, h('div', { class: `small fb-note${step === 2 ? ' gold' : ''}` }, t(step === 0 ? 'tut.m08.prac1' : step === 1 ? 'tut.m08.prac2' : 'tut.m08.pracDone')), foot));
+          };
+          draw();
+          return { el: box, task, prompt: t('tut.m08.practice'), final: true };
+        },
+      },
+    ],
+  };
+}
+
+/** 練習の段階（声は無く字幕だけ）。今までの説明（tutorial.ts）の練習をそのまま使う */
+function practiceStep(id: string): VoicedStep {
+  const p = practiceOf(id);
+  return {
+    id: 'practice', title: t('tut.practice'), text: p?.text ?? '',
+    build: () => {
+      let finish: () => void = () => undefined;
+      const task = new Promise<void>((res) => { finish = res; });
+      return { el: p ? p.build(() => finish()) : h('div'), task, prompt: p?.text, final: true };
+    },
+  };
+}
+
+/**
+ * M09 四王の戦場・改。声は 1 本にまとめて届いたものを区切って使う（docs/voice/m09_segments.csv）。
+ * 収録の「参加者4人」は 4 人の時だけ使い、違えば字幕だけにする。
+ */
+function m09Voiced(ctx: TutCtx = {}): VoicedGuide {
+  const players = playersOf(ctx);
+  const at = (x: number, y: number) => y * 7 + x;
+  const toBoard = (ps: M09Piece[]) => ps.map((p) => ({ pos: p.pos, seat: p.seat, kind: p.king ? 'king' as const : 'soldier' as const }));
+  const fig = (ps: M09Piece[], cell: number, marks: Record<number, string> = {}) => pieceBoard({ n: 7, cell, pieces: toBoard(ps), colors: M09_COLORS, me: 0, marks: { [M09_CENTER]: 'center', ...marks } });
+  const mid: M09Piece[] = [{ seat: 0, king: true, pos: at(0, 0) }, { seat: 0, king: false, pos: at(2, 3) }, { seat: 1, king: false, pos: at(3, 3) }, { seat: 1, king: true, pos: at(6, 0) }];
+  const kingMoves = (c: number) => { const x = c % 7; const y = Math.floor(c / 7); const m: Record<number, string> = { [c]: 'sel' }; for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) if ((dx || dy) && x + dx >= 0 && x + dx < 7 && y + dy >= 0 && y + dy < 7) m[at(x + dx, y + dy)] = 'can'; return m; };
+  const soldierMoves = (c: number) => { const x = c % 7; const y = Math.floor(c / 7); const m: Record<number, string> = { [c]: 'sel' }; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (x + dx >= 0 && x + dx < 7 && y + dy >= 0 && y + dy < 7) m[at(x + dx, y + dy)] = 'can'; return m; };
+  const tiers = (keys: string[], prefix: string) => h('div', { class: 'col vt-tiers', style: 'gap:8px;align-items:stretch' }, keys.map((k, i) => h('div', { class: 'tg-cap', 'data-k': k }, `${i + 1}. ${t(`${prefix}.${k}`)}`)));
+  return {
+    name: '四王の戦場・改',
+    steps: [
+      { id: 'title', title: t('vt.m09.title'), build: () => ({ el: titleCard('09', '四王の戦場・改', 'FOUR KINGS') }) },
+      {
+        id: 'board', title: t('vt.m09.board'),
+        facts: { players: players.length },
+        alt: () => ({ text: t('vt.m09.boardAlt', { n: players.length }) }),
+        build: () => {
+          const el = h('div', { class: 'vt-demo' }, fig(m09Start([0, 1, 2, 3]), 50));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '.vt-demo > *') }] };
+        },
+      },
+      {
+        id: 'move', title: t('vt.m09.move'),
+        build: () => {
+          const ps: M09Piece[] = [{ seat: 0, king: true, pos: at(2, 3) }, { seat: 0, king: false, pos: at(5, 3) }];
+          const el = h('div', { class: 'vt-demo' }, fig(ps, 50, kingMoves(at(2, 3))));
+          return { el, cues: [{ at: 0.45, run: () => { el.replaceChildren(fig(ps, 50, soldierMoves(at(5, 3)))); } }] };
+        },
+      },
+      {
+        id: 'capture', title: t('vt.m09.capture'),
+        build: () => {
+          const el = h('div', { class: 'row', style: 'gap:22px;align-items:center' }, fig(mid, 40, { [at(2, 3)]: 'sel', [at(3, 3)]: 'center can cap' }),
+            factRow(fact('king', `+${KING_PTS}`, t('tut.m09.f2')), fact('soldier', `+${SOLDIER_PTS}`, t('tut.m09.f1'))));
+          return { el, cues: [{ at: 0.3, run: () => { el.firstElementChild?.replaceWith(fig([mid[0], { seat: 0, king: false, pos: at(3, 3) }, mid[3]], 40, { [at(2, 3)]: 'from', [at(3, 3)]: 'center to hit' })); } }, { at: 0.65, run: () => focus(el, '[data-f="king"]') }, { at: 0.85, run: () => focus(el, '[data-f="soldier"]') }] };
+        },
+      },
+      {
+        id: 'king_lost', title: t('vt.m09.kingLost'),
+        build: () => {
+          const el = col(cap('go', t('vt.m09.kingLostNote')));
+          el.prepend(fig([{ seat: 0, king: false, pos: at(1, 5) }, { seat: 0, king: false, pos: at(2, 4) }, { seat: 1, king: true, pos: at(5, 1) }], 36));
+          return { el, cues: [{ at: 0.3, run: () => focus(el, '[data-k="go"]') }] };
+        },
+      },
+      {
+        id: 'center', title: t('vt.m09.center'),
+        build: () => {
+          const el = h('div', { class: 'row', style: 'gap:22px;align-items:center' }, fig([{ seat: 0, king: false, pos: M09_CENTER }], 40), factRow(fact('c', `+${M09_CENTER_PTS}`, t('tut.m09.f3'))));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-f="c"]') }] };
+        },
+      },
+      {
+        id: 'alive', title: t('vt.m09.alive'),
+        build: () => {
+          const el = factRow(fact('alive', `+${ALIVE_PTS}`, t('tut.m09.f4')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-f="alive"]') }] };
+        },
+      },
+      {
+        id: 'time', title: t('vt.m08.time'),
+        build: () => {
+          const el = col(factRow(fact('sec', String(M09_MOVE_MS / 1000), t('vt.m08.sec'))), cap('auto', t('vt.m09.auto')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-f="sec"]') }, { at: 0.4, run: () => focus(el, '[data-k="auto"]') }] };
+        },
+      },
+      {
+        id: 'order', title: t('vt.m09.order'),
+        build: () => {
+          const el = tiers(['first', 'out'], 'vt.m09');
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-k="first"]') }, { at: 0.35, run: () => focus(el, '[data-k="out"]') }] };
+        },
+      },
+      {
+        id: 'talk', title: t('vt.m08.talk'),
+        build: () => {
+          const el = col(factRow(fact('break', String(M09_BREAK_MS / 1000), t('vt.m09.breakSec'))), cap('promise', t('vt.m07.promise')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-f="break"]') }, { at: 0.75, run: () => focus(el, '[data-k="promise"]') }] };
+        },
+      },
+      {
+        id: 'end', title: t('vt.m08.end'),
+        build: () => {
+          const el = col(factRow(fact('rounds', String(M09_ROUNDS), t('vt.m09.maxRounds'))), cap('none', t('vt.m08.noAid')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-f="rounds"]') }, { at: 0.8, run: () => focus(el, '[data-k="none"]') }] };
+        },
+      },
+      {
+        id: 'ranking', title: t('vt.m08.ranking'),
+        build: () => {
+          const el = tiers(['r1', 'r2', 'r3', 'r4', 'r5'], 'vt.m09');
+          return { el, cues: [{ at: 0.02, run: () => focus(el, '[data-k="r1"]') }, { at: 0.25, run: () => focus(el, '[data-k="r2"]') }, { at: 0.6, run: () => focus(el, '[data-k="r3"]') }, { at: 0.8, run: () => focus(el, '[data-k="r4"]') }] };
+        },
+      },
+      practiceStep('m09'),
+    ],
+  };
+}
+
+/**
+ * M10 トライアングル。声は 1 本にまとめて届いたものを区切って使う（docs/voice/m10_segments.csv）。
+ * 収録の「参加者3人」は 3 人の時だけ使い、違えば字幕だけにする。終わりの加点は、声では画面の説明を案内している（図に出す）。
+ */
+function m10Voiced(ctx: TutCtx = {}): VoicedGuide {
+  const players = playersOf(ctx);
+  const carry: M10Board = { soldiers: [{ seat: 0, pos: 1, gem: 0 }, { seat: 0, pos: 2, gem: -1 }, { seat: 1, pos: 7, gem: -1 }, { seat: 2, pos: 8, gem: -1 }], ground: [], waiting: [0], delivered: [0, 0, 0] };
+  const fight: M10Board = { soldiers: [{ seat: 0, pos: 4, gem: -1 }, { seat: 0, pos: 2, gem: -1 }, { seat: 1, pos: 7, gem: 1 }, { seat: 1, pos: 11, gem: -1 }, { seat: 2, pos: 9, gem: -1 }, { seat: 2, pos: 13, gem: -1 }], ground: [{ node: 8, id: 2 }], waiting: [], delivered: [0, 0, 0] };
+  const fig = (b: M10Board, marks: Record<number, string> = {}, flagMarks: Record<number, string> = {}, scale = 0.6) => triBoard({ board: b, seats: [0, 1, 2], me: 0, marks, flagMarks, scale });
+  const side = (b: HTMLElement, ...rest: HTMLElement[]) => h('div', { class: 'row', style: 'gap:22px;align-items:center' }, b, col(...rest));
+  const tiers = (keys: string[]) => h('div', { class: 'col vt-tiers', style: 'gap:8px;align-items:stretch' }, keys.map((k, i) => h('div', { class: 'tg-cap', 'data-k': k }, `${i + 1}. ${t(`vt.m10.${k}`)}`)));
+  return {
+    name: 'トライアングル',
+    steps: [
+      { id: 'title', title: t('vt.m10.title'), build: () => ({ el: titleCard('10', 'トライアングル', 'TRIANGLE') }) },
+      {
+        id: 'board', title: t('vt.m10.board'),
+        facts: { players: players.length },
+        alt: () => ({ text: t('vt.m10.boardAlt', { n: players.length }) }),
+        build: () => {
+          const el = h('div', { class: 'vt-demo' }, fig(m10Start([0, 1, 2]), {}, {}, 0.7));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '.vt-demo > *') }] };
+        },
+      },
+      {
+        id: 'move', title: t('vt.m10.move'),
+        build: () => {
+          const el = side(fig(m10Start([0, 1, 2]), { 1: 'sel', 3: 'can', 4: 'can' }), cap('no', t('vt.m10.noEnter')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, 'svg') }, { at: 0.55, run: () => focus(el, '[data-k="no"]') }] };
+        },
+      },
+      {
+        id: 'gems', title: t('vt.m10.gems'),
+        build: () => {
+          const el = side(fig(m10Start([0, 1, 2]), { 4: 'can' }), cap('one', t('vt.m10.oneGem')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, 'svg') }, { at: 0.75, run: () => focus(el, '[data-k="one"]') }] };
+        },
+      },
+      {
+        id: 'deliver', title: t('vt.m10.deliver'),
+        build: () => {
+          const el = side(fig(carry, { 1: 'sel' }, { 0: 'deliver' }), factRow(fact('d', `+${DELIVER_PTS}`, t('tut.m10.f1'))), cap('act', t('vt.m10.oneAct')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, 'svg') }, { at: 0.45, run: () => focus(el, '[data-f="d"]') }, { at: 0.75, run: () => focus(el, '[data-k="act"]') }] };
+        },
+      },
+      {
+        id: 'respawn', title: t('vt.m10.respawn'),
+        build: () => {
+          const el = col(factRow(fact('uses', String(GEM_USES), t('vt.m10.uses'))), cap('legend', t('m10.legend')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-k="legend"]') }, { at: 0.55, run: () => focus(el, '[data-f="uses"]') }] };
+        },
+      },
+      {
+        id: 'capture', title: t('vt.m10.capture'),
+        build: () => {
+          const el = side(fig(fight, { 4: 'sel', 7: 'can cap' }), factRow(fact('peace', String(PEACE), t('vt.m10.peace')), fact('cap', `+${CAP_PTS}`, t('tut.m10.f2'))), cap('drop', t('vt.m10.drop')));
+          return { el, cues: [{ at: 0.03, run: () => focus(el, '[data-f="peace"]') }, { at: 0.2, run: () => focus(el, 'svg') }, { at: 0.45, run: () => focus(el, '[data-f="cap"]') }, { at: 0.65, run: () => focus(el, '[data-k="drop"]') }] };
+        },
+      },
+      {
+        id: 'time', title: t('vt.m08.time'),
+        build: () => {
+          const el = col(factRow(fact('sec', String(M10_MOVE_MS / 1000), t('vt.m08.sec'))), cap('auto', t('vt.m10.auto')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-f="sec"]') }, { at: 0.35, run: () => focus(el, '[data-k="auto"]') }] };
+        },
+      },
+      {
+        id: 'talk', title: t('vt.m10.talk'),
+        build: () => {
+          const el = col(cap('first', t('vt.m08.first')), factRow(fact('break', String(M10_BREAK_MS / 1000), t('vt.m08.breakSec'))), cap('coop', t('vt.m10.coop')));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-k="first"]') }, { at: 0.3, run: () => focus(el, '[data-f="break"]') }, { at: 0.65, run: () => focus(el, '[data-k="coop"]') }] };
+        },
+      },
+      {
+        id: 'lost', title: t('vt.m10.lost'),
+        build: () => {
+          const el = col(cap('lost', t('vt.m10.lostNote')));
+          el.prepend(fig({ soldiers: [{ seat: 1, pos: 7, gem: -1 }, { seat: 2, pos: 13, gem: -1 }], ground: [{ node: 4, id: 0 }, { node: 7, id: 1 }, { node: 8, id: 2 }], waiting: [], delivered: [0, 0, 0] }, {}, {}, 0.5));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-k="lost"]') }] };
+        },
+      },
+      {
+        id: 'end', title: t('vt.m08.end'),
+        build: () => {
+          const el = col(factRow(fact('rounds', String(M10_ROUNDS), t('vt.m02.rounds'))), factRow(fact('hold', `+${HOLD_PTS}`, t('tut.m10.f3')), fact('home', `+${HOME_PTS}`, t('tut.m10.f4'))));
+          return { el, cues: [{ at: 0.05, run: () => focus(el, '[data-f="rounds"]') }, { at: 0.35, run: () => focus(el, '[data-f="hold"]') }, { at: 0.55, run: () => focus(el, '[data-f="home"]') }] };
+        },
+      },
+      {
+        id: 'ranking', title: t('vt.m08.ranking'),
+        build: () => {
+          const el = tiers(['r1', 'r2', 'r3', 'r4']);
+          return { el, cues: [{ at: 0.02, run: () => focus(el, '[data-k="r1"]') }, { at: 0.25, run: () => focus(el, '[data-k="r2"]') }, { at: 0.65, run: () => focus(el, '[data-k="r3"]') }] };
+        },
+      },
+      {
+        id: 'no_aid', title: t('vt.m10.noAidT'),
+        build: () => {
+          const el = col(cap('none', t('vt.m08.noAid')));
+          el.prepend(titleCard('10', 'トライアングル', 'TRIANGLE'));
+          return { el, cues: [{ at: 0.1, run: () => focus(el, '[data-k="none"]') }] };
+        },
+      },
+      practiceStep('m10'),
+    ],
+  };
+}
+
 /** 競技 ID → 説明。ctx はその場の順番と参加者（無ければ収録どおりの場面とみなす） */
-export const VOICED: Record<string, (ctx?: TutCtx) => VoicedGuide> = { m01: m01Voiced, m02: m02Voiced, m03: m03Voiced, m04: m04Voiced, m05: m05Voiced, m06: m06Voiced };
+export const VOICED: Record<string, (ctx?: TutCtx) => VoicedGuide> = { m01: m01Voiced, m02: m02Voiced, m03: m03Voiced, m04: m04Voiced, m05: m05Voiced, m06: m06Voiced, m07: m07Voiced, m08: m08Voiced, m09: m09Voiced, m10: m10Voiced };

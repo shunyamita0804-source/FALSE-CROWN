@@ -39,7 +39,7 @@ import { condList } from './games/p08';
 import { P09_PRACTICE, expected as p09Expected, scoreOf as p09Score, type Mirror } from '../matches/p09';
 import { toolBar as p09Tools } from './games/p09';
 import { MirrorBoard } from './mirrorboard';
-import { DELIVER_PTS as M10_DELIVER, M10_PRACTICE, actsOf as m10Acts, applyAct as m10Apply, startBoard as m10Start, type Board as M10Board } from '../matches/m10';
+import { DELIVER_PTS as M10_DELIVER, HOME_PTS as M10_HOME, M10_PRACTICE, actsOf as m10Acts, applyAct as m10Apply, startBoard as m10Start, type Board as M10Board } from '../matches/m10';
 import { triBoard } from './triboard';
 import { CENTERS as P10_CENTERS, applyStep as p10Apply, h06Start, startPieces as p10Start, stepsOf as p10Steps, type Piece as P10Piece } from '../matches/p10';
 import { P10_COLORS } from './games/p10';
@@ -896,7 +896,7 @@ function m10Guide(): Guide {
       { title: t('tut.m10.t1'), text: t('tut.m10.p1'), figure: () => fig(m10Start([0, 1, 2]), { 1: 'movable', 2: 'movable' }) },
       { title: t('tut.m10.t2'), text: t('tut.m10.p2'), figure: () => fig(carry, { 1: 'sel' }, { 0: 'deliver' }) },
       { title: t('tut.m10.t3'), text: t('tut.m10.p3'), figure: () => fig(fight, { 4: 'sel', 7: 'can cap' }) },
-      { title: t('tut.m10.t4'), text: t('tut.m10.p4'), figure: () => facts([['+4', t('tut.m10.f1')], ['+1', t('tut.m10.f2')], ['+1', t('tut.m10.f3')], ['+1', t('tut.m10.f4')]]) },
+      { title: t('tut.m10.t4'), text: t('tut.m10.p4'), figure: () => facts([['+4', t('tut.m10.f1')], ['+1', t('tut.m10.f2')], ['+1', t('tut.m10.f3')], [`+${M10_HOME}`, t('tut.m10.f4')]]) },
     ],
     practice: {
       text: t('tut.m10.practice'),
@@ -1080,6 +1080,8 @@ function m11Guide(): Guide {
 const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide, m07: m07Guide, p07: p07Guide, m08: m08Guide, p08: p08Guide, m09: m09Guide, p09: p09Guide, m10: m10Guide, p10: p10Guide, m11: m11Guide, h06: () => p10Guide(true), ...SUB_GUIDES, ...HIDDEN_GUIDES };
 
 export const hasGuide = (id: string) => id in GUIDES || id in VOICED;
+/** 今までの説明の練習（音声付きの説明の最後の段階で使い回す。声は無く字幕だけ） */
+export const practiceOf = (id: string): Guide['practice'] | null => GUIDES[id]?.().practice ?? null;
 
 /** 試合中の「ルール」から、音声付きの説明を見直す（無ければ false） */
 export function reviewVoiced(matchId: string, scene: TutCtx = {}): Promise<void> | null {
