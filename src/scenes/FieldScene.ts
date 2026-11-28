@@ -76,6 +76,8 @@ export class FieldScene extends Phaser.Scene {
   private flagsKey = '';
   private camTarget = new Phaser.Math.Vector2();
   target: Target = null;
+  /** 集合移動中の目印（次に通る扉の上の矢印） */
+  private guide: Phaser.GameObjects.Text | null = null;
 
   constructor() {
     super('Field');
@@ -242,6 +244,32 @@ export class FieldScene extends Phaser.Scene {
     for (const k of this.mapCache.slice(keep)) if (!near.has(k) && this.textures.exists(k)) this.textures.remove(k);
     this.mapCache = this.mapCache.filter((k) => this.textures.exists(k));
     for (const k of near) if (this.textures.exists(k) && !this.mapCache.includes(k)) this.mapCache.push(k);
+  }
+
+  /** 集合移動中：次に通る扉に「会場へ」の矢印を出す（部屋を移るたびに付け直す） */
+  private updateGuide(): void {
+    const d = G.gather?.next;
+    if (!d || !G.fieldVisible) {
+      if (this.guide) { this.guide.destroy(); this.guide = null; }
+      return;
+    }
+    const arrow = { up: '▲', down: '▼', left: '◀', right: '▶' }[d.dir];
+    if (!this.guide) {
+      this.guide = this.add.text(0, 0, '', { fontFamily: '"Noto Sans JP", "Hiragino Sans", sans-serif', fontSize: '22px', color: '#f1d88a', backgroundColor: 'rgba(8,12,28,0.82)', padding: { x: 9, y: 4 } }).setOrigin(0.5).setDepth(50);
+      this.guide.setResolution(Math.max(1, Math.ceil(this.view.zoom * 2) / 2));
+    }
+    const label = d.dir === 'left' || d.dir === 'right' ? `${arrow} ${t('gather.arrow')}` : `${t('gather.arrow')} ${arrow}`;
+    if (this.guide.text !== label) this.guide.setText(label);
+    const xs = d.tiles.map((p) => p.x);
+    const ys = d.tiles.map((p) => p.y);
+    const cx = ((Math.min(...xs) + Math.max(...xs)) / 2 + 0.5) * TILE;
+    const cy = ((Math.min(...ys) + Math.max(...ys)) / 2 + 0.5) * TILE;
+    // 扉の手前（部屋の内側）に、扉の方を指して出す
+    const off = { up: [0, 1.5], down: [0, -1.4], left: [1.6, -0.6], right: [-1.6, -0.6] }[d.dir];
+    const bob = Math.sin(performance.now() / 260) * 6;
+    const vx = d.dir === 'left' ? -bob : d.dir === 'right' ? bob : 0;
+    const vy = d.dir === 'up' ? -bob : d.dir === 'down' ? bob : 0;
+    this.guide.setPosition(cx + off[0] * TILE + vx, cy + off[1] * TILE + vy);
   }
 
   private clearRoom(): void {
@@ -698,6 +726,7 @@ export class FieldScene extends Phaser.Scene {
     G.tick(dt);
     if (hero.pos.room !== this.roomId) this.buildRoom();
     this.updateDoors();
+    this.updateGuide();
     this.syncActors(dt);
     this.target = control ? this.findTarget() : null;
     // カメラは主人公に遅れなく付ける（遅れて追う方式は、主人公と背景の動きがずれてガタついて見えるため使わない）

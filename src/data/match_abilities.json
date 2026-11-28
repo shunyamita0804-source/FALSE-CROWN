@@ -161,6 +161,26 @@
     },
     "tiebreak": {
       "main": "logic"
+    },
+    "q02": {
+      "main": "memory",
+      "sub": "observation",
+      "talk": "出題者のカテゴリ情報の取引（監獄版）"
+    },
+    "q03": {
+      "main": "logic",
+      "sub": "observation",
+      "talk": "ペアのヒント記号の共有・取引（監獄版）"
+    },
+    "q05": {
+      "main": "logic",
+      "sub": "strategy",
+      "talk": "組内の解法・出題候補の共有（監獄版）"
+    },
+    "mk": {
+      "main": "logic",
+      "sub": "strategy",
+      "talk": "見せ合い（確か）、聞く・伝える（嘘もある）、作戦時間"
     }
   }
 }

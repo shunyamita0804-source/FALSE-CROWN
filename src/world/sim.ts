@@ -7,7 +7,7 @@ import { ALL_IDS, type CharId } from '../data/characters';
 import { CONFIG } from '../data/config';
 import type { Actor, Dir, GameState } from '../core/types';
 import { canEnter, passFn } from './access';
-import { ROOMS, buildCollision, doorApproach, doorAt, doorDir, findDoor, type DoorDef } from './maps';
+import { RETIRED_ROOMS, ROOMS, buildCollision, isRetired, doorApproach, doorAt, doorDir, findDoor, type DoorDef } from './maps';
 import { findPath, nearestFree, roomRoute } from './path';
 import { cellOf, cellSpots, gateOpen, seatAllowed, type CellRef } from './cells';
 import { gateKey } from './furnitureGrid';
@@ -241,6 +241,14 @@ export function moveActor(state: GameState, a: Actor, dt: number, speed: number,
         const p = findPath(grid, a.pos, t, occ);
         if (p && (!best || p.length < best.length)) best = p;
       }
+      // 人で道がふさがって回り道も無い時（幅 1 マスの通路で向かい合った時など）は、人を無視した道を進み、
+      // 前の人とは下の「行き詰まり」の処理で入れ替わる
+      if (!best && a.id !== 'hero') {
+        for (const t of tiles) {
+          const p = findPath(grid, a.pos, t, new Set());
+          if (p && (!best || p.length < best.length)) best = p;
+        }
+      }
       if (!best) {
         a.route = [];
         break;
@@ -256,6 +264,9 @@ export function moveActor(state: GameState, a: Actor, dt: number, speed: number,
     }
     if (tryStep(state, a, dir)) {
       a.path.shift();
+      a.blockedAt = undefined;
+    } else if (a.id !== 'hero' && swapIfDeadlocked(state, a, nxt)) {
+      a.path.shift();
     } else {
       // 塞がれている：少し待って再探索
       const goal = a.path[a.path.length - 1];
@@ -269,6 +280,29 @@ export function moveActor(state: GameState, a: Actor, dt: number, speed: number,
     }
   }
   a.moving = !!a.step || a.path.length > 0 || a.route.length > 0;
+}
+
+/**
+ * 行き詰まりの解消：前のマスに立っている NPC と、しばらく（2.5 秒）動けなければ入れ替わる。
+ * 幅 1 マスの通路や扉の前で向かい合い、どちらも下がれずに止まり続けるのを防ぐ。主人公とは入れ替わらない。
+ */
+const DEADLOCK_MS = 2500;
+function swapIfDeadlocked(state: GameState, a: Actor, nxt: { x: number; y: number }): boolean {
+  if (a.blockedAt === undefined) { a.blockedAt = state.simTime; return false; }
+  if (state.simTime - a.blockedAt < DEADLOCK_MS) return false;
+  const b = Object.values(state.actors).find((o) => o.alive && o.id !== a.id && o.pos.room === a.pos.room && o.pos.x === nxt.x && o.pos.y === nxt.y);
+  if (!b || b.id === 'hero' || b.step || a.step) return false;
+  if (b.seat) releaseSeat(state, b.id);
+  if (a.seat) releaseSeat(state, a.id);
+  const from = { x: a.pos.x, y: a.pos.y };
+  a.pos.dir = dirTo(a.pos.x, a.pos.y, nxt.x, nxt.y);
+  b.pos.dir = dirTo(b.pos.x, b.pos.y, from.x, from.y);
+  a.step = { x: nxt.x, y: nxt.y, p: 0 };
+  b.step = { x: from.x, y: from.y, p: 0 };
+  b.path = [];
+  a.blockedAt = undefined;
+  b.blockedAt = undefined;
+  return true;
 }
 
 export function speedOf(id: CharId): number {
@@ -346,7 +380,24 @@ export function relocateStranded(state: GameState): boolean {
   for (const id of ALL_IDS) {
     const a = state.actors[id];
     if (!a?.alive) continue;
-    if (ROOMS[a.pos.room] && !/^cell_p\d+$/.test(a.pos.room)) continue;
+    // 新しい館の構成で外した部屋（RETIRED_ROOMS）にいる人は、決めた移し先へ。入れない時は寝起きする場所へ
+    if (ROOMS[a.pos.room] && isRetired(a.pos.room)) {
+      const dest = RETIRED_ROOMS[a.pos.room];
+      if (canEnter(state, id, dest)) placeIn(state, id, dest); else placeHome(state, id);
+      a.goal = undefined;
+      moved = true;
+      continue;
+    }
+    // 行き先が外した部屋になっている予定は取り消す（外した部屋へは歩いて行けない）
+    const goalRoom = (a.goal as { room?: string } | undefined)?.room;
+    if (goalRoom && isRetired(goalRoom)) { a.goal = undefined; a.path = []; a.route = []; }
+    if (a.route?.some((r) => isRetired(r))) { a.path = []; a.route = []; }
+    if (ROOMS[a.pos.room] && !/^cell_p\d+$/.test(a.pos.room)) {
+      // 自分の寝起きする場所へ歩いて戻れない所（入れない部屋に囲まれた所）に残っている人も、寝起きする場所へ移す
+      const home = homeOf(state, id);
+      if (a.pos.room !== home && ROOMS[home] && roomRoute(a.pos.room, home, passFn(state, id)) === null) { placeHome(state, id); a.goal = undefined; moved = true; }
+      continue;
+    }
     placeHome(state, id);
     moved = true;
   }

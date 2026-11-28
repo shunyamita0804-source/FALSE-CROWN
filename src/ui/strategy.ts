@@ -10,7 +10,7 @@ import { G } from '../app/game';
 import { Sound } from '../audio/audio';
 import { rngOf, shortName, nameOf, allied, rel } from '../core/state';
 import {
-  askTip, consultVerdict, finishStrategy, heroAnswerRole, heroSplitRoles, roleKey, splitRoles, giveTip, groupOf, roomById, roomOfGroup, startStrategy, STRATEGY_ROOMS, strategyLeft, tickStrategy, tipsOf,
+  askTip, consultVerdict, finishStrategy, heroAnswerRole, heroSplitRoles, roleKey, splitRoles, giveTip, groupOf, leaveMeeting, roomById, roomOfGroup, startStrategy, STRATEGY_ROOMS, strategyLeft, tickStrategy, tipsOf,
   type StrategyMeeting, type StrategyRoom, type StrategyState,
 } from '../core/strategy';
 import type { CharId, NpcId } from '../data/characters';
@@ -187,6 +187,11 @@ export function runStrategy(slot: MatchSlot, st: StrategyState): Promise<void> {
 
 // ---------------- 相談室 ----------------
 
+/** ほかの相談に加わる前に、今いる相談（別の部屋や、向かっている途中の相談）から抜ける */
+function leaveOther(st: StrategyState, keep: StrategyMeeting | null): void {
+  for (const m of st.meetings) if (m !== keep && m.slot === st.slot && !m.resolved && m.members.includes('hero')) leaveMeeting(st, m, 'hero');
+}
+
 /** 相談室の入口を調べた */
 export async function openStrategyRoom(roomId: string): Promise<void> {
   const ctx = G.strategy;
@@ -200,16 +205,24 @@ export async function openStrategyRoom(roomId: string): Promise<void> {
   let mt = st.meetings.find((m) => m.slot === st.slot && m.room === roomId && !m.resolved);
   if (mt && !mt.members.includes('hero')) {
     const invited = st.invites.some((i) => i.slot === st.slot && i.room === roomId && mt!.members.includes(i.from));
-    if (!invited) {
+    // 同じ枠のうちに一度出た部屋へは戻れる
+    const back = !!mt.left?.includes('hero');
+    if (!invited && !back) {
       toast(t('strat.roomBusy', { room: room.name, names: mt.members.map((m) => shortName(s, m)).join('・') }), 'info', 2600);
       return;
     }
+    if (mt.members.length >= 4) {
+      toast(t('strat.full'), 'info', 2200);
+      return;
+    }
+    leaveOther(st, mt);
     mt.members.push('hero');
     mt.withHero = true;
     st.engaged.hero = st.slot;
   }
   if (!mt) {
     // 空いている：自分が使う（中で人を呼べる）
+    leaveOther(st, null);
     mt = { slot: st.slot, room: roomId, host: 'hero', members: ['hero'], resolved: false, withHero: true };
     st.meetings.push(mt);
     st.engaged.hero = st.slot;
@@ -239,6 +252,9 @@ export async function openStrategyRoom(roomId: string): Promise<void> {
       if (closed) return;
       closed = true;
       clearInterval(iv);
+      // 相談を終えて部屋を出る：会議から外れる。成立した約束はそのまま（leaveMeeting の決まり）
+      const r = leaveMeeting(st, meeting, 'hero');
+      if (r !== 'none') toast(t(r === 'dissolved' ? 'strat.leftDissolved' : 'strat.leftRest'), 'info', 2600);
       closeLayer(layer);
       if (ctx.room?.layer === layer) ctx.room = undefined;
       G.heroBusy = false;
@@ -374,6 +390,7 @@ export function inviteToRoom(npc: NpcId): { ok: boolean; text: string } {
   // 相手が、主人公も誘っている相談（組の相談室など）に向かっているなら、そこへ合流する
   const invitedTo = st.meetings.find((m) => m.slot === st.slot && !m.resolved && m.members.includes(npc) && !m.members.includes('hero') && st.invites.some((i) => i.slot === st.slot && m.members.includes(i.from)));
   if (invitedTo) {
+    leaveOther(st, invitedTo);
     invitedTo.members.push('hero');
     invitedTo.withHero = true;
     st.engaged.hero = st.slot;

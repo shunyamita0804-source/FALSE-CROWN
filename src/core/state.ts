@@ -1,9 +1,10 @@
 import { ALL_IDS, NPC_BY_ID, type CharId, type NpcId } from '../data/characters';
 import { CONFIG, type Difficulty } from '../data/config';
+import { drawLineup } from './lineup';
 import { Rng } from './rng';
 import type { Actor, Deal, Fact, GameState, Info, Known, Relation } from './types';
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 export function defaultRelation(): Relation {
   return { like: 0, trust: 40, wary: 30, debt: 0, hostility: 0, threat: 30 };
@@ -72,6 +73,7 @@ export function newGame(opts: { gender: 'm' | 'f'; name: string; seed?: number; 
     relEvents: [],
     board: [],
     log: [],
+    lineup: drawLineup(seed),
   };
   return state;
 }

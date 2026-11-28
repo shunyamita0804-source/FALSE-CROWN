@@ -13,6 +13,7 @@ import { activeDeals, addInfo, adjustRel, aliveIds, aliveNpcs, allied, pledged, 
 import type { Actor, GameState, Info } from '../core/types';
 import { CLUE_BY_EVENT } from '../story/clues';
 import { canEnter, passFn } from '../world/access';
+import { isRetired } from '../world/maps';
 import { ROOMS } from '../world/maps';
 import { nearestFree, roomRoute } from '../world/path';
 import { actorsIn, collisionOf, distance, homeSpot, moveActor, occupiedSet, seatUsable, setPathTo, setRouteTo, speedOf } from '../world/sim';
@@ -82,7 +83,7 @@ function reachable(state: GameState, a: Actor, room: string): number | null {
 function unsearched(state: GameState, a: Actor): { room: string; id: string; x: number; y: number; event?: string }[] {
   const out: { room: string; id: string; x: number; y: number; event?: string }[] = [];
   for (const room of Object.values(ROOMS)) {
-    if (room.area === 'secret' || isPrivateRoom(room.id)) continue;
+    if (room.area === 'secret' || isPrivateRoom(room.id) || isRetired(room.id)) continue;
     if (!canEnter(state, a.id, room.id)) continue;
     for (const ins of room.inspects) {
       if (a.searched.includes(ins.id)) continue;
@@ -146,6 +147,7 @@ function think(state: GameState, a: Actor, rng: Rng): void {
       cands.push({ u: uv, run: () => { a.goal = { kind: 'talk', target: o, note: 'visit', until: state.simTime + 60_000 }; } });
       continue;
     }
+    if (b.pos.room !== a.pos.room && b.goal?.note === 'bed') continue;
     const dist = reachable(state, a, b.pos.room);
     if (dist === null) continue;
     // 遠くの相手をわざわざ追いかけない（近くにいる相手と話す）
@@ -575,7 +577,9 @@ export function tickNpcs(state: GameState, dt: number, heroBusy: boolean): Brain
       const bkey = `bed:${state.day}:${id}`;
       if (urgent || !state.flags[bkey]) {
         state.flags[bkey] = true;
-        if (urgent || !a.goal || a.goal.kind === 'wander' || (a.goal.kind === 'rest' && a.goal.note !== 'bath') || a.goal.kind === 'explore' || a.goal.kind === 'idle') {
+        // 別の部屋にいる相手を追いかけて話しに行く途中なら、それも切り上げる（寝に戻る人を館の反対側まで追わない）
+        const chasing = a.goal?.kind === 'talk' && !!a.goal.target && state.actors[a.goal.target]?.pos.room !== a.pos.room;
+        if (urgent || chasing || !a.goal || a.goal.kind === 'wander' || (a.goal.kind === 'rest' && a.goal.note !== 'bath') || a.goal.kind === 'explore' || a.goal.kind === 'idle') {
           if (a.goal?.kind === 'follow' && a.goal.target) endInvite(state, a.goal.target, id);
           a.goal = undefined;
           a.path = [];
@@ -598,6 +602,8 @@ export function tickNpcs(state: GameState, dt: number, heroBusy: boolean): Brain
     if (a.goal?.kind === 'talk' && a.goal.target) {
       const b = state.actors[a.goal.target];
       if (!b.alive) a.goal = undefined;
+      // 相手が寝に戻り始めたら、別の部屋まで追いかけない（同じ部屋なら短く話して終わる）
+      else if (b.pos.room !== a.pos.room && b.goal?.note === 'bed') a.goal = undefined;
       else if (!canEnter(state, id, b.pos.room)) {
         // 個室にいる相手を訪ねる：扉の前まで行ってノックする。入れてもらえなければ引き返す
         if (a.goal.note !== 'visit' || b.pos.room !== homeOf(state, b.id) || state.phase === 'curfew' || bedtime(state)) a.goal = undefined;

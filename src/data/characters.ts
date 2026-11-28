@@ -96,7 +96,7 @@ const BASE: CharacterBase[] = [
     profile: '合理性を何より重んじる若き数学者。買収や情に訴える話には乗らない。',
     secret: 'CROWN計画の数理モデル開発に関与していた。',
     palette: { hair: '#1d1f2a', skin: '#f0d3bc', coat: '#3b4a6b', accent: '#c9d4e8', pants: '#22283a' },
-    favoriteRooms: ['library', 'game_room', 'observatory'],
+    favoriteRooms: ['library', 'game_room'],
     rules: { requireRational: true },
   },
   {
@@ -104,7 +104,7 @@ const BASE: CharacterBase[] = [
     profile: '契約は必ず守るが、条文の抜け穴は躊躇なく使う弁護士。',
     secret: '過去の被害者から真相究明の依頼を受けている。',
     palette: { hair: '#14141a', skin: '#f2d6c4', coat: '#1d1d26', accent: '#b8293d', pants: '#16161e' },
-    favoriteRooms: ['common_lounge', 'library', 'main_hall'],
+    favoriteRooms: ['dining', 'library', 'main_hall'],
     rules: { keepsContracts: true },
   },
   {
@@ -112,7 +112,7 @@ const BASE: CharacterBase[] = [
     profile: '強欲な経営者。派閥を作り、高額の取引で人を動かす。',
     secret: 'CROWN計画の研究に出資していた。',
     palette: { hair: '#3a2c22', skin: '#e8c6a8', coat: '#5a1f24', accent: '#d8b25a', pants: '#2a1a1a' },
-    favoriteRooms: ['living_lounge', 'common_lounge', 'shop'],
+    favoriteRooms: ['dining', 'main_hall'],
     rules: { profitFirst: true },
   },
   {
@@ -120,7 +120,7 @@ const BASE: CharacterBase[] = [
     profile: '誰にでも親しげに話しかける心理学研究者。複数の同盟を同時に結ぶ。',
     secret: '「裏切り」の研究をしている。',
     palette: { hair: '#e6e2dc', skin: '#f6e0d2', coat: '#dfe6ee', accent: '#7aa0c8', pants: '#8c96a8' },
-    favoriteRooms: ['common_lounge', 'dining', 'garden'],
+    favoriteRooms: ['dining'],
     rules: {},
   },
   {
@@ -136,7 +136,7 @@ const BASE: CharacterBase[] = [
     profile: '弱い立場の人を放っておけない医師。仲間を売る取引は大金でも断る。',
     secret: '過去の被害者の担当医だった。',
     palette: { hair: '#5a3a2a', skin: '#f2d8c6', coat: '#eef0f2', accent: '#6fa8a0', pants: '#4a5058' },
-    favoriteRooms: ['infirmary', 'garden', 'dining'],
+    favoriteRooms: ['main_hall', 'dining'],
     rules: { refuseBetrayFriends: true },
   },
   {
@@ -144,7 +144,7 @@ const BASE: CharacterBase[] = [
     profile: '慎重で観察眼の鋭い元刑事。施設のあちこちを調べて回る。',
     secret: '過去の失踪事件を追っている。',
     palette: { hair: '#6a6660', skin: '#deb898', coat: '#4a4038', accent: '#a89878', pants: '#2e2a26' },
-    favoriteRooms: ['entrance', 'main_hall', 'bathroom'],
+    favoriteRooms: ['main_hall', 'bathroom'],
     rules: {},
   },
   {
@@ -152,7 +152,7 @@ const BASE: CharacterBase[] = [
     profile: '人懐っこい大学生。一度聞いた話は決して忘れない。',
     secret: '兄が過去の大会に参加していた。',
     palette: { hair: '#b8743a', skin: '#f8e0cc', coat: '#e8b8b0', accent: '#f0e0a0', pants: '#5a4a6a' },
-    favoriteRooms: ['dining', 'garden', 'living_lounge'],
+    favoriteRooms: ['dining'],
     rules: {},
   },
   {
@@ -160,7 +160,7 @@ const BASE: CharacterBase[] = [
     profile: 'ブラフを好むギャンブラー。元はプロ雀士。危険な賭けほど楽しむ。',
     secret: '過去の大会の参加者だった。',
     palette: { hair: '#101014', skin: '#e8ccb4', coat: '#2a2440', accent: '#9a6ad0', pants: '#18161e' },
-    favoriteRooms: ['game_room', 'common_lounge', 'observatory'],
+    favoriteRooms: ['game_room', 'dining', 'library'],
     rules: {},
   },
   {
@@ -168,7 +168,7 @@ const BASE: CharacterBase[] = [
     profile: '華やかな俳優。演技で本心を隠し、利益を優先する。',
     secret: '主催者から秘密の依頼を受けている。',
     palette: { hair: '#4a1a2a', skin: '#f8dccc', coat: '#6a1a38', accent: '#e8c0d0', pants: '#2a1020' },
-    favoriteRooms: ['living_lounge', 'bathroom', 'common_lounge'],
+    favoriteRooms: ['dining', 'bathroom'],
     rules: { profitFirst: true },
   },
   {
@@ -176,7 +176,7 @@ const BASE: CharacterBase[] = [
     profile: '大学を退職した博識な元教授。古い書物や建物の構造に強い興味を示す。',
     secret: 'CROWN計画の創設者の一人。',
     palette: { hair: '#d8d4cc', skin: '#e8ccb0', coat: '#3a3a30', accent: '#b8a878', pants: '#2a2a24' },
-    favoriteRooms: ['library', 'observatory', 'main_hall'],
+    favoriteRooms: ['library', 'main_hall'],
     rules: {},
   },
 ];

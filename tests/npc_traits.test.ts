@@ -50,7 +50,7 @@ describe('能力の基準（本人の決定 2026-11-28）', () => {
   });
 
   it('全競技に主に効く能力がある。CPU はその能力を実際に読んでいる', () => {
-    const files: Record<string, string> = { h02: 'duel', h06: 'p10', h01: 'h01', h03: 'h03', h05: 'h05', h08: 'h08', m11: 'm11' };
+    const files: Record<string, string> = { q02: 'm02', q03: 'm03', q05: 'm05', h02: 'duel', h06: 'p10', h01: 'h01', h03: 'h03', h05: 'h05', h08: 'h08', m11: 'm11' };
     for (const id of Object.keys(MATCHES)) {
       const m = MATCH_ABILITIES[id];
       expect(m, id).toBeTruthy();

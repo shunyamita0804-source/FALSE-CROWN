@@ -27,6 +27,8 @@ export interface TalkRule {
   /** 組（M01 の 4 人組など）ごとに相談室を割り当てる */
   groupRooms?: boolean;
   topics?: string[];
+  /** 組の無い競技で、誰とでも相談したい度合い（市場予測なら、見せ合いの相手を探す）。相談の点に足す */
+  seek?: number;
   /** 専用室（出題室、任務室） */
   procedure?: string;
 }
@@ -68,6 +70,8 @@ export interface StrategyMeeting {
   resolved: boolean;
   /** 主人公が加わった */
   withHero?: boolean;
+  /** 途中で相談室を出た人（同じ枠のうちは戻れる） */
+  left?: CharId[];
 }
 
 export interface StrategyState {
@@ -142,7 +146,8 @@ export function consultScore(state: GameState, slot: MatchSlot | null, a: CharId
   const follow = a === 'hero' ? 0 : followBonus(state, a as NpcId, b, match) * 0.5;
   // この競技で、相手の集まりから抜けた（抜けられた）ことがある
   const left = state.flags[leftKey(state.day, match, a, b)] || state.flags[leftKey(state.day, match, b, a)] ? -15 : 0;
-  return -6 + mate + follow + left + (pledged(state, a, b) ? 8 : 0) + (allied(state, a, b) ? 10 : 0) + r.like * 0.3 + r.trust * 0.2 - r.wary * 0.15 - r.hostility * 0.5 + (per ? (per.loyalty - 50) / 10 : 0);
+  const seek = slot ? talkRule(slot.id).seek ?? 0 : 0;
+  return -6 + mate + seek + follow + left + (pledged(state, a, b) ? 8 : 0) + (allied(state, a, b) ? 10 : 0) + r.like * 0.3 + r.trust * 0.2 - r.wary * 0.15 - r.hostility * 0.5 + (per ? (per.loyalty - 50) / 10 : 0);
 }
 
 /** guest（NPC）が host の「相談しよう」に応じるか */
@@ -337,6 +342,32 @@ export function tickStrategy(state: GameState, slot: MatchSlot, st: StrategyStat
   return true;
 }
 
+/**
+ * 相談室を出る（相談を終える）。退出の決まり（本人の依頼 2026-11-28）：
+ * - 成立した約束（協力、緩い約束、救済の約束）は、退出しても取り消さない。
+ * - 出た人は、この枠の会議から外れる。この枠のうちは、同じ部屋へ戻れる（ほかの相談にも加われる）。
+ * - 残った人が 2 人以上なら、その人たちだけで相談を続ける（枠の終わりに NPC 同士で解決）。
+ *   1 人しか残らない時は会議を解散し、その人の予約（この枠の相談の予定）も解く。
+ * - 呼ばれて向かっている途中の人も、残った人として数える（着いても相手がいなければ解散と同じ）。
+ * 解決済みの会議（枠が終わった後）は何もしない。
+ */
+export function leaveMeeting(st: StrategyState, mt: StrategyMeeting, who: CharId): 'left' | 'dissolved' | 'none' {
+  if (mt.resolved || !mt.members.includes(who)) return 'none';
+  mt.members = mt.members.filter((m) => m !== who);
+  mt.left = [...new Set([...(mt.left ?? []), who])];
+  if (who === 'hero') mt.withHero = false;
+  if (st.engaged[who] === st.slot) delete st.engaged[who];
+  if (mt.members.length >= 2) {
+    if (mt.host === who) mt.host = mt.members[0];
+    return 'left';
+  }
+  for (const m of mt.members) if (st.engaged[m] === st.slot) delete st.engaged[m];
+  mt.members = [];
+  mt.resolved = true;
+  st.invites = st.invites.filter((i) => !(i.slot === st.slot && i.room === mt.room));
+  return 'dissolved';
+}
+
 /** 合計の残り時間（ミリ秒） */
 export const strategyLeft = (st: StrategyState) => (st.done ? 0 : Math.max(0, st.slotLeft) + (st.slots - st.slot - 1) * st.slotMs);
 
@@ -447,7 +478,7 @@ export function splitRoles(state: GameState, slot: MatchSlot, st: StrategyState,
       lines.push({ id: m, text: t('role.counter', { role: t(`role.${a.counter}`) }) });
       lines.push({ id: host, text: t(ok ? 'role.counterOk' : 'role.counterNo') });
     } else if (a.answer === 'leave') {
-      leaveMeeting(state, st, mt, m);
+      quitGroup(state, st, mt, m);
       lines.push({ id: m, text: t('role.leave') });
     } else lines.push({ id: m, text: t('role.refuse') });
   }
@@ -458,12 +489,15 @@ export function splitRoles(state: GameState, slot: MatchSlot, st: StrategyState,
   return { lines, heroRole };
 }
 
-/** 集まりから抜ける。この競技の間、同じ人の集まりには戻りにくい（約束破りとは別の扱い） */
-export function leaveMeeting(state: GameState, st: StrategyState, mt: StrategyMeeting, who: CharId): void {
-  mt.members = mt.members.filter((x) => x !== who);
-  if (st.engaged[who] === mt.slot) delete st.engaged[who];
-  state.flags[leftKey(st.day, st.match, who, mt.host)] = true;
-  fact(state, 'leave', [who, mt.host], `${nameOf(state, who)}が${nameOf(state, mt.host)}の集まりから抜けた`);
+/**
+ * 役割分担で集まりから抜ける。この競技の間、同じ人の集まりには戻りにくい（約束破りとは別の扱い）。
+ * 会議から外す処理そのものは leaveMeeting（部屋を出た時と同じ決まり：2 人以上残れば続き、1 人なら解散）。
+ */
+export function quitGroup(state: GameState, st: StrategyState, mt: StrategyMeeting, who: CharId): void {
+  const host = mt.host;
+  leaveMeeting(st, mt, who);
+  state.flags[leftKey(st.day, st.match, who, host)] = true;
+  fact(state, 'leave', [who, host], `${nameOf(state, who)}が${nameOf(state, host)}の集まりから抜けた`);
 }
 
 /** 主人公が、言い出した人から割り振られた役割に答える（NPC と同じ選択肢） */
@@ -475,7 +509,7 @@ export function heroAnswerRole(state: GameState, st: StrategyState, mt: Strategy
     if (ok) state.flags[roleKey(st, 'hero')] = counter;
     return t(ok ? 'role.counterOk' : 'role.counterNo');
   }
-  if (answer === 'leave') { leaveMeeting(state, st, mt, 'hero'); return t('role.leaveOk'); }
+  if (answer === 'leave') { quitGroup(state, st, mt, 'hero'); return t('role.leaveOk'); }
   return t('role.refuseOk');
 }
 
@@ -490,7 +524,7 @@ export function heroSplitRoles(state: GameState, slot: MatchSlot, st: StrategySt
     const a = answerRole(state, m, 'hero', role, slot.id, rng);
     if (a.answer === 'accept') { state.flags[roleKey(st, m)] = role; lines.push({ id: m, text: t('role.accept', { role: t(`role.${role}`) }) }); }
     else if (a.answer === 'counter' && a.counter) { state.flags[roleKey(st, m)] = a.counter; lines.push({ id: m, text: t('role.counter', { role: t(`role.${a.counter}`) }) }); }
-    else if (a.answer === 'leave') { leaveMeeting(state, st, mt, m); lines.push({ id: m, text: t('role.leave') }); }
+    else if (a.answer === 'leave') { quitGroup(state, st, mt, m); lines.push({ id: m, text: t('role.leave') }); }
     else lines.push({ id: m, text: t('role.refuse') });
   }
   fact(state, 'roles', [...mt.members], `${nameOf(state, 'hero')}が役割の分担を持ちかけた`);

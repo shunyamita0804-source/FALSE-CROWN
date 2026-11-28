@@ -11,19 +11,22 @@ import { dailyDecay } from '../npc/brain';
 import { ROOMS } from '../world/maps';
 import { placeHome, placeIn } from '../world/sim';
 import { releaseSeat, seatPlayers } from '../world/seats';
+import { mainOf, prisonOf } from './lineup';
 import { aliveIds, fact, log, nameOf, publish, rel, transfer } from './state';
 import type { DayRecord, GameState } from './types';
 
-export function mainMatchId(day: number): string {
-  return scheduleFor(day).main;
+/** その日のメインマッチ（大会の始めに決めた割り当て。古いセーブは日程表のまま） */
+export function mainMatchId(state: GameState, day: number): string {
+  return mainOf(state, day);
 }
 
-export function prisonMatchId(day: number): string | null {
-  return scheduleFor(day).prisonGame;
+/** その日の監獄マッチ（決勝の日は null） */
+export function prisonMatchId(state: GameState, day: number): string | null {
+  return prisonOf(state, day);
 }
 
 /** メインマッチの確定順位から棟分けと報酬を適用する */
-export function applyMainResult(state: GameState, ranking: CharId[], scores: Partial<Record<CharId, number>>): { living: CharId[]; prison: CharId[]; rewards: Partial<Record<CharId, number>> } {
+export function applyMainResult(state: GameState, ranking: CharId[], scores: Partial<Record<CharId, number>>): { living: CharId[]; prison: CharId[]; rewards: Partial<Record<CharId, number>>; balances: Partial<Record<CharId, number>> } {
   const sch = scheduleFor(state.day);
   if (ranking.length !== aliveIds(state).length) throw new Error('順位の人数が生存者数と一致しません');
   const nPrison = sch.prison;
@@ -39,7 +42,12 @@ export function applyMainResult(state: GameState, ranking: CharId[], scores: Par
       rewards[id] = r;
       if (r > 0) transfer(state, 'host', id, r, `DAY${state.day} メインマッチ報酬`);
     });
+    // 監獄棟へ行く人の獲得は 0（結果画面で「+0」と出すため、明示して入れておく）
+    for (const id of prison) rewards[id] = 0;
   }
+  // 報酬を受け取った直後の残高（結果画面用）。このあと救いのメダルで棟が変わっても、報酬と残高は変えない
+  const balances: Partial<Record<CharId, number>> = {};
+  for (const id of ranking) balances[id] = state.actors[id].pieces;
   for (const id of living) state.actors[id].house = 'living';
   for (const id of prison) state.actors[id].house = 'prison';
   // 棟分けに合わせて個室を割り当て直す（監獄棟は順位の良い順に空き部屋へ。生活棟へ戻った人は元の部屋）
@@ -54,9 +62,9 @@ export function applyMainResult(state: GameState, ranking: CharId[], scores: Par
     value: 0,
     tags: ['result', 'main'],
   });
-  state.board.push({ day: state.day, text: nPrison ? `DAY${state.day} メインマッチ「${sch.main.toUpperCase()}」　監獄棟：${prison.map((id) => nameOf(state, id)).join('、')}` : `DAY${state.day} 決勝「${sch.main.toUpperCase()}」　優勝：${nameOf(state, ranking[0])}` });
+  state.board.push({ day: state.day, text: nPrison ? `DAY${state.day} メインマッチ「${mainOf(state, state.day).toUpperCase()}」　監獄棟：${prison.map((id) => nameOf(state, id)).join('、')}` : `DAY${state.day} 決勝「${mainOf(state, state.day).toUpperCase()}」　優勝：${nameOf(state, ranking[0])}` });
   fact(state, 'main_result', ranking, `DAY${state.day} メイン結果`, { ranking, scores });
-  return { living, prison, rewards };
+  return { living, prison, rewards, balances };
 }
 
 /** 棟別の初期位置へ移動 */
@@ -65,7 +73,7 @@ export function moveToHouses(state: GameState): void {
     const a = state.actors[id];
     // 監獄棟へ送られた人は、割り当てられた房の前から始める
     if (a.house === 'prison') placeHome(state, id);
-    else placeIn(state, id, id === 'hero' ? 'living_lounge' : 'living_lounge');
+    else placeIn(state, id, 'dining');
     a.goal = undefined;
   }
 }
@@ -104,13 +112,12 @@ export function eliminate(state: GameState, id: CharId): void {
 
 /** 1 日の終わり：履歴を残し、翌朝へ */
 export function endDay(state: GameState): string[] {
-  const sch = scheduleFor(state.day);
   const rec: DayRecord = {
     day: state.day,
-    main: sch.main,
+    main: mainOf(state, state.day),
     mainRanking: state.today.mainRanking ?? [],
     mainScores: state.today.mainScores ?? {},
-    prisonGame: sch.prisonGame,
+    prisonGame: prisonOf(state, state.day),
     prisonRanking: state.today.prisonRanking ?? [],
     prisonScores: state.today.prisonScores ?? {},
     eliminated: Object.values(state.actors).filter((a) => a.eliminatedDay === state.day).map((a) => a.id),

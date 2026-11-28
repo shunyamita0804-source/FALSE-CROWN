@@ -12,6 +12,7 @@ import type { Actor, GameState, Info } from '../core/types';
 import { NPC_BY_ID, type CharId, type NpcId } from '../data/characters';
 import { ROOMS } from '../world/maps';
 import { followBonus } from './group';
+import storyJson from '../data/story_events.json';
 import { actorsIn } from '../world/sim';
 
 export interface Invite {
@@ -62,6 +63,30 @@ export function addInvite(state: GameState, host: CharId, guest: CharId, ms = IN
 export function endInvite(state: GameState, host: CharId, guest: CharId): void {
   const st = state as GameState & { invites?: Invite[] };
   st.invites = invitesOf(state).filter((i) => !(i.host === host && i.guest === guest));
+}
+
+/** 密談の相手と別れる（相談を終えて解散）。同行と招待を解き、主人公の個室にいれば部屋を出ていく。結んだ約束はそのまま */
+export function dismissGuest(s: GameState, npc: CharId): void {
+  const A = s.actors[npc];
+  endInvite(s, 'hero', npc);
+  A.goal = undefined;
+  A.path = [];
+  A.route = [];
+  const room = A.pos.room;
+  if (isPrivateRoom(room) && ROOMS[room]?.doors[0]) A.goal = { kind: 'goto', room: ROOMS[room].doors[0].to, until: s.simTime + 20_000 };
+}
+
+interface PersonalEvent { id: string; day: number; lines: { speaker: string; text: string }[]; trigger?: string }
+const PERSONAL = (storyJson as unknown as { events: PersonalEvent[] }).events.filter((e) => e.trigger === 'talk_optional');
+
+/** 個人的な話の状態：聞ける／まだ（条件を満たしていない）／聞き終えた */
+export function personalState(s: GameState, npc: NpcId): { kind: 'ready'; ev: PersonalEvent } | { kind: 'notYet' } | { kind: 'done' } {
+  const mine = PERSONAL.filter((e) => e.lines[0]?.speaker === npc);
+  const left = mine.filter((e) => !s.seen.includes(e.id));
+  if (!left.length) return { kind: 'done' };
+  const ev = left.find((e) => s.day >= e.day);
+  if (ev && rel(s, npc, 'hero').trust >= 45) return { kind: 'ready', ev };
+  return { kind: 'notYet' };
 }
 
 /** 締切や消灯で、同行と招待をすべて解く */

@@ -1,3 +1,6 @@
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { mkdirSync } from 'node:fs';
 import { writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../src/core/rng';
@@ -5,7 +8,8 @@ import { ALL_IDS } from '../src/data/characters';
 import { CENTERS, P10, applyStep, centerCount, seatAt, startPieces, stepsOf, type P10State } from '../src/matches/p10';
 import { simulate } from './helpers';
 
-const S = '/tmp/claude-0/-home-claude/ced3d2db-bac9-5d25-8782-91ee7ff6cc58/scratchpad';
+// 試行の数字の書き出し先（環境に依らない一時フォルダ）
+const S = (() => { const d = join(tmpdir(), 'false-crown-sim'); mkdirSync(d, { recursive: true }); return d; })();
 const at = (x: number, y: number) => y * 5 + x;
 
 describe('P10 最後の一手', () => {

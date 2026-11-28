@@ -7,11 +7,13 @@ export type Dir = 'down' | 'up' | 'left' | 'right';
 export type Phase =
   | 'prologue'
   | 'morning'
+  | 'gather'
   | 'rules'
   | 'strategy'
   | 'main'
   | 'reward'
   | 'house'
+  | 'gatherPrison'
   | 'prison'
   | 'elimination'
   | 'night'
@@ -80,6 +82,8 @@ export interface Actor {
   /** 部屋をまたぐ経路（部屋IDの列） */
   route: string[];
   moving: boolean;
+  /** 前のマスを人にふさがれ始めた時刻（行き詰まりの解消用。歩けたら消す） */
+  blockedAt?: number;
   /** 移動中の1歩（次のタイルと進捗 0..1） */
   step?: { x: number; y: number; p: number };
   rel: Partial<Record<CharId, Relation>>;
@@ -222,6 +226,8 @@ export interface GameState {
   claimed: string[];
   history: DayRecord[];
   match: MatchSlot | null;
+  /** 競技会場への集合移動（集合案内から会場に着くまで。core/gather.ts） */
+  gather?: import('./gather').GatherState;
   /** 当日のメイン結果（棟分けまで） */
   today: { mainRanking?: CharId[]; mainScores?: Partial<Record<CharId, number>>; prisonRanking?: CharId[]; prisonScores?: Partial<Record<CharId, number>>; teams?: Record<string, CharId[]>; rescue?: import('./rescue').RescueState; rescuePromises?: import('./rescue').RescuePromise[] };
   counter: number;
@@ -236,6 +242,8 @@ export interface GameState {
   log: { t: number; day: number; text: string; kind?: string }[];
   /** 席の予約（world/seats.ts。鍵は seatKey(部屋, 席)、値は取っている人）。古いセーブには無い */
   seatsTaken?: Record<string, CharId>;
+  /** 大会の競技の割り当て（core/lineup.ts。大会の始めに決める）。古いセーブには無い（日程表のまま） */
+  lineup?: import('./lineup').Lineup;
   /** 競技の作戦時間（ルール説明の後、開始前の相談。core/strategy.ts）。古いセーブには無い */
   strategy?: import('./strategy').StrategyState;
   /** 監獄棟の房の割り当て（world/cells.ts。人物 → cellKey(部屋, 房)）。古いセーブには無い */

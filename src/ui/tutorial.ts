@@ -1077,7 +1077,71 @@ function m11Guide(): Guide {
   };
 }
 
-const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide, m07: m07Guide, p07: p07Guide, m08: m08Guide, p08: p08Guide, m09: m09Guide, p09: p09Guide, m10: m10Guide, p10: p10Guide, m11: m11Guide, h06: () => p10Guide(true), ...SUB_GUIDES, ...HIDDEN_GUIDES };
+/** 市場予測（試作）の説明と練習。練習は、分かっている要因から注文を選ぶ 2 問 */
+function mkGuide(): Guide {
+  const chip = (v: string, who: string, cls = '') => h('span', { class: `mk-chip ${cls}` }, v, h('small', null, who));
+  const row = (name: string, price: number, chips: HTMLElement[]) => h('div', { class: 'mk-row', style: 'grid-template-columns:120px 74px 1fr;min-height:60px' }, h('b', { class: 'mk-name' }, name), h('span', { class: 'mk-price' }, String(price)), h('div', { class: 'mk-chips' }, chips));
+  return {
+    name: '市場予測（試作）',
+    pages: [
+      { title: t('tut.mk.t1'), text: t('tut.mk.p1'), figure: () => h('div', { class: 'col', style: 'gap:6px;width:640px' }, row(t('mk.good.tea'), 8, [chip('+2', t('mk.ownCard'), 'own up'), chip('？×1', '', 'unknown')]), row(t('mk.good.watch'), 7, [chip('？×2', '', 'unknown')])) },
+      { title: t('tut.mk.t2'), text: t('tut.mk.p2'), figure: () => h('div', { class: 'col', style: 'gap:6px;width:640px' }, row(t('mk.good.tea'), 8, [chip('+2', t('mk.ownCard'), 'own up'), chip('+1', t('tut.mk.shown'), 'shown up')]), row(t('mk.good.wine'), 6, [chip('+2?', t('tut.mk.said'), 'said')])) },
+      { title: t('tut.mk.t3'), text: t('tut.mk.p3'), figure: () => facts([['3', t('tut.mk.f1')], ['±2', t('tut.mk.f2')], ['±4', t('tut.mk.f3')]]) },
+      { title: t('tut.mk.t4'), text: t('tut.mk.p4'), figure: () => facts([['6', t('tut.mk.f4')], ['30', t('tut.mk.f5')], ['1', t('tut.mk.f6')]]) },
+    ],
+    practice: {
+      text: t('tut.mk.practice'),
+      build: (onDone) => {
+        const box = h('div', { class: 'col', style: 'gap:10px;align-items:center' });
+        const qs = [
+          { row: row(t('mk.good.tea'), 8, [chip('+2', t('mk.ownCard'), 'own up'), chip('+1', t('tut.mk.shown'), 'shown up')]), ok: 'buy', note: t('tut.mk.ans1') },
+          { row: row(t('mk.good.perfume'), 9, [chip('−2', t('mk.ownCard'), 'own down'), chip('？×1', '', 'unknown')]), ok: 'sell', note: t('tut.mk.ans2'), hold: true },
+        ];
+        let i = 0;
+        const draw = () => {
+          clear(box);
+          const q = qs[i];
+          const fb = h('div', { class: 'small fb-note' }, q.hold ? t('tut.mk.hold2') : t('tut.mk.hold0'));
+          const pick = (k: string) => {
+            if (k !== q.ok) { fb.textContent = t('tut.mk.retry'); Sound.se('error'); return; }
+            Sound.se('confirm');
+            fb.textContent = q.note;
+            fb.classList.add('gold');
+            setTimeout(() => { i += 1; if (i >= qs.length) onDone(); else draw(); }, 1400);
+          };
+          box.append(q.row, h('div', { class: 'row', style: 'gap:10px' }, button(t('tut.mk.buy'), () => pick('buy'), { kind: 'primary' }), button(t('tut.mk.sell'), () => pick('sell')), button(t('tut.mk.pass'), () => pick('pass'), { kind: 'ghost' })), fb);
+        };
+        draw();
+        return box;
+      },
+    },
+  };
+}
+
+/** 監獄版（M02・M03・M05 の派生）の説明：元の説明を使い、人数とラウンドが違う所だけ差し替える */
+function qGuide(base: () => Guide, name: string, last: { title: string; text: string; figure: () => Child }, replace: Record<number, string> = {}): () => Guide {
+  return () => {
+    const g = base();
+    const pages = g.pages.map((pg, i) => (replace[i] ? { ...pg, text: replace[i] } : pg));
+    pages[pages.length - 1] = last;
+    return { ...g, name, pages };
+  };
+}
+const q02Guide = qGuide(m02Guide, 'フラッグ・フラッシュ（監獄版）', {
+  title: t('tut.m02.t4'), text: t('tut.q02.p4'),
+  figure: () => h('div', { class: 'col', style: 'gap:14px;align-items:center' },
+    chips([{ label: t('tut.m02.c1'), value: '10' }, { label: t('tut.m02.c2'), value: '5' }, { label: t('tut.m02.c3'), value: '10' }], ['×', '+']),
+    facts([[t('tut.q02.rounds'), t('tut.m02.f1q')], ['5', t('tut.m02.f2')], ['8', t('tut.m02.f3')]])),
+}, { 2: t('tut.q02.p3') });
+const q03Guide = qGuide(m03Guide, 'ツイン・リンク（監獄版）', {
+  title: t('tut.m03.t4'), text: t('tut.q03.p4'),
+  figure: () => h('div', { class: 'col', style: 'gap:14px;align-items:center' },
+    chips([{ label: t('tut.m03.c1'), value: '20' }, { label: t('tut.m03.c2'), value: '0〜4' }, { label: t('tut.m03.c3'), value: '15' }], ['×', '+']),
+    facts([['3', t('tut.m03.f1')], ['4', t('tut.m03.f2')], ['150', t('tut.m03.f3')]])),
+});
+const q05Guide = qGuide(m05Guide, 'ナンバー・リレー（監獄版）', { title: t('tut.m05.t4'), text: t('tut.q05.p4'), figure: () => facts([['8', t('tut.m05.f3')], ['90', t('tut.m05.f1')], ['3', t('tut.q05.cands')]]) });
+
+const GUIDES: Record<string, () => Guide> = { m04: m04Guide, m01: m01Guide, p01: p01Guide, m02: m02Guide, p02: p02Guide, m03: m03Guide, p03: p03Guide, p04: p04Guide, m05: m05Guide, p05: p05Guide, m06: m06Guide, p06: p06Guide, m07: m07Guide, p07: p07Guide, m08: m08Guide, p08: p08Guide, m09: m09Guide, p09: p09Guide, m10: m10Guide, p10: p10Guide, m11: m11Guide, q02: q02Guide, q03: q03Guide, q05: q05Guide, mk: mkGuide, h06: () => p10Guide(true), ...SUB_GUIDES, ...HIDDEN_GUIDES };
 
 export const hasGuide = (id: string) => id in GUIDES || id in VOICED;
 /** 今までの説明の練習（音声付きの説明の最後の段階で使い回す。声は無く字幕だけ） */

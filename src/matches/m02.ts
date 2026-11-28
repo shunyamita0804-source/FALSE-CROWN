@@ -217,8 +217,11 @@ export const M02: MatchEngine<M02State, M02Move, M02View> = {
     `ピースを ${BOOST_COST} 個支払うと、そのラウンドだけ表示時間が 2 秒延びます（この競技で ${BOOST_MAX} 回まで。同じラウンドに重ねては使えません）。`,
     '順位は合計点で決まります。同点は、正解した数、正解にかかった時間の合計が短い順で決めます。それでも同じなら共通決定戦です。',
   ],
-  init(players, rng) {
-    const order = rng.shuffle([...players]);
+  init(players, rng, opts) {
+    // laps：出題者が何周するか（監獄版 Q02 は 2 周。人数が少ないので、全員が 2 回ずつ出題する）
+    const laps = Math.max(1, Math.min(3, Number(opts?.laps ?? 1) || 1));
+    const once = rng.shuffle([...players]);
+    const order = Array.from({ length: laps }, () => once).flat();
     const cands: Cand[][] = [];
     const sets: MemSet[][] = [];
     for (let r = 0; r < order.length; r++) {

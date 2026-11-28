@@ -1,3 +1,6 @@
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { mkdirSync } from 'node:fs';
 import { writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../src/core/rng';
@@ -6,7 +9,8 @@ import { ADJ, EDGES, M08, NODES, distTo, edgeBetween, goalNode, movesFor, nodeOf
 import { simulate } from './helpers';
 
 const FIVE = ALL_IDS.slice(0, 5);
-const S = '/tmp/claude-0/-home-claude/ced3d2db-bac9-5d25-8782-91ee7ff6cc58/scratchpad';
+// 試行の数字の書き出し先（環境に依らない一時フォルダ）
+const S = (() => { const d = join(tmpdir(), 'false-crown-sim'); mkdirSync(d, { recursive: true }); return d; })();
 
 describe('M08 バリケード', () => {
   it('盤面：31 点、60 本の道。72 度回すと隣の席に重なり、全員のゴールまでの距離が同じ', () => {

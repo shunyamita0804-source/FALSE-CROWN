@@ -1,3 +1,6 @@
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { mkdirSync } from 'node:fs';
 import { writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../src/core/rng';
@@ -6,7 +9,8 @@ import { P05, SETS, TURNS, moverAt, outcome, type P05State } from '../src/matche
 import { simulate } from './helpers';
 
 const THREE = ALL_IDS.slice(0, 3);
-const S = '/tmp/claude-0/-home-claude/ced3d2db-bac9-5d25-8782-91ee7ff6cc58/scratchpad';
+// 試行の数字の書き出し先（環境に依らない一時フォルダ）
+const S = (() => { const d = join(tmpdir(), 'false-crown-sim'); mkdirSync(d, { recursive: true }); return d; })();
 
 describe('P05 21の攻防', () => {
   it('ちょうど 21 で +4、超えると −3、どちらも合計は 0 に戻る', () => {
