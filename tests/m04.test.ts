@@ -2,7 +2,7 @@ import { writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../src/core/rng';
 import { ALL_IDS } from '../src/data/characters';
-import { EDGES, M04, ROUNDS, START_FUNDS, applyAct, baseCost, generateSetup, missionPoints, practiceTable, routeFor, scoreOf, seatToMove, shortest, tableSizes, type M04State } from '../src/matches/m04';
+import { EDGES, M04, ROUNDS, TOLL, START_FUNDS, applyAct, baseCost, generateSetup, missionPoints, practiceTable, routeFor, scoreOf, seatToMove, shortest, tableSizes, type M04State } from '../src/matches/m04';
 import { simulate } from './helpers';
 
 const NINE = ALL_IDS.slice(0, 9);
@@ -32,7 +32,7 @@ describe('M04 鉄道王国・改', () => {
     expect(tableSizes(2)).toEqual([2]);
   });
 
-  it('線路、資金、輸送：他人の線路は通行料 1 を持ち主へ。線路が切れていれば輸送できない。先手は毎巡替わる', () => {
+  it('線路、資金、輸送：他人の線路は通行料 TOLL を持ち主へ。線路が切れていれば輸送できない。先手は毎巡替わる', () => {
     const s = M04.init(NINE, Rng.from(2)) as M04State;
     for (const p of NINE) M04.submit(s, p, { t: 'ready' });
     expect(s.phase).toBe('play');
@@ -51,11 +51,11 @@ describe('M04 鉄道王国・改', () => {
     expect(M04.validate(s, b, { t: 'transport', mission: 0 })).toBe(false);
     for (const e of path.slice(1)) { t.owner[e] = 1; t.built[1]++; }
     const before = [t.funds[0], t.funds[1]];
-    expect(routeFor(t, 1, m.from, m.to)!.toll).toBe(1);
+    expect(routeFor(t, 1, m.from, m.to)!.toll).toBe(TOLL);
     M04.submit(s, b, { t: 'transport', mission: 0 });
     expect(t.missions[1][0].done).toBe(true);
-    expect(t.funds[0]).toBe(before[0] + 1);
-    expect(t.funds[1]).toBe(before[1] - 1);
+    expect(t.funds[0]).toBe(before[0] + TOLL);
+    expect(t.funds[1]).toBe(before[1] - TOLL);
     M04.submit(s, c, { t: 'fund' });
     expect(t.funds[2]).toBe(START_FUNDS + 3);
     // 2 巡目の先手は席 1
@@ -93,7 +93,7 @@ describe('M04 鉄道王国・改', () => {
     expect(t.missions[0][0].done).toBe(true);
   });
 
-  it('CPU だけで最後まで進む。3 巡ごとに交渉が入り、全卓が 9 巡で終わる', () => {
+  it('CPU だけで最後まで進む。3 巡ごとに交渉が入り、全卓が ROUNDS 巡で終わる', () => {
     const rows: string[] = [];
     const wins: Record<string, number> = {};
     let done = 0;

@@ -32,7 +32,7 @@ const { chromium } = require('playwright');
   const dist = (from, to) => { const d = new Array(15).fill(99); d[from] = 0; const q = [from]; while (q.length) { const c = q.shift(); for (const n of ADJ[c]) if (!FLAGS.includes(n) && d[n] > d[c] + 1) { d[n] = d[c] + 1; q.push(n); } } return d[to]; };
   const hit = await page.locator('.match .tb-node .hit').first().boundingBox();
   check('タップする点は 40px 以上', hit && hit.width >= 40, hit ? hit.width.toFixed(1) : '');
-  let delivered = 0, peaceOk = null, badOk = null, timeoutOk = null, warnSeen = false, breaks = 0, capDone = 0, moves = 0;
+  let forced = false, forcedOk = false, atkOk = true, atkWant = 0, atkSeen = 0, atkShot = false, delivered = 0, peaceOk = null, badOk = null, timeoutOk = null, warnSeen = false, breaks = 0, capDone = 0, moves = 0;
   for (let guard = 0; guard < 900; guard++) {
     const st = await state();
     if (!st || st.phase === 'done') break;
@@ -44,6 +44,33 @@ const { chromium } = require('playwright');
     const mine = B.soldiers.filter((s) => s.seat === seat);
     const enemyAt = (n) => B.soldiers.some((s) => s.pos === n && s.seat !== seat);
     const ownAt = (n) => B.soldiers.some((s) => s.pos === n && s.seat === seat);
+    // 「！」を確かめるため、取れる巡で一度だけ、敵の兵 1 個を自分の兵の隣へ置き直す（確認用の操作。盤面の表示を確かめるだけ）
+    if (st.round >= 3 && !forced && mine.length) {
+      const ok = await page.evaluate(({ ADJ, FL }) => {
+        const s = window.__fcSlot.state; const seat = s.seats[s.players.indexOf('hero')];
+        const boards = [s.board, ...(s.log.length ? [s.log[s.log.length - 1].board] : [])];
+        const b0 = boards[0]; const enemy = b0.soldiers.findIndex((q) => q.seat !== seat); if (enemy < 0) return false;
+        for (const m of b0.soldiers.filter((q) => q.seat === seat)) for (const n of ADJ[m.pos]) {
+          if (FL.includes(n) || b0.soldiers.some((q) => q.pos === n)) continue;
+          for (const b of boards) { const e = b.soldiers.find((q) => q.seat === b0.soldiers[enemy].seat && q.pos === b0.soldiers[enemy].pos); if (e) e.pos = n; }
+          return true;
+        }
+        return false;
+      }, { ADJ, FL: FLAGS });
+      if (ok) {
+        forced = true;
+        const st2 = await state(); const m0 = st2.board.soldiers.find((q) => q.seat === st2.seat);
+        await node('.match', m0.pos).tap({ force: true }); await page.waitForTimeout(300);
+        const want2 = st2.board.soldiers.filter((q) => q.seat === st2.seat && ADJ[q.pos].some((n) => st2.board.soldiers.some((e) => e.pos === n && e.seat !== st2.seat))).length;
+        const got2 = await page.locator('.match .tb-atk').count();
+        forcedOk = want2 > 0 && want2 === got2 && (await page.locator('.match .tb-atknote').count()) === 1;
+        await shot('atk');
+        await node('.match', m0.pos).tap({ force: true }); await page.waitForTimeout(300);
+        continue;
+      }
+    }
+    // 次に取られうる兵の「！」：隣に敵の兵がいる自分の兵の数と同じ（取れない巡では 0）
+    { const want = st.round + 1 >= 3 ? mine.filter((q) => ADJ[q.pos].some(enemyAt)).length : 0; const got = await page.locator('.match .tb-atk').count(); if (want) atkWant++; if (want !== got) { atkOk = false; console.log('atk mismatch', st.round, want, got); } if (got) { atkSeen++; if (!atkShot) { atkShot = true; await shot('atk'); } } }
     if (st.round === 0) await shot('round1');
     if (st.round < 3 && peaceOk === null) {
       // 最初の 3 巡：敵の兵がいる点は選べない
@@ -110,6 +137,7 @@ const { chromium } = require('playwright');
   const fin = await page.evaluate(() => { const s = window.__fcSlot && window.__fcSlot.state; return s ? { phase: s.phase, round: s.round, points: s.points, delivers: s.delivers } : null; });
   check('最後まで進む', !fin || fin.phase === 'done', JSON.stringify(fin));
   check('宝石を旗に納めると 4 点入る', delivered >= 1, `delivered=${delivered} moves=${moves} caps=${capDone}`);
+  check('次に取られうる兵に「！」が付く（隣に敵がいる兵だけ。取れない巡は付かない）', atkOk && forcedOk, `want=${atkWant} seen=${atkSeen} forced=${forced}`);
   check('3 巡ごとに交渉の時間がある', breaks >= 2, String(breaks));
   check('画面のエラーなし', errs.length === 0, errs.slice(0, 3).join(' | '));
   console.log(`warnSeen=${warnSeen} peaceOk=${peaceOk}`);

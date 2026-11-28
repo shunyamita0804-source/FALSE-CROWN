@@ -76,6 +76,15 @@ export function actsOf(b: Board, seat: number, noCap = false): Act[] {
   return out;
 }
 
+/**
+ * 次に取られうる兵（2026-11-28 本人の指示で、画面に示す）。隣の点に敵の兵がいる自分の兵の位置。
+ * 盤面の事実だけで決める（相手が実際に取るかの予測はしない）。capOk が偽（まだ取れない巡）なら空。
+ */
+export function exposed(b: Board, seat: number, capOk: boolean): number[] {
+  if (!capOk) return [];
+  return b.soldiers.filter((s) => s.seat === seat && ADJ[s.pos].some((n) => b.soldiers.some((q) => q.pos === n && q.seat !== seat))).map((s) => s.pos);
+}
+
 export interface Effect { points: number; cap?: number; capGem?: boolean; pick?: boolean; deliver?: boolean }
 
 function respawn(b: Board): void {

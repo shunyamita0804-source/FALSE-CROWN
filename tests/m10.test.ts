@@ -2,7 +2,7 @@ import { writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../src/core/rng';
 import { ALL_IDS } from '../src/data/characters';
-import { ADJ, FLAGS, GEM_NODES, HOME, M10, actsOf, applyAct, endBonus, startBoard, type M10State } from '../src/matches/m10';
+import { ADJ, FLAGS, GEM_NODES, HOME, M10, actsOf, applyAct, endBonus, exposed, startBoard, type M10State } from '../src/matches/m10';
 import { simulate } from './helpers';
 
 const S = '/tmp/claude-0/-home-claude/ced3d2db-bac9-5d25-8782-91ee7ff6cc58/scratchpad';
@@ -90,4 +90,15 @@ describe('M10 トライアングル', () => {
     expect(caps / N).toBeGreaterThan(0.8);
     expect(dels / N).toBeGreaterThan(3);
   }, 60_000);
+});
+
+describe('M10 次に取られうる兵の表示', () => {
+  it('隣に敵の兵がいる自分の兵だけを示す。まだ取れない巡なら示さない', () => {
+    const b = { soldiers: [{ seat: 0, pos: 4, gem: -1 }, { seat: 0, pos: 1, gem: -1 }, { seat: 1, pos: 7, gem: -1 }], ground: [], waiting: [], delivered: [0, 0, 0] };
+    expect(ADJ[4]).toContain(7);
+    expect(ADJ[1]).not.toContain(7);
+    expect(exposed(b, 0, true)).toEqual([4]);
+    expect(exposed(b, 1, true)).toEqual([7]);
+    expect(exposed(b, 0, false)).toEqual([]);
+  });
 });

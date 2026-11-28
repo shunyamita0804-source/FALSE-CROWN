@@ -1233,7 +1233,8 @@ button.xc-card { cursor: pointer; }
 .rb-edge.walled { stroke: rgba(255,255,255,0.12); stroke-dasharray: 3 9; }
 .rb-path { fill: none; stroke: var(--c); stroke-width: 7; stroke-dasharray: 2 13; stroke-linecap: round; opacity: 0.95; pointer-events: none; }
 .rb-wall rect { fill: #1b1e2b; stroke: #f3f1ea; stroke-width: 3; }
-.rb-wall.new rect { animation: rbWall .6s ease-out; }
+.rb-wall.new rect, .rb-wall.new image { animation: rbWall .6s ease-out; transform-box: fill-box; transform-origin: center; }
+.rb-wall.art image { filter: drop-shadow(0 0 2px rgba(255,255,255,.55)) drop-shadow(0 2px 3px rgba(0,0,0,.7)); }
 .rb-wall.ghost rect { fill: #d0453a; stroke: #fff; animation: fbWill .8s ease-in-out infinite; }
 .rb-handle .hit, .rb-node .hit { fill: transparent; }
 .rb-handle rect { fill: var(--gold2); stroke: #1a1408; stroke-width: 1.5; }
@@ -1380,6 +1381,10 @@ button.xc-card { cursor: pointer; }
 .tb-node.sel .tb-ring { stroke: #fff; fill: rgba(255,255,255,0.25); }
 .tb-node.chosen .tb-ring { stroke: #fff; stroke-width: 8; fill: rgba(216,178,90,0.5); animation: none; }
 .tb-node.threat .tb-ring { stroke: #ff6a5c; stroke-dasharray: 4 6; }
+.tb-atk { pointer-events: none; animation: fbWill .9s ease-in-out infinite; }
+.tb-atk circle { fill: #e2392c; stroke: #fff; stroke-width: 3.5; }
+.tb-atk text { fill: #fff; font-size: 24px; font-weight: 900; }
+.tb-atknote { color: #ff8a7e; font-weight: 700; }
 .tb-node.from .tb-dot { fill: #4a5380; }
 .tb-node.to .tb-dot { stroke: var(--gold2); stroke-width: 5; }
 .tb-node.hit .tb-dot { stroke: #ff6a5c; stroke-width: 6; }

@@ -6,7 +6,7 @@
 import { Sound } from '../../audio/audio';
 import type { CharId, NpcId } from '../../data/characters';
 import { t } from '../../i18n/i18n';
-import { ADJ, CAP_PTS, DELIVER_PTS, HOME, HOME_PTS, HOLD_PTS, PEACE, actsOf, startBoard, type Board, type M10Log, type M10Move, type M10View } from '../../matches/m10';
+import { exposed, ADJ, CAP_PTS, DELIVER_PTS, HOME, HOME_PTS, HOLD_PTS, PEACE, actsOf, startBoard, type Board, type M10Log, type M10Move, type M10View } from '../../matches/m10';
 import { face } from '../art';
 import { button, h, type Child } from '../dom';
 import type { MatchUi } from '../matchui';
@@ -98,7 +98,9 @@ export function renderM10(v: M10View, ui: MatchUi): { main: Child; side: Child }
     St.n = v.log.length + 1;
     ui.submit(mv);
   };
-  const board = triBoard({ board: B, seats: v.seats, me: seat, marks, flagMarks },
+  // 次に取られうる自分の兵（隣に敵の兵がいて、自分の次の番までに取れる巡になっている）。相手の手の予測はしない
+  const atk = !watching && seat >= 0 && v.phase !== 'done' ? exposed(B, seat, v.round + 1 >= PEACE) : [];
+  const board = triBoard({ board: B, seats: v.seats, me: seat, marks, flagMarks, atk },
     myTurn ? (c) => {
       const own = mine.find((p) => p.pos === c);
       if (own) { if (!acts.some((a) => a.from === c)) { Sound.se('error'); return; } St.from = St.from === c ? undefined : c; St.to = undefined; Sound.se('select'); ui.rerender(); return; }
@@ -155,6 +157,6 @@ export function renderM10(v: M10View, ui: MatchUi): { main: Child; side: Child }
   }
   void HOME;
   const main = h('div', { class: 'hx7 tb7' }, h('div', { class: 'hx7-left' }, board),
-    h('div', { class: 'hx7-panel' }, head, body, h('div', { class: 'small fb-note pz-note' }, note), h('div', { class: 'hx7-foot' }, foot), done ? null : h('div', { class: 'small dim' }, t('m10.legend'))));
+    h('div', { class: 'hx7-panel' }, head, body, h('div', { class: 'small fb-note pz-note' }, note), h('div', { class: 'hx7-foot' }, foot), done ? null : h('div', { class: 'small dim' }, t('m10.legend'), atk.length ? h('span', { class: 'tb-atknote' }, '　', t('m10.atkNote', { n: atk.length })) : null)));
   return { main, side };
 }
