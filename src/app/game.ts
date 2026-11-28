@@ -90,6 +90,8 @@ export interface RankingView {
   ranking: CharId[];
   scores: Partial<Record<CharId, number>>;
   rewards?: Partial<Record<CharId, number>>;
+  /** 報酬を受け取った直後の残高（メインマッチの結果だけ。決勝と監獄マッチでは出さない） */
+  balances?: Partial<Record<CharId, number>>;
   /** 下位何人が監獄棟（または脱落） */
   cut: number;
   cutLabel: string;
@@ -852,6 +854,7 @@ async function step(s: GameState): Promise<boolean> {
       s.match = null;
       s.flags.lastNotes = JSON.stringify(notes);
       s.flags.lastRewards = JSON.stringify(res.rewards);
+      s.flags.lastBalances = JSON.stringify(res.balances);
       enter('reward');
       return true;
     }
@@ -877,6 +880,7 @@ async function step(s: GameState): Promise<boolean> {
         ranking,
         scores: s.today.mainScores ?? {},
         rewards: JSON.parse(String(s.flags.lastRewards ?? '{}')),
+        balances: JSON.parse(String(s.flags.lastBalances ?? '{}')),
         cut: nPrison,
         cutLabel: t(medalIssued(s.day) && s.today.rescue?.status !== 'used' && s.today.rescue?.status !== 'forgone' ? 'rank.toPrisonProv' : 'rank.toPrison'),
         notes: JSON.parse(String(s.flags.lastNotes ?? '[]')),

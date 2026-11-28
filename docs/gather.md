@@ -1,4 +1,4 @@
-# 競技会場への集合移動（v0.29.5、2026-11-28 本人の依頼）
+# 競技会場への集合移動（v0.29.6、2026-11-28 本人の依頼）
 
 競技の前に、全員が今いる場所から実際に歩いて会場へ向かう演出。コードは `src/core/gather.ts`（動き）、`src/core/gathertalk.ts` と `src/data/gather_talk.json`（集合中の会話）、`src/ui/gather.ts`（画面）、`src/app/game.ts` の `gather`／`gatherPrison` フェーズ。
 
