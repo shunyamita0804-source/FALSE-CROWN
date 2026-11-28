@@ -14,6 +14,7 @@ import { Input } from '../input/InputState';
 import { anyModal } from '../ui/dom';
 import { ROOMS, doorApproach, doorDir, propVisible, type DoorDef, type InspectDef, type RoomDef } from '../world/maps';
 import { PROPS } from '../world/props';
+import { furnitureOf, type FurnitureProp } from '../world/furniture';
 import { DIRS, actorsIn, drainDoorPasses, facingTile, tryStep } from '../world/sim';
 import { WALK_LINGER_MS, walkFrame } from '../world/walk';
 import standAlign from '../data/stand_align.json';
@@ -201,7 +202,7 @@ export class FieldScene extends Phaser.Scene {
     this.load.once(Phaser.Loader.Events.COMPLETE, () => {
       for (const key of keys) this.loading.delete(key);
       const room = G.state ? ROOMS[G.state.actors.hero.pos.room] : null;
-      if (room && this.roomId === room.id && keys.some((k) => k === `asset:${room.image}` || k === `asset:${room.overlay?.image}`)) this.buildRoom();
+      if (room && this.roomId === room.id && keys.some((k) => k === `asset:${room.image}` || k === `asset:${room.overlay?.image}` || this.furnitureKeys(room.id).includes(k))) this.buildRoom();
     });
     this.load.start();
   }
@@ -253,6 +254,36 @@ export class FieldScene extends Phaser.Scene {
     return [...keys].map((k) => (s.flags[k] ? 1 : 0)).join('') + (s.phase === 'night' ? 'n' : 'd') + plates;
   }
 
+  /** 建物改修の家具の絵のキー（後ろの絵、前の絵、扉の開閉） */
+  private furnitureKeys(roomId: string): string[] {
+    const f = furnitureOf(roomId);
+    if (!f) return [];
+    return f.props.flatMap((p) => [p.img, p.fg?.img, p.door?.open, p.door?.closed].filter((x): x is string => !!x)).map((x) => `asset:${x}`);
+  }
+
+  /**
+   * 建物改修の家具を、背景の上に原寸の位置で置く（絵は加工しない）。
+   * 分けた絵は、後ろの絵を家具の奥行き、前の絵をその少し手前に描く。座った人はその間に入る（furniture.ts の seatDepth）。
+   * 房の扉は、開いているか閉じているかで絵を替える。
+   */
+  private addFurniture(roomId: string): void {
+    const f = furnitureOf(roomId);
+    if (!f) return;
+    const need = [...new Set(this.furnitureKeys(roomId))].filter((k) => !this.textures.exists(k));
+    if (need.length) { this.requestAssets(need); return; }
+    const put = (key: string, p: FurnitureProp, depth: number) => this.roomObjects.push(this.add.image(p.x, p.y, `asset:${key}`).setOrigin(0).setDisplaySize(p.w, p.h).setDepth(depth));
+    for (const p of f.props) {
+      if (p.door) { put(this.gateOpen(roomId, p) ? p.door.open : p.door.closed, p, p.depth); continue; }
+      put(p.img, p, p.fg ? Math.min(p.depth, p.fg.depth - 2) : p.depth);
+      if (p.fg) put(p.fg.img, p, p.fg.depth);
+    }
+  }
+
+  /** 房の扉が開いているか（房の持ち主の出入りに合わせる。決まりは world/cells.ts） */
+  private gateOpen(_roomId: string, p: FurnitureProp): boolean {
+    return p.door?.initial === 'open';
+  }
+
   /** 部屋を描画し直す */
   buildRoom(): void {
     const s = G.state;
@@ -278,6 +309,7 @@ export class FieldScene extends Phaser.Scene {
         this.touchMap(key);
         this.roomObjects.push(this.add.image(0, 0, key).setOrigin(0).setDisplaySize(W, H).setDepth(0));
         if (ovKey && this.textures.exists(ovKey)) this.roomObjects.push(this.add.image(0, 0, ovKey).setOrigin(0).setDisplaySize(W, H).setDepth(0.6));
+        this.addFurniture(room.id);
       }
       this.preloadNeighbours(room);
     } else {
