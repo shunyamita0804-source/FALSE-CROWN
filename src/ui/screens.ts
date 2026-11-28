@@ -27,6 +27,7 @@ import { deleteSave, exportSave, hasSave, importSave, saveMeta } from '../save/s
 import { canEnter } from '../world/access';
 import { ROOMS } from '../world/maps';
 import { ceremonyScreen } from './ceremony';
+import { renderRelations } from './relations';
 import { playVoice, resetVoiceHistory, voiceClip } from '../audio/voice';
 import { introLine } from '../core/introduction';
 import { bgUrl, bust, emblemUrl, face, fxBanner, icon, logoUrl, portraitUrl, rankMark, setBust, setHeroGender } from './art';
@@ -287,9 +288,9 @@ export function hudLog(text: string): void {
 
 // ---------------- 手帳（メニュー） ----------------
 
-type Tab = 'status' | 'people' | 'deals' | 'info' | 'files' | 'history' | 'rules' | 'map' | 'system';
+type Tab = 'status' | 'relations' | 'people' | 'deals' | 'info' | 'files' | 'history' | 'rules' | 'map' | 'system';
 
-const TAB_ICONS: Record<Tab, string> = { status: 'rank', people: 'participant_list', deals: 'contract', info: 'evidence', files: 'document', history: 'document', rules: 'help', map: 'map', system: 'settings' };
+const TAB_ICONS: Record<Tab, string> = { status: 'rank', relations: 'alliance', people: 'participant_list', deals: 'contract', info: 'evidence', files: 'document', history: 'document', rules: 'help', map: 'map', system: 'settings' };
 
 export function openMenu(initial: Tab = 'status'): void {
   const s = G.state;
@@ -307,7 +308,7 @@ export function openMenu(initial: Tab = 'status'): void {
     clear(tabs);
     // 「資料」の欄は、裏ルートで何か手に入れてから出す（序盤から匂わせない）
     const hasFiles = Object.values(s.actors.hero.items).some((n) => n > 0);
-    for (const k of ['status', 'people', 'deals', 'info', ...(hasFiles ? ['files'] : []), 'history', 'rules', 'map', 'system'] as Tab[]) {
+    for (const k of ['status', 'relations', 'people', 'deals', 'info', ...(hasFiles ? ['files'] : []), 'history', 'rules', 'map', 'system'] as Tab[]) {
       tabs.append(h('button', { class: `tab${tab === k ? ' on' : ''}`, type: 'button', onclick: () => { tab = k; Sound.se('page'); render(); } }, icon(TAB_ICONS[k]), t(`menu.${k}`)));
     }
     clear(body);
@@ -342,6 +343,8 @@ function renderTab(s: GameState, tab: Tab, close: () => void, rerender: () => vo
         ...s.log.slice(-14).reverse().map((l) => h('div', { class: 'logline' }, `DAY${l.day}　${l.text}`)),
       ];
     }
+    case 'relations':
+      return renderRelations(s, rerender);
     case 'people': {
       return [h('div', { class: 'dim small' }, t('people.note')), ...NPC_IDS.map((id) => {
         const a = s.actors[id];
