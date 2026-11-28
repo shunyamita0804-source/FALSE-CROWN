@@ -78,6 +78,8 @@ export function introductionEvent(): Promise<void> {
     const skipBtn = button(t('intro.skipAll'), () => finishTalks(), { kind: 'ghost', small: true });
     const top = h('div', { class: 'intro-top' }, head, skipBtn);
     // 本人の配置図（2026-11-28）：会話の枠の上、中央の人物の列の手前に人物紹介、その下に台詞の枠
+    // 名札（名前｜年齢 職業を 1 行）は、台詞の枠の上の縁の左寄りに半分かぶせる。ゲーム内の会話と同じ形（本人の指示、2026-11-28）
+    const tab = h('div', { class: 'intro-tab' });
     const bottom = h('div', { class: 'intro-bottom' }, profile, card);
     const root = h('div', { class: 'overlay clear intro' }, top, bottom);
 
@@ -96,6 +98,8 @@ export function introductionEvent(): Promise<void> {
       drawHead(t('intro.gathering'));
       clear(profile);
       profile.className = 'intro-profile';
+      clear(tab);
+      tab.className = 'intro-tab';
       clear(card);
       card.className = 'intro-card wait';
       card.append(h('p', { class: 'intro-text narration' }, t('intro.gatherText', { place: ROOMS[room].name })));
@@ -117,9 +121,12 @@ export function introductionEvent(): Promise<void> {
       profile.append(bust(l.id, 'normal', 'intro-bust'));
       clear(card);
       card.className = 'intro-card talk';
-      // 名前と年齢・職業は、台詞の枠の上端に付けた名札にまとめる
+      // 名前と年齢・職業は 1 行の名札にまとめ、台詞の枠の上の縁にかぶせる
+      clear(tab);
+      tab.className = 'intro-tab on';
+      tab.append(h('div', { class: 'intro-name' }, h('b', null, l.name)), h('span', { class: 'intro-meta' }, meta));
       card.append(
-        h('div', { class: 'intro-tab' }, h('div', { class: 'intro-name' }, h('b', null, l.name), l.kana ? h('small', null, l.kana) : null), h('span', { class: 'intro-meta' }, meta)),
+        tab,
         h('p', { class: 'intro-text' }, l.text), h('div', { class: 'intro-next' }, l.voice ? '♪' : '', ' ▼'));
       const hold = () => { timer = setTimeout(next, textHoldMs(l.text)); };
       if (!l.voice) { hold(); return; }
@@ -176,6 +183,8 @@ export function introductionEvent(): Promise<void> {
       drawHead(t('intro.done'));
       clear(profile);
       profile.className = 'intro-profile';
+      clear(tab);
+      tab.className = 'intro-tab';
       clear(card);
       card.className = 'intro-card wait';
       card.append(h('p', { class: 'intro-text narration' }, t('intro.doneText')), h('div', { class: 'intro-foot' }, button(t('cer.go'), () => end(), { kind: 'primary', autofocus: true })));

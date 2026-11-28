@@ -1757,29 +1757,24 @@ body .vt-foot .btn.btn-s { min-height: 76px; }
 /* 上の帯：進み具合（左）と、全員の紹介を飛ばす（右） */
 .intro-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 /* 下側：人物紹介（絵 → 名前 → 年齢・職業）と、その下に台詞だけの横長の枠 */
-.intro-bottom { display: flex; flex-direction: column; align-items: stretch; gap: 10px; width: min(1240px, 100%); margin: 0 auto; }
+.intro-bottom { display: flex; flex-direction: column; align-items: stretch; gap: 0; width: min(1240px, 100%); margin: 0 auto; }
 .intro-head { display: flex; align-items: baseline; gap: 18px; padding: 8px 22px; background: rgba(6, 8, 20, 0.78); border: 1px solid rgba(216, 178, 90, 0.55); border-radius: 10px; }
 .intro-head b { font-family: var(--serif); color: var(--gold2); letter-spacing: 0.14em; font-size: 1.1em; }
 .intro-head span { color: var(--ivory-dim); }
 .intro-profile { display: none; }
 /* 本人の指示（2026-11-28）：人物の絵に枠は付けない。透過の胸上の絵を、台詞の枠の左上に立たせる */
-.intro-profile.on { display: block; align-self: flex-start; margin: 0 0 -2px -44px; height: 300px; pointer-events: none; position: relative; z-index: 1; }
+.intro-profile.on { display: block; align-self: flex-start; margin: 0 0 -44px -44px; height: 300px; pointer-events: none; position: relative; z-index: 0; }
 .intro-profile .intro-bust { height: 100%; width: auto; aspect-ratio: 1 / 1; background-size: 125% auto; background-position: 50% 2%; filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55)); -webkit-mask-image: linear-gradient(#000 88%, transparent); mask-image: linear-gradient(#000 88%, transparent); animation: intro-in 260ms ease-out; }
-/* 名前と年齢・職業：台詞の枠の上端に付けた名札（絵の右隣から） */
-.intro-tab { position: absolute; left: -10px; bottom: calc(100% - 14px); z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 330px; padding: 12px 40px 12px 40px; background: linear-gradient(180deg, #1a2244, #0e1430); border: 1.5px solid var(--gold); border-radius: 12px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5); white-space: nowrap; animation: intro-in 260ms ease-out; }
-html[data-ui-assets~="talk/intro_name_plate"] .intro-tab { background: none; border-radius: 0; border-style: solid; border-color: transparent; border-width: 14px 26px; border-image: var(--asset-talk-intro-name-plate) var(--asset-talk-intro-name-plate-slice) fill / 14px 26px stretch; padding: 0 12px; min-width: 260px; gap: 0; line-height: 1.2; box-shadow: none; }
-.intro-card.talk { z-index: 2; }
+/* 名前と年齢・職業：1 行の名札。台詞の枠の上の縁の左寄りに半分かぶせる（会話の .dlg-name と同じ形。下の「会話表示の統一」） */
+.intro-tab { display: none; }
 .intro-name { display: flex; align-items: baseline; gap: 12px; }
-.intro-name b { font-family: var(--serif); font-size: 1.6em; color: var(--gold2); letter-spacing: 0.08em; }
-.intro-name small { color: var(--ivory-dim); font-size: 0.9em; letter-spacing: 0.1em; }
-.intro-meta { color: #e8dcc0; font-size: 1.05em; letter-spacing: 0.04em; }
+.intro-name b { font-family: var(--serif); font-size: 1.25em; color: var(--gold2); letter-spacing: 0.08em; }
+.intro-meta { color: #e8dcc0; font-size: 1em; letter-spacing: 0.04em; padding-left: 18px; border-left: 1px solid rgba(216, 178, 90, 0.5); }
 /* 下段：台詞だけの横長の枠 */
-.intro-card { position: relative; display: flex; align-items: center; gap: 26px; min-height: 104px; padding: 16px 70px 14px 40px; background: linear-gradient(180deg, rgba(14, 18, 40, 0.9), rgba(6, 8, 20, 0.94)); border: 1.5px solid var(--gold); border-radius: 14px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55); cursor: pointer; }
-html[data-ui-assets~="talk/intro_window"] .intro-card { background: none; border-radius: 0; box-shadow: none; border-style: solid; border-color: transparent; border-width: 30px 70px; border-image: var(--asset-talk-intro-window) var(--asset-talk-intro-window-slice) fill / 30px 70px stretch; padding: 0; }
-html[data-ui-assets~="talk/intro_window"] .intro-tab { left: -100px; bottom: calc(100% + 2px); }
-html[data-ui-assets~="talk/intro_name_plate"] .intro-name b { font-size: 1.35em; }
-html[data-ui-assets~="talk/intro_name_plate"] .intro-meta { font-size: 0.95em; }
-html[data-ui-assets~="talk/intro_window"] .intro-next { right: -40px; bottom: -14px; }
+.intro-card { position: relative; z-index: 1; display: flex; align-items: center; gap: 26px; min-height: 104px; padding: 16px 70px 14px 40px; background: linear-gradient(180deg, rgba(14, 18, 40, 0.9), rgba(6, 8, 20, 0.94)); border: 1.5px solid var(--gold); border-radius: 14px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55); cursor: pointer; }
+html[data-ui-assets~="talk/window"] .intro-card { background: none; border-radius: 0; box-shadow: none; border-style: solid; border-color: transparent; border-width: 30px 70px; border-image: var(--asset-talk-window) var(--asset-talk-window-slice) fill / 30px 70px stretch; padding: 4px 0 0; min-height: 96px; align-items: flex-start; }
+html[data-ui-assets~="talk/window"] .intro-card.wait { align-items: center; padding: 0; }
+html[data-ui-assets~="talk/window"] .intro-next { right: -40px; bottom: -14px; }
 .intro-card.wait { padding-right: 40px; }
 .intro-text { margin: 0; flex: 1; font-size: 1.3em; line-height: 1.6; white-space: pre-wrap; animation: intro-in 260ms ease-out; }
 .intro-text.narration { font-family: var(--serif); color: #e6dcc4; }
@@ -1887,3 +1882,23 @@ html[data-ui-assets~="v11/bg/match_sub"] .match.venue-sub { background: linear-g
 .splash-word { display: flex; flex-direction: column; align-items: center; gap: 10px; color: #f3ead2; }
 .splash-name { font-family: 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', serif; font-size: 56px; letter-spacing: 0.32em; padding-left: 0.32em; }
 .splash-en { font-size: 18px; letter-spacing: 0.6em; padding-left: 0.6em; opacity: 0.7; }
+
+/* ===== 会話表示の統一（2026-11-28 本人の指示） =====
+   名札（名前｜年齢 職業を 1 行、縦幅は小さく）は、台詞の枠の上の縁の左寄りに半分かぶせる。
+   人物の絵は枠の後ろから上に出す（体の下は枠に隠れる）。台詞は名札の少し下から始める。
+   会話、物語、自己紹介のすべてで同じ形。枠と名札は「ミストラルモンスターズ」の紺と金の部品（加工なし） */
+.dlg-name, .intro-tab.on { position: absolute; z-index: 2; display: flex; align-items: center; gap: 16px; top: 0; left: 30px; transform: translateY(-50%); padding: 3px 24px; white-space: nowrap; line-height: 1.2;
+  background: linear-gradient(180deg, #1c2650, #0c1230); border: 1.5px solid var(--gold); border-radius: 8px; color: var(--gold2); font-family: var(--serif); letter-spacing: 0.08em; font-size: 1.05em; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45); }
+.dlg-name b { font-weight: 700; font-size: 1.15em; }
+.dlg-name span { font-family: var(--sans, inherit); color: #e8dcc0; letter-spacing: 0.04em; font-size: 0.92em; padding-left: 16px; border-left: 1px solid rgba(216, 178, 90, 0.5); }
+html[data-ui-assets~="talk/name_plate"] .dlg-name, html[data-ui-assets~="talk/name_plate"] .intro-tab.on { background: none; border-radius: 0; box-shadow: none; border-style: solid; border-color: transparent; border-width: 10px 14px; padding: 0 22px;
+  border-image: var(--asset-talk-name-plate) var(--asset-talk-name-plate-slice) fill / 10px 14px stretch; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5)); }
+/* 枠の部品がある時：枠の外側の上端に名札の中心を合わせる（枠の縁は 30px） */
+html[data-ui-assets~="talk/window"] .dlg-name, html[data-ui-assets~="talk/window"] .intro-tab.on { top: -30px; left: -30px; }
+html[data-ui-assets~="talk/window"] .dlg-box { background: none; border-radius: 0; box-shadow: none; border-style: solid; border-color: transparent; border-width: 30px 70px; padding: 8px 0 0; min-height: 150px;
+  border-image: var(--asset-talk-window) var(--asset-talk-window-slice) fill / 30px 70px stretch; }
+html[data-ui-assets~="talk/window"] .dlg-next { right: -40px; bottom: -14px; }
+/* 人物の絵は台詞の枠の後ろまで下ろす（枠が手前）。下のぼかしは要らない */
+.dlg-screen .dlg-box { z-index: 1; }
+.bust.dlg-portrait { z-index: 0; bottom: calc(60px + var(--safe-bottom)); -webkit-mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%); mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%); }
+

@@ -34,15 +34,20 @@ const { chromium, devices } = require('playwright');
   for (let i = 0; i < 40 && !(await page.locator('.intro-name').count()); i++) await page.waitForTimeout(500);
   const ring = await ev(() => { const s = window.__fc.G.state; return Object.values(s.actors).filter((x) => x.alive).map((x) => [x.id, x.pos.room, x.pos.x, x.pos.y, !!x.step]); });
   check('12 人全員が中央ホールで立ち止まっている', ring.length === 12 && ring.every((r) => r[1] === 'main_hall' && !r[4]), JSON.stringify(ring.map((r) => r.slice(2, 4))));
-  const card1 = ((await page.locator('.intro-profile').innerText()) + ' | ' + (await page.locator('.intro-card').innerText())).replace(/\s+/g, ' ');
+  const card1 = ((await page.locator('.intro-tab').innerText()) + ' | ' + (await page.locator('.intro-card').innerText())).replace(/\s+/g, ' ');
   const box = async (sel) => page.locator(sel).first().boundingBox();
   const [pb, cb, sb] = [await box('.intro-profile .intro-bust'), await box('.intro-card'), await box('.intro-top')];
   const [nb, mb, tb] = [await box('.intro-name'), await box('.intro-meta'), await box('.intro-card .intro-text')];
-  // 名札は人物の胸の下に重ね、台詞の枠の左上にかける（本人の図、2026-11-28）。台詞の文字とは重ならず、名札は人物より手前
+  // 名札（名前｜年齢 職業を 1 行）は台詞の枠の上の縁の左寄りに半分かぶせる。人物は枠の後ろから上に出る。台詞は名札の少し下から（本人の指示、2026-11-28）
   const gb = await box('.intro-tab');
-  const topEl = await page.evaluate(() => { const g = document.querySelector('.intro-tab').getBoundingClientRect(); const e = document.elementFromPoint(g.x + g.width / 2, g.y + g.height / 2); return !!e && !!e.closest('.intro-tab'); });
-  check('人物の絵・名札・台詞の文字が重ならない', pb && cb && sb && gb && topEl && pb.y + pb.height <= tb.y + 1 && gb.y + gb.height <= tb.y && gb.y > pb.y + pb.height / 2 && mb.y >= nb.y + nb.height - 2 && pb.y >= sb.y + sb.height, JSON.stringify([pb, nb, mb, cb, tb]));
-  check('台詞の枠に絵は入れない（名前と年齢は枠の名札）', !(await page.locator('.intro-card .bust').count()) && (await page.locator('.intro-card .intro-tab').count()) === 1);
+  const layerOk = () => page.evaluate(() => {
+    const at = (el, fx, fy) => { const r = el.getBoundingClientRect(); return document.elementFromPoint(r.x + r.width * fx, r.y + r.height * fy); };
+    const meta = document.querySelector('.intro-meta'); const txt = document.querySelector('.intro-card .intro-text');
+    const m = at(meta, 0.95, 0.5); const t = at(txt, 0.02, 0.3);
+    return !!m && !!m.closest('.intro-tab') && !!t && !!t.closest('.intro-card');
+  });
+  check('人物の絵・名札・台詞の文字が重ならない', pb && cb && sb && gb && (await layerOk()) && gb.y < cb.y && gb.y + gb.height > cb.y && gb.y + gb.height <= tb.y && mb.x >= nb.x + nb.width && gb.height < 60 && pb.y < cb.y - 60 && pb.y >= sb.y + sb.height, JSON.stringify([pb, nb, mb, cb, tb]));
+  check('台詞の枠に絵は入れない（名前と年齢は枠の上の名札）', !(await page.locator('.intro-card .bust').count()) && (await page.locator('.intro-card .intro-tab.on').count()) === 1);
   check('話す人の名前、年齢、職業、字幕が出る', /歳/.test(card1) && card1.length > 20, card1);
   const v1 = await ev(() => window.__fc.Sound.lastVoice);
   // 改名した人の古い自己紹介（旧名を名乗る声）は鳴らさない。新しい名前で録り直した声が届いていれば鳴らす
@@ -71,8 +76,9 @@ const { chromium, devices } = require('playwright');
     { const [p1, c1, s1, n1, m1] = [await box('.intro-profile .intro-bust'), await box('.intro-card'), await box('.intro-top'), await box('.intro-name'), await box('.intro-meta')];
       const t1 = await box('.intro-card .intro-text');
       const g1 = await box('.intro-tab');
-      // 名札は人物の胸の下（絵に重ねる）、台詞の枠の左上にかかる。名札・人物と台詞の文字は重ならない。名前の下に年齢・職業
-      if (!(p1.y + p1.height <= t1.y + 1 && g1.y + g1.height <= t1.y && g1.y > p1.y + p1.height / 2 && g1.x < t1.x + 40 && g1.x >= 0 && m1.y >= n1.y + n1.height - 2 && m1.x + m1.width <= g1.x + g1.width && n1.x + n1.width <= g1.x + g1.width && p1.y >= s1.y + s1.height && t1.y + t1.height <= c1.y + c1.height + 1)) check('全員：枠と文字が重ならない', false, meta + JSON.stringify([p1, c1, s1, t1])); else overlapOk++; }
+      const vis = await layerOk();
+      // 名札は枠の上の縁にかかり、台詞はその下から。年齢・職業は名前の右で、名札の中に収まる。人物の絵は枠より手前に出ない
+      if (!(vis && g1.y < c1.y && g1.y + g1.height > c1.y && g1.y + g1.height <= t1.y && m1.x >= n1.x + n1.width && m1.x + m1.width <= g1.x + g1.width && g1.x >= 0 && p1.y < c1.y - 60 && p1.y >= s1.y + s1.height && t1.y + t1.height <= c1.y + c1.height + 1)) check('全員：枠と文字が重ならない', false, meta + JSON.stringify([p1, c1, s1, t1])); else overlapOk++; }
     if (meta.includes('あなた')) { heroSeen = true; const lv = await ev(() => window.__fc.Sound.voicePlaying); check('主人公は文字だけ（声を鳴らさない）', !lv); if (out) await page.screenshot({ path: out + '/intro_3_hero.png' }); }
     if (await page.locator('.intro-card.talk').count()) await page.locator('.intro-card.talk').tap();
     await page.waitForTimeout(350);
