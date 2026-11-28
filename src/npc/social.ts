@@ -11,6 +11,7 @@ import { activeDeals, addInfo, adjustRel, allied, learn, nameOf, rel, shortName 
 import type { Actor, GameState, Info } from '../core/types';
 import { NPC_BY_ID, type CharId, type NpcId } from '../data/characters';
 import { ROOMS } from '../world/maps';
+import { followBonus } from './group';
 import storyJson from '../data/story_events.json';
 import { actorsIn } from '../world/sim';
 
@@ -155,7 +156,8 @@ export function inviteVerdict(state: GameState, host: CharId, guest: NpcId, rng:
   const allies = activeDeals(state, guest).filter((d) => d.kind === 'alliance').length;
   let score = (r.trust - 35) * 0.55 + r.like * 0.35 - (r.wary - 30) * 0.35 - r.hostility * 0.5;
   score += allied(state, guest, host) ? 14 : allies === 0 ? 8 : 0;
-  score += (def.personality.ambition - 50) * 0.12 + (def.personality.risk - 50) * 0.1;
+  // 集団行動の性格：頼れそうな相手（公開の実績と自分の信頼）の誘いに乗る（追従性）、集団に頼らない（自立志向）。相手が主人公でも同じ式
+  score += followBonus(state, guest, host, '') + (def.personality.risk - 50) * 0.05;
   // 予定：食事や入浴の時間で、まだ済ませていなければ腰が重い
   const slot = lifeSlot(clockMinutes(state));
   if ((slot === 'breakfast' || slot === 'dinner') && !state.flags[`ate:${state.day}:${slot}:${guest}`]) score -= 6;

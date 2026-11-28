@@ -124,9 +124,10 @@ function p02Ai(v: P02View, ctx: AiCtx): P02Move {
   }
   if (v.phase !== 'quiz' || !v.set) return { t: 'ready' };
   const mem = skill(ctx.stats.memory);
+  const obs = skill(ctx.stats.observation); // 副：図柄の細部に気づく
   const n = v.set.board.cells.filter((c) => c != null).length;
   const sec = v.set.showMs / 1000;
-  const cap = 1.7 + mem * 1.4 + sec * 0.36 + ctx.rng.gauss(0, 1.3) - ctx.noise * 0.3;
+  const cap = 1.45 + mem * 1.4 + obs * 0.4 + sec * 0.36 + ctx.rng.gauss(0, 1.3) - ctx.noise * 0.3;
   const pLoc = Math.max(0.15, Math.min(0.95, cap / n));
   return { t: 'answers', a: cpuAnswer(v.set, { pSeen: 1, pLoc, pPart: 0.3 + mem * 0.2, attrs: symbolAttrs }, ctx.rng) };
 }

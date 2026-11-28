@@ -23,7 +23,8 @@ export interface H04View {
 
 function ai(_v: H04View, ctx: AiCtx): H04Move {
   const lg = skill(ctx.stats.logic);
-  return { t: 'answer', a: H04_QUESTIONS.map((q) => (ctx.rng.chance(0.75 + lg * 0.22 - ctx.noise * 0.1) ? q.answer : ctx.rng.int(0, q.options.length - 1))) };
+  const mem = skill(ctx.stats.memory); // 副：読んだ資料の記憶
+  return { t: 'answer', a: H04_QUESTIONS.map((q) => (ctx.rng.chance(0.75 + lg * 0.16 + mem * 0.06 - ctx.noise * 0.1) ? q.answer : ctx.rng.int(0, q.options.length - 1))) };
 }
 
 export const H04: MatchEngine<H04State, H04Move, H04View> = {

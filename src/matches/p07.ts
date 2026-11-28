@@ -121,7 +121,7 @@ function p07Ai(v: P07View, ctx: AiCtx): P07Move {
   const seat = v.seat;
   const n = v.players.length;
   const st = skill(ctx.stats.strategy);
-  const lg = skill(ctx.stats.logic);
+  const lg = skill(ctx.stats.observation); // 副：反転される危険に気づく（観察）
   const order = v.order.map((p) => v.players.indexOf(p));
   const next = order[(order.indexOf(seat) + 1) % n];
   const sd = 0.4 + ctx.noise * 1.2 + (1 - st) * 1.5;

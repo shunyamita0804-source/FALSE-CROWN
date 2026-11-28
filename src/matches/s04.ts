@@ -52,12 +52,13 @@ function ai(v: S04View, ctx: AiCtx): S04Move {
   const first = v.open.length === 1 ? v.open[0] : null;
   // 覚えているカード：めくられたことのあるカードのうち、忘れていないもの（記憶が低いほど、古いものほど忘れる）
   const mem = skill(ctx.stats.memory);
+  const ob = skill(ctx.stats.observation); // 副：図柄の見分け
   const known = new Map<number, number>();
   const n = v.seen.length;
   v.seen.forEach((sn, i) => {
     if (v.owner[sn.cell] !== -1) return;
     const age = n - 1 - i;
-    const forget = Math.min(0.9, ctx.memoryLoss + (1 - mem) * 0.12 + age * (0.01 + (1 - mem) * 0.035));
+    const forget = Math.min(0.9, ctx.memoryLoss + (1 - mem) * 0.1 + (1 - ob) * 0.03 + age * (0.01 + (1 - mem) * 0.035));
     // 同じ場面では同じ答えになるよう、カードと場面から決まる値で判定する
     const roll = ((sn.cell * 73 + i * 31 + n * 17 + ctx.self.length * 7) % 100) / 100;
     if (roll >= forget) known.set(sn.cell, sn.face);

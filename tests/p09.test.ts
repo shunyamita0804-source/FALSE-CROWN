@@ -1,3 +1,6 @@
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { mkdirSync } from 'node:fs';
 import { writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../src/core/rng';
@@ -5,7 +8,8 @@ import { ALL_IDS } from '../src/data/characters';
 import { P09, P09_PRACTICE, ROUNDS, expected, hintFor, makeMirror, mirrorCell, mirrorTile, scoreOf, sideOf, type Axis, type P09State, type Tile } from '../src/matches/p09';
 import { simulate } from './helpers';
 
-const S = '/tmp/claude-0/-home-claude/ced3d2db-bac9-5d25-8782-91ee7ff6cc58/scratchpad';
+// 試行の数字の書き出し先（環境に依らない一時フォルダ）
+const S = (() => { const d = join(tmpdir(), 'false-crown-sim'); mkdirSync(d, { recursive: true }); return d; })();
 
 describe('P09 鏡の決闘', () => {
   it('折り返し：2 回映すと元に戻る。表示側は作る側に、軸の上は軸の上に映る。矢印の向きも映る', () => {

@@ -521,3 +521,20 @@ export function consumePledges(state: GameState, players: CharId[]): void {
     }
   }
 }
+
+/**
+ * 交渉力（提案する側だけに効く）。受ける側の判断（evaluate）は、提案者の交渉力を一切読まない。
+ * - 対案の往復を何回まで続けられるか
+ * - 断られた時に、相手が受けやすい別の形（同盟→不可侵）を出せるか
+ * 主人公の交渉はプレイヤー本人が行うので、ここは NPC だけ。
+ */
+export function counterRounds(id: CharId): number {
+  if (id === 'hero') return 2;
+  const n = NPC_BY_ID[id as NpcId].stats.negotiation;
+  return n >= 9 ? 3 : n >= 6 ? 2 : 1;
+}
+
+/** 断られた後に、別の形の案を出せるか（交渉力 7 以上） */
+export function canReframe(id: CharId): boolean {
+  return id !== 'hero' && NPC_BY_ID[id as NpcId].stats.negotiation >= 7;
+}

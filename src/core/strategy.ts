@@ -9,11 +9,13 @@
  */
 import talkJson from '../data/match_talk.json';
 import { NPC_BY_ID, type CharId, type NpcId } from '../data/characters';
-import { commit, evaluate, type Proposal } from '../npc/negotiation';
+import { canReframe, commit, evaluate, type Proposal } from '../npc/negotiation';
 import type { Rng } from './rng';
 import { activeDeals, addInfo, adjustRel, allied, fact, learn, log, nameOf, pledged, rel, shortName } from './state';
 import type { GameState, MatchSlot } from './types';
 import { medalIssued, promiseRescue, promised } from './rescue';
+import { answerRole, assignRoles, followBonus, leadDesire, meetingPlace, takeCounter, talkChance, type RoleId } from '../npc/group';
+import { t } from '../i18n/i18n';
 
 export type TalkWindow = 'pre_only' | 'between' | 'during' | 'none';
 
@@ -139,8 +141,13 @@ export function consultScore(state: GameState, slot: MatchSlot | null, a: CharId
   const r = rel(state, a, b);
   const per = a === 'hero' ? null : NPC_BY_ID[a as NpcId].personality;
   const mate = groupOf(slot, a).includes(b) ? 12 : 0;
+  const match = slot?.id ?? '';
+  // 集団行動（追従性・自立志向）：頼れそうな相手と話したい度合い。主人公にも NPC にも同じ式
+  const follow = a === 'hero' ? 0 : followBonus(state, a as NpcId, b, match) * 0.5;
+  // この競技で、相手の集まりから抜けた（抜けられた）ことがある
+  const left = state.flags[leftKey(state.day, match, a, b)] || state.flags[leftKey(state.day, match, b, a)] ? -15 : 0;
   const seek = slot ? talkRule(slot.id).seek ?? 0 : 0;
-  return -6 + mate + seek + (pledged(state, a, b) ? 8 : 0) + (allied(state, a, b) ? 10 : 0) + r.like * 0.3 + r.trust * 0.2 - r.wary * 0.15 - r.hostility * 0.5 + (per ? (per.loyalty - 50) / 10 : 0);
+  return -6 + mate + seek + follow + left + (pledged(state, a, b) ? 8 : 0) + (allied(state, a, b) ? 10 : 0) + r.like * 0.3 + r.trust * 0.2 - r.wary * 0.15 - r.hostility * 0.5 + (per ? (per.loyalty - 50) / 10 : 0);
 }
 
 /** guest（NPC）が host の「相談しよう」に応じるか */
@@ -148,7 +155,9 @@ export function consultVerdict(state: GameState, slot: MatchSlot | null, st: Str
   if (st.engaged[guest] === st.slot) return false;
   const r = rel(state, guest, host);
   if (r.hostility >= 50 || r.wary >= 80) return false;
-  return consultScore(state, slot, guest, host) + rng.gauss(0, 4) >= 4;
+  // 誘いに乗るか：相手と話したい度合い＋追従性（頼れそうな相手の集まりに乗る）。相手が主人公でも同じ
+  const follow = followBonus(state, guest, host, slot?.id ?? st.match) * 0.5;
+  return consultScore(state, slot, guest, host) + follow + rng.gauss(0, 4) >= 4;
 }
 
 /**
@@ -186,13 +195,17 @@ export function bondOnce(state: GameState, st: StrategyState, a: CharId, b: Char
  * 主人公が相手に選ばれた時は、主人公への誘いとして残す（行くかどうかは主人公しだい）。
  */
 export function planSlot(state: GameState, slot: MatchSlot, st: StrategyState, rng: Rng): void {
-  const npcs = rng.shuffle(slot.players.filter((p): p is NpcId => p !== 'hero' && state.actors[p]?.alive));
+  // 自分から人を集めたい人（支配欲・主導性が高い、その競技に向いている）から先に動く。順番は毎枠少し揺れる
+  const npcs = rng
+    .shuffle(slot.players.filter((p): p is NpcId => p !== 'hero' && state.actors[p]?.alive))
+    .map((p) => ({ p, v: leadDesire(state, p, slot.id) + rng.gauss(0, 0.12) }))
+    .sort((x, y) => y.v - x.v)
+    .map((x) => x.p);
   const usedRooms = new Set(st.meetings.filter((m) => m.slot === st.slot && m.room).map((m) => m.room!));
   for (const a of npcs) {
     if (st.engaged[a] === st.slot) continue;
-    const per = NPC_BY_ID[a].personality;
-    // 毎枠、誰かと話すとは限らない（一人で考える人もいる）。後の枠ほど少し減る
-    if (!rng.chance(Math.max(0.2, Math.min(0.9, 0.6 + (per.ambition - 50) / 200 + (per.risk - 50) / 400 - st.slot * 0.05)))) continue;
+    // 毎枠、誰かと話すとは限らない（一人で考える人もいる）。主導性の高い人ほど自分から声をかけ、自立志向の高い人は控える。後の枠ほど少し減る
+    if (!rng.chance(talkChance(a, st.slot))) continue;
     const cands = slot.players.filter((b) => b !== a && st.engaged[b] !== st.slot && state.actors[b]?.alive);
     if (!cands.length) continue;
     const scored = cands.map((b) => ({ b, v: consultScore(state, slot, a, b) + rng.gauss(0, 4) })).sort((x, y) => y.v - x.v);
@@ -202,7 +215,8 @@ export function planSlot(state: GameState, slot: MatchSlot, st: StrategyState, r
     const mates = groupOf(slot, a);
     const members: CharId[] = [a];
     let inviteHero = false;
-    if (room && mates.includes(best.b) && !usedRooms.has(room.id)) {
+    // 自立志向の高い人は、組の部屋に人を集めず、必要な相手とだけ立ち話で済ませる
+    if (room && mates.includes(best.b) && !usedRooms.has(room.id) && meetingPlace(a) !== 'standing') {
       // 組の相談室に、組の仲間を集める
       for (const m of rng.shuffle(mates.filter((x) => x !== a))) {
         if (st.engaged[m] === st.slot) continue;
@@ -242,10 +256,14 @@ export function resolveMeeting(state: GameState, slot: MatchSlot, st: StrategySt
     const info = addInfo(state, { kind: 'rumor', text: `${names}が${room?.name ?? '相談室'}に入っていった。`, truth: true, about: [...mt.members], source: 'world', value: 1, tags: ['sighting', 'consult'] });
     for (const o of slot.players) {
       if (mt.members.includes(o) || !state.actors[o]?.alive) continue;
-      if (o === 'hero' || rng.chance(Math.min(1, 0.4 + NPC_BY_ID[o as NpcId].stats.observation * 0.07))) learn(state, o, info.id, 'self', 1);
+      // 「ほかの組の動きを見る役」を引き受けた人は、見落とさない
+      const scout = state.flags[roleKey(st, o)] === 'scout';
+      if (o === 'hero' || scout || rng.chance(Math.min(1, 0.4 + NPC_BY_ID[o as NpcId].stats.observation * 0.07))) learn(state, o, info.id, 'self', 1);
     }
     fact(state, 'consult', [...mt.members], `${names}が作戦時間に${room?.name ?? '相談室'}で相談した`);
   }
+  // 3 人以上の集まりでは、言い出した人が役割を割り振ることがある（引き受けるかは各自が決める）
+  if (!mt.withHero && mt.host !== 'hero' && npcs.length >= 3) splitRoles(state, slot, st, mt, rng);
   for (let i = 0; i < npcs.length; i++) {
     for (let j = i + 1; j < npcs.length; j++) {
       const a = npcs[i];
@@ -259,6 +277,15 @@ export function resolveMeeting(state: GameState, slot: MatchSlot, st: StrategySt
       if (!v.accept && v.counter && (v.counter.payNow ?? 0) <= 1 && state.actors[from].pieces >= (v.counter.payNow ?? 0) + 2) {
         p = { ...p, ...v.counter };
         v = evaluate(state, p);
+      }
+      // 断られたら、同席している中でいちばん交渉のうまい人（本人か仲介役）が、受けやすい形（不可侵）を出し直す。受けるかは相手しだい
+      if (!v.accept && !allied(state, from, to, ['nonaggression'])) {
+        const broker = npcs.filter((x) => canReframe(x)).sort((x, y) => NPC_BY_ID[y].stats.negotiation - NPC_BY_ID[x].stats.negotiation)[0];
+        if (broker) {
+          p = { kind: 'nonaggression', from, to, payNow: 0, payOnSuccess: 0, untilDay: state.day };
+          v = evaluate(state, p);
+          if (v.accept && broker !== from && broker !== to) fact(state, 'broker', [broker, from, to], `${nameOf(state, broker)}が${nameOf(state, from)}と${nameOf(state, to)}の間を取り持った`);
+        }
       }
       if (v.accept) commit(state, p, []);
     }
@@ -408,4 +435,98 @@ export function cancelCooperation(state: GameState, a: CharId, b: CharId): boole
 export function promisesWith(state: GameState, a: CharId, b: CharId): string[] {
   const out = activeDeals(state, a, b).map((d) => d.kind);
   return [...new Set(out)];
+}
+
+// ---------------- 役割分担（集団行動、本人の承認 2026-11-28） ----------------
+
+const leftKey = (day: number, match: string, member: CharId, host: CharId) => `stratLeft:${day}:${match}:${member}:${host}`;
+/** その競技で引き受けた役割 */
+export const roleKey = (st: StrategyState, id: CharId) => `stratRole:${st.day}:${st.match}:${id}`;
+
+export interface RoleLine {
+  id: CharId;
+  text: string;
+}
+
+/**
+ * 集まりの言い出した人（NPC）が役割を割り振り、各自が答える。主人公への割り振りは heroRole に返し、画面で本人が選ぶ。
+ * 割り振りは言い出した人の見立て（公開の実績を、自分の能力の精度で見積もる）。断る・別の役割を出す・抜けるは各自の判断。
+ * 役割は、この競技のルールで許された相談の範囲だけ（コツを伝える、ほかの組の動きを見る、聞き役）。点数や解く速さは変えない。
+ */
+export function splitRoles(state: GameState, slot: MatchSlot, st: StrategyState, mt: StrategyMeeting, rng: Rng): { lines: RoleLine[]; heroRole?: RoleId } {
+  const host = mt.host as NpcId;
+  const lines: RoleLine[] = [];
+  if (host === ('hero' as NpcId) || leadDesire(state, host, slot.id) < 0.4) return { lines };
+  const k = `stratSplit:${st.day}:${st.match}:${host}:${st.slot}`;
+  if (state.flags[k]) return { lines };
+  state.flags[k] = true;
+  const roles = assignRoles(state, host, mt.members, slot.id, rng);
+  state.flags[roleKey(st, host)] = 'lead';
+  lines.push({ id: host, text: t('role.propose') });
+  let heroRole: RoleId | undefined;
+  for (const m of [...mt.members]) {
+    if (m === host) continue;
+    const role = roles[m]!;
+    if (m === 'hero') { heroRole = role; continue; }
+    const a = answerRole(state, m as NpcId, host, role, slot.id, rng);
+    if (a.answer === 'accept') {
+      state.flags[roleKey(st, m)] = role;
+      lines.push({ id: m, text: t('role.accept', { role: t(`role.${role}`) }) });
+    } else if (a.answer === 'counter' && a.counter) {
+      const ok = takeCounter(host, rng);
+      if (ok) state.flags[roleKey(st, m)] = a.counter;
+      lines.push({ id: m, text: t('role.counter', { role: t(`role.${a.counter}`) }) });
+      lines.push({ id: host, text: t(ok ? 'role.counterOk' : 'role.counterNo') });
+    } else if (a.answer === 'leave') {
+      quitGroup(state, st, mt, m);
+      lines.push({ id: m, text: t('role.leave') });
+    } else lines.push({ id: m, text: t('role.refuse') });
+  }
+  const done = lines.filter((l) => l.id !== host).length;
+  fact(state, 'roles', [...mt.members], `${nameOf(state, host)}が役割の分担を持ちかけた（${done} 人が返事）`);
+  const until = state.simTime + 5000;
+  for (const l of lines) if (l.id !== 'hero' && state.actors[l.id]) state.actors[l.id].bubble = { text: l.text, until };
+  return { lines, heroRole };
+}
+
+/**
+ * 役割分担で集まりから抜ける。この競技の間、同じ人の集まりには戻りにくい（約束破りとは別の扱い）。
+ * 会議から外す処理そのものは leaveMeeting（部屋を出た時と同じ決まり：2 人以上残れば続き、1 人なら解散）。
+ */
+export function quitGroup(state: GameState, st: StrategyState, mt: StrategyMeeting, who: CharId): void {
+  const host = mt.host;
+  leaveMeeting(st, mt, who);
+  state.flags[leftKey(st.day, st.match, who, host)] = true;
+  fact(state, 'leave', [who, host], `${nameOf(state, who)}が${nameOf(state, host)}の集まりから抜けた`);
+}
+
+/** 主人公が、言い出した人から割り振られた役割に答える（NPC と同じ選択肢） */
+export function heroAnswerRole(state: GameState, st: StrategyState, mt: StrategyMeeting, role: RoleId, answer: 'accept' | 'counter' | 'refuse' | 'leave', counter: RoleId | undefined, rng: Rng): string {
+  const host = mt.host as NpcId;
+  if (answer === 'accept') { state.flags[roleKey(st, 'hero')] = role; return t('role.counterOk'); }
+  if (answer === 'counter' && counter) {
+    const ok = takeCounter(host, rng);
+    if (ok) state.flags[roleKey(st, 'hero')] = counter;
+    return t(ok ? 'role.counterOk' : 'role.counterNo');
+  }
+  if (answer === 'leave') { quitGroup(state, st, mt, 'hero'); return t('role.leaveOk'); }
+  return t('role.refuseOk');
+}
+
+/**
+ * 主人公が言い出した集まりで、役割を持ちかける。主人公が選んだ割り振りに、NPC が NPC と同じ基準で答える。
+ */
+export function heroSplitRoles(state: GameState, slot: MatchSlot, st: StrategyState, mt: StrategyMeeting, assign: Partial<Record<CharId, RoleId>>, rng: Rng): RoleLine[] {
+  const lines: RoleLine[] = [];
+  state.flags[roleKey(st, 'hero')] = 'lead';
+  for (const [m, role] of Object.entries(assign) as [NpcId, RoleId][]) {
+    if (!mt.members.includes(m)) continue;
+    const a = answerRole(state, m, 'hero', role, slot.id, rng);
+    if (a.answer === 'accept') { state.flags[roleKey(st, m)] = role; lines.push({ id: m, text: t('role.accept', { role: t(`role.${role}`) }) }); }
+    else if (a.answer === 'counter' && a.counter) { state.flags[roleKey(st, m)] = a.counter; lines.push({ id: m, text: t('role.counter', { role: t(`role.${a.counter}`) }) }); }
+    else if (a.answer === 'leave') { quitGroup(state, st, mt, m); lines.push({ id: m, text: t('role.leave') }); }
+    else lines.push({ id: m, text: t('role.refuse') });
+  }
+  fact(state, 'roles', [...mt.members], `${nameOf(state, 'hero')}が役割の分担を持ちかけた`);
+  return lines;
 }

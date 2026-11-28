@@ -63,9 +63,10 @@ function duelAi(v: DuelView, ctx: AiCtx): DuelMove {
   const opp = v.hands[1 - v.me];
   if (hand.length === 1 || v.target === null) return { t: 'play', card: hand[0] };
   const st = skill(ctx.stats.strategy);
+  const mem = skill(ctx.stats.memory); // 副：相手の残札の記憶
   const future = v.left;
   // 同じ考え方の 2 人が毎回同じカードを出すと引き分けが続くので、評価の高いカードほど出やすい、という選び方にする
-  const temp = 0.12 + ctx.noise * 0.2 + (1 - st) * 0.15;
+  const temp = 0.12 + ctx.noise * 0.2 + (1 - st) * 0.12 + (1 - mem) * 0.05;
   const vals = hand.map((c) => {
     const now = winChance(c, v.target!, opp);
     // このカードを残した場合に、これからの目標で見込める勝ち（一番合う目標 1 つ分）

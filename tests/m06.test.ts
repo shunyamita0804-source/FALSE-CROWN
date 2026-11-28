@@ -1,3 +1,6 @@
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { mkdirSync } from 'node:fs';
 import { writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../src/core/rng';
@@ -6,7 +9,8 @@ import { HAND, M06, ROUNDS, finalBonus, matchesIn, meets, rankOf, suitOf, type M
 import { simulate } from './helpers';
 
 const SEVEN = ALL_IDS.slice(0, 7);
-const S = '/tmp/claude-0/-home-claude/ced3d2db-bac9-5d25-8782-91ee7ff6cc58/scratchpad';
+// 試行の数字の書き出し先（環境に依らない一時フォルダ）
+const S = (() => { const d = join(tmpdir(), 'false-crown-sim'); mkdirSync(d, { recursive: true }); return d; })();
 const card = (rank: number, suit: number) => suit * 13 + rank - 1;
 
 describe('M06 クロス・カード', () => {

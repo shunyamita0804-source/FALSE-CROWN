@@ -295,6 +295,7 @@ const handOf = (s: M05State, p: CharId, round = s.round): number[] => { const r 
 
 function m05Ai(v: M05View, ctx: AiCtx): M05Move {
   const logic = skill(ctx.stats.logic);
+  const strat = skill(ctx.stats.strategy); // 副：出題と式の組み立ての段取り
   if (v.phase === 'pick') {
     if (v.cards) {
       // 担当：自分が一番多くのカードを使えそうな候補を選ぶ（見えているのは自分のカードだけ）
@@ -321,13 +322,13 @@ function m05Ai(v: M05View, ctx: AiCtx): M05Move {
   const sols = solutions(v.cards, v.target);
   const sizes = Object.keys(sols).map(Number).sort((a, b) => a - b);
   // 何枚まで使う式を探し切れるか（能力で変わる）。先に見ていた人は、その分だけ早い
-  const cap = Math.max(2, Math.min(7, Math.round(2.5 + logic * 2.1 + ctx.rng.gauss(0, 0.8) - ctx.noise * 0.4)));
+  const cap = Math.max(2, Math.min(7, Math.round(2.6 + logic * 1.6 + strat * 0.6 + ctx.rng.gauss(0, 0.8) - ctx.noise * 0.4)));
   const head = v.isSetter || v.told ? 12 : 0;
-  const slip = ctx.rng.chance(0.07 + (1 - logic) * 0.27);
+  const slip = ctx.rng.chance(0.07 + (1 - logic) * 0.18);
   const usable = sizes.filter((k) => k <= cap);
   for (let i = usable.length - 1; i >= 0 && !slip; i--) {
     const k = usable[i];
-    const sec = Math.max(6, 16 + k * 9 + (1 - logic) * 30 + ctx.rng.gauss(0, 9) - head);
+    const sec = Math.max(6, 16 + k * 9 + (1 - logic) * 22 + ctx.rng.gauss(0, 9) - head);
     if (sec < SOLVE_MS / 1000 - 2) return { t: 'answer', toks: sols[k], ms: Math.round(sec * 1000) };
   }
   return { t: 'answer', toks: [], ms: SOLVE_MS };

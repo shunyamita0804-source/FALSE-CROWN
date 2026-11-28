@@ -82,6 +82,8 @@ export interface Actor {
   /** 部屋をまたぐ経路（部屋IDの列） */
   route: string[];
   moving: boolean;
+  /** 前のマスを人にふさがれ始めた時刻（行き詰まりの解消用。歩けたら消す） */
+  blockedAt?: number;
   /** 移動中の1歩（次のタイルと進捗 0..1） */
   step?: { x: number; y: number; p: number };
   rel: Partial<Record<CharId, Relation>>;

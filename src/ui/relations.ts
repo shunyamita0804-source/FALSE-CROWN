@@ -10,6 +10,7 @@ import { t } from '../i18n/i18n';
 import { describeDeal } from '../npc/negotiation';
 import { Sound } from '../audio/audio';
 import { face } from './art';
+import { abilityBlock } from './abilitychart';
 import { button, closeLayer, h, openLayer, panel, type Child, type Layer } from './dom';
 
 /** 手帳を開いている間の並べ替えと絞り込み（閉じても次に開いた時に同じ） */
@@ -93,6 +94,7 @@ function detailBody(s: GameState, id: NpcId): HTMLElement {
         h('div', null, h('b', { class: 'gold', style: 'font-size:1.15em' }, r.name), '　', h('span', { class: 'dim small' }, prof ?? t('people.unmet')), '　', houseTag(r)),
         prof ? h('div', { class: 'small' }, def.profile) : null)),
     h('div', { class: 'note-box' }, h('div', { class: 'row', style: 'gap:12px;align-items:center' }, h('b', null, t('rel.col.step')), stepGauge(r.step)), h('div', { class: 'small dim', style: 'margin-top:4px' }, t('rel.stepNote'))),
+    abilityBlock(s, id),
     h('h4', { class: 'gold' }, t('rel.detail.coop')),
     r.coop.length ? r.coop.map((p) => h('div', { class: 'entry' }, h('span', { class: 'tag fact' }, t('deal.status.active')), dealText(s, p.deal!))) : h('div', { class: 'dim small' }, t('rel.none')),
     h('h4', { class: 'gold' }, t('rel.detail.deals')),

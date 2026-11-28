@@ -193,7 +193,7 @@ export function makeP10(cfg: P10Cfg): MatchEngine<P10State, P10Move, P10View> {
     const steps = stepsOf(v.pieces, seat);
     if (!steps.length) return { t: 'pass' };
     const st = skill(ctx.stats.strategy);
-    const lg = skill(ctx.stats.logic);
+    const lg = skill(ctx.stats.observation); // 副：盤面の脅威（観察）
     const depth = Math.max(1, Math.min(5, Math.round(1.6 + st * 2.2 + lg * 1.0 + ctx.rng.gauss(0, 0.4))));
     const sd = 0.2 + ctx.noise * 0.9 + (1 - st) * 0.9;
     const k = seatAt(v.game, 0) === seat ? 0 : 1;

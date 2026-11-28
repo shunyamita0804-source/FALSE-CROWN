@@ -241,6 +241,14 @@ export function moveActor(state: GameState, a: Actor, dt: number, speed: number,
         const p = findPath(grid, a.pos, t, occ);
         if (p && (!best || p.length < best.length)) best = p;
       }
+      // 人で道がふさがって回り道も無い時（幅 1 マスの通路で向かい合った時など）は、人を無視した道を進み、
+      // 前の人とは下の「行き詰まり」の処理で入れ替わる
+      if (!best && a.id !== 'hero') {
+        for (const t of tiles) {
+          const p = findPath(grid, a.pos, t, new Set());
+          if (p && (!best || p.length < best.length)) best = p;
+        }
+      }
       if (!best) {
         a.route = [];
         break;
@@ -256,6 +264,9 @@ export function moveActor(state: GameState, a: Actor, dt: number, speed: number,
     }
     if (tryStep(state, a, dir)) {
       a.path.shift();
+      a.blockedAt = undefined;
+    } else if (a.id !== 'hero' && swapIfDeadlocked(state, a, nxt)) {
+      a.path.shift();
     } else {
       // 塞がれている：少し待って再探索
       const goal = a.path[a.path.length - 1];
@@ -269,6 +280,29 @@ export function moveActor(state: GameState, a: Actor, dt: number, speed: number,
     }
   }
   a.moving = !!a.step || a.path.length > 0 || a.route.length > 0;
+}
+
+/**
+ * 行き詰まりの解消：前のマスに立っている NPC と、しばらく（2.5 秒）動けなければ入れ替わる。
+ * 幅 1 マスの通路や扉の前で向かい合い、どちらも下がれずに止まり続けるのを防ぐ。主人公とは入れ替わらない。
+ */
+const DEADLOCK_MS = 2500;
+function swapIfDeadlocked(state: GameState, a: Actor, nxt: { x: number; y: number }): boolean {
+  if (a.blockedAt === undefined) { a.blockedAt = state.simTime; return false; }
+  if (state.simTime - a.blockedAt < DEADLOCK_MS) return false;
+  const b = Object.values(state.actors).find((o) => o.alive && o.id !== a.id && o.pos.room === a.pos.room && o.pos.x === nxt.x && o.pos.y === nxt.y);
+  if (!b || b.id === 'hero' || b.step || a.step) return false;
+  if (b.seat) releaseSeat(state, b.id);
+  if (a.seat) releaseSeat(state, a.id);
+  const from = { x: a.pos.x, y: a.pos.y };
+  a.pos.dir = dirTo(a.pos.x, a.pos.y, nxt.x, nxt.y);
+  b.pos.dir = dirTo(b.pos.x, b.pos.y, from.x, from.y);
+  a.step = { x: nxt.x, y: nxt.y, p: 0 };
+  b.step = { x: from.x, y: from.y, p: 0 };
+  b.path = [];
+  a.blockedAt = undefined;
+  b.blockedAt = undefined;
+  return true;
 }
 
 export function speedOf(id: CharId): number {

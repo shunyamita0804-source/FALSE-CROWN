@@ -250,7 +250,7 @@ function m10Ai(v: M10View, ctx: AiCtx): M10Move {
   const acts = actsOf(v.board, seat, v.round < PEACE);
   if (!acts.length) return { t: 'pass' };
   const st = skill(ctx.stats.strategy);
-  const lg = skill(ctx.stats.logic);
+  const lg = skill(ctx.stats.observation); // 副：盤面の脅威と宝石の位置（観察）
   const depth = Math.max(1, Math.min(4, Math.round(1.4 + st * 1.8 + lg * 0.8 + ctx.rng.gauss(0, 0.4))));
   const sd = 0.25 + ctx.noise * 0.8 + (1 - st) * 0.8;
   // 巡の中での自分の位置を、盤面の並び（先手が巡ごとにずれる）に合わせる

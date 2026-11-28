@@ -67,7 +67,8 @@ function ai(v: S01View, ctx: AiCtx): S01Move {
   const hist = v.guesses[v.me];
   // 論理が低いと、時々いちばん古い返事を見落とす
   const lg = skill(ctx.stats.logic);
-  const use = hist.length > 1 && ctx.rng.chance((1 - lg) * 0.3 + ctx.noise * 0.1) ? hist.slice(1) : hist;
+  const mem = skill(ctx.stats.memory); // 副：これまでの手掛かりの記憶
+  const use = hist.length > 1 && ctx.rng.chance((1 - lg) * 0.2 + (1 - mem) * 0.1 + ctx.noise * 0.1) ? hist.slice(1) : hist;
   let cand = candidates(use).filter((c) => !hist.some((g) => g.code === c));
   if (!cand.length) cand = candidates(hist);
   if (!cand.length) cand = ALL_CODES;
