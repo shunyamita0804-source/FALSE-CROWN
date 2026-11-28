@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "notes": "競技ごとに主に効く能力(main)と副(sub)。main は CPU の判断のぶれ(noise)の出所。talk は交渉力が効く場面、luck は運の補正の候補（本人の確認待ち、まだ効かない）。M11 は種目ごとに違う（①③論理、②記憶、④⑤戦略）。docs/npc_traits.md",
+  "notes": "競技ごとに主に効く能力(main)と副(sub)。main は CPU の判断のぶれ(noise)の出所。talk は交渉力が効く場面、luck は運が効くランダム（試験導入 2026-11-28、src/core/luck.ts。M04・M06・S05 だけ）。M11 は種目ごとに違う（①③論理、②記憶、④⑤戦略）。docs/npc_traits.md",
   "matches": {
     "m01": {
       "main": "logic",
@@ -21,13 +21,12 @@
       "main": "strategy",
       "sub": "logic",
       "talk": "路線協力、通行の取り決め",
-      "luck": "任務交換の候補"
+      "luck": "任務交換の候補の生成（選ぶのは本人）"
     },
     "m05": {
       "main": "logic",
       "sub": "strategy",
-      "talk": "組内の解法・出題候補の共有",
-      "luck": "追加の数字カード"
+      "talk": "組内の解法・出題候補の共有"
     },
     "m06": {
       "main": "strategy",
@@ -38,8 +37,7 @@
     "m07": {
       "main": "strategy",
       "sub": "observation",
-      "talk": "不可侵、進路確保、妨害の約束",
-      "luck": "タイル交換で出る形"
+      "talk": "不可侵、進路確保、妨害の約束"
     },
     "m08": {
       "main": "strategy",
@@ -155,7 +153,7 @@
     "s05": {
       "main": "strategy",
       "sub": "logic",
-      "luck": "サイコロの出目"
+      "luck": "振り直しの出目（共通のサイコロは対象外）"
     },
     "s06": {
       "main": "observation",

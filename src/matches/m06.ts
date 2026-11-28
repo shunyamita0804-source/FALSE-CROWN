@@ -10,6 +10,7 @@
  */
 import type { CharId } from '../data/characters';
 import { skill, sortGroups, type AiCtx, type MatchEngine } from './types';
+import { luckPick, newLuckBook, returnToDeck, type LuckBook } from '../core/luck';
 
 export const ROUNDS = 6;
 export const HAND = 5;
@@ -95,6 +96,8 @@ export interface M06State {
   ready: Record<string, boolean>;
   log: M06Log[];
   rngState: number;
+  /** 運の判定の記録と専用の乱数（古い保存には無い。その時は rngState から作る） */
+  luck?: LuckBook;
   stage: string;
 }
 
@@ -134,13 +137,29 @@ function nextRand(s: M06State): number {
 }
 
 function draw(s: M06State): number | undefined {
+  refillDeck(s);
+  return s.deck.pop();
+}
+
+function refillDeck(s: M06State): void {
   if (!s.deck.length && s.discard.length) {
     // 山札が尽きたら、捨て札を切り直して山札にする（手札と場のカードは含まれない）
     const pile = s.discard.splice(0);
     for (let i = pile.length - 1; i > 0; i--) { const j = Math.floor(nextRand(s) * (i + 1)); [pile[i], pile[j]] = [pile[j], pile[i]]; }
     s.deck = pile;
   }
-  return s.deck.pop();
+}
+
+/**
+ * 運の判定つきで 1 枚引く。発動したら、山札の次の 1 枚を 2 つ目の候補にして、本人に有利な方を取る。
+ * 評価は本人の手札（hand：このカードを加える前）と公開の目標だけ。取らなかった方は山札の無作為な位置に戻す。
+ * 2 つ目の候補は今の山札からだけ出す（捨て札の切り直しは起こさない）。山札が空なら「候補なし」。
+ */
+function luckyDraw(s: M06State, who: CharId, hand: number[], target: Target, next: Target | null, roundsLeft: number): number | undefined {
+  const first = draw(s);
+  if (first === undefined) return undefined;
+  const b = (s.luck ??= newLuckBook(s.rngState));
+  return luckPick(b, who, first, () => s.deck.pop(), (c) => handValue([...hand, c], target, next, roundsLeft), (c) => returnToDeck(b, s.deck, c));
 }
 
 // ---- CPU ----
@@ -248,19 +267,30 @@ export const M06: MatchEngine<M06State, M06Move, M06View> = {
     '時間切れの場合：交換はパス、提出は「出さない」になります。',
   ],
   init(players, rng) {
+    // 乱数を使う順番は導入前と同じ（山札、目標、種）。配る処理は乱数を使わない
     const deck = rng.shuffle(Array.from({ length: 52 }, (_, i) => i));
+    const targets = [...rng.shuffle<Target>(['pair', 'suit', 'run']), ...rng.shuffle<Target>(['pair', 'suit', 'run'])];
+    const rngState = rng.int(1, 2 ** 31 - 1);
+    const luck = newLuckBook(rngState);
     const hands: Record<string, number[]> = {};
-    for (const p of players) hands[p] = deck.splice(0, HAND);
+    // 山札の上から 1 枚ずつ配る（運の判定は、公開されている最初の 2 つの目標で評価する）
+    for (const p of players) {
+      hands[p] = [];
+      for (let k = 0; k < HAND; k++) {
+        const first = deck.shift()!;
+        hands[p].push(luckPick(luck, p, first, () => deck.shift(), (c) => handValue([...hands[p], c], targets[0], targets[1], ROUNDS - 1), (c) => returnToDeck(luck, deck, c)));
+      }
+    }
     const field = deck.splice(0, FIELD);
     const zero = () => Object.fromEntries(players.map((p) => [p, 0]));
     return {
       players: [...players], round: 0, phase: 'swap', turn: 0,
-      targets: [...rng.shuffle<Target>(['pair', 'suit', 'run']), ...rng.shuffle<Target>(['pair', 'suit', 'run'])],
+      targets,
       deck, discard: [], field, hands, scores: zero(), achieved: zero(),
       aidUsed: Object.fromEntries(players.map((p) => [p, false])),
       subs: {}, history: [], bonus: {},
       ready: Object.fromEntries(players.map((p) => [p, false])),
-      log: [], rngState: rng.int(1, 2 ** 31 - 1), stage: '0-0',
+      log: [], rngState, luck, stage: '0-0',
     };
   },
   pending(s) {
@@ -297,7 +327,9 @@ export const M06: MatchEngine<M06State, M06Move, M06View> = {
     if (!this.validate(s, p, m)) throw new Error(`m06: illegal move ${JSON.stringify(m)}`);
     if (m.t === 'aid') {
       // 代金の支払いは呼び出し側（画面と CPU）が同じ価格で行う
-      const got = draw(s)!;
+      // 今のラウンドの目標と次の目標（公開）で評価する
+      const rest = s.hands[p].filter((c) => c !== m.card);
+      const got = luckyDraw(s, p, rest, s.targets[s.round], s.round + 1 < ROUNDS ? s.targets[s.round + 1] : null, ROUNDS - 1 - s.round)!;
       s.hands[p] = s.hands[p].map((c) => (c === m.card ? got : c));
       s.discard.push(m.card);
       s.aidUsed[p] = true;
@@ -353,7 +385,9 @@ export const M06: MatchEngine<M06State, M06Move, M06View> = {
       s.phase = 'done';
       return;
     }
-    for (const x of orderOf(s)) while (s.hands[x].length < HAND) { const c = draw(s); if (c === undefined) break; s.hands[x].push(c); }
+    // 補充は次のラウンドの目標と、その次の目標（結果の段階で公開）で評価する
+    const nr = s.round + 1;
+    for (const x of orderOf(s)) while (s.hands[x].length < HAND) { const c = luckyDraw(s, x, s.hands[x], s.targets[nr], nr + 1 < ROUNDS ? s.targets[nr + 1] : null, ROUNDS - 1 - nr); if (c === undefined) break; s.hands[x].push(c); }
     s.ready = Object.fromEntries(s.players.map((x) => [x, false]));
     s.phase = 'break';
     s.stage = `${s.round}-break`;

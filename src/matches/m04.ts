@@ -6,6 +6,7 @@
  * 得点：達成した任務の得点＋自分が敷いた線路 1 本につき 1 点＋残った資金 3 につき 1 点。順位は全卓を通した個人の得点で決まる。
  * 任務は、難しさの等しい組を席順に回して配る。3 巡ごとに 20 秒の交渉。開始前に 2 ピースで、任務 1 つを同じ得点の候補 2 つのどちらかと交換できる（1 回）。
  */
+import { luckPick, newLuckBook, type LuckBook } from '../core/luck';
 import type { CharId } from '../data/characters';
 import type { Rng } from '../core/rng';
 import { skill, sortGroups, type AiCtx, type MatchEngine } from './types';
@@ -193,6 +194,15 @@ export interface M04State {
   /** 手が打たれるたびに変わる値（画面が手番ごとの制限時間を数え直すために使う） */
   stage: string;
   moves: number;
+  /** 運の判定の記録と専用の乱数（古い保存には無い。その時は地図から作る） */
+  luck?: LuckBook;
+}
+
+/** 地図の建設費から決まる種（主の乱数を使わずに、運の専用の乱数を始めるため） */
+function luckSeed(s: M04State): number {
+  let h = 2166136261;
+  for (const d of s.tables[0].costs) h = Math.imul(h ^ d, 16777619) >>> 0;
+  return Math.imul(h ^ s.players.length, 16777619) >>> 0;
 }
 
 export interface M04View {
@@ -401,7 +411,13 @@ export const M04: MatchEngine<M04State, M04Move, M04View> = {
       const cur = at.t.missions[at.seat][m.mission];
       const taken = new Set(at.t.missions.flat().map((x) => [x.from, x.to].sort().join('-')));
       const pool = (s.spare[cur.points] ?? []).filter(([a, b]) => !taken.has([a, b].sort().join('-')));
-      const cands = pool.slice(0, 2).map(([a, b]) => ({ from: a, to: b, points: cur.points, done: false }));
+      // 運：候補を作る時だけ効く。発動したら、使っていない次の候補を出し、本人の見える地図での費用が安い方を候補に入れる。
+      // どちらの候補を選ぶかは本人が決める。候補の残りが無ければ「候補なし」
+      const book = (s.luck ??= newLuckBook(luckSeed(s)));
+      const costOf = ([a, b]: [number, number]) => { const pl = planFor({ costs: at.t.costs, owner: at.t.owner } as M04View['table'], at.seat, { from: a, to: b, points: cur.points, done: false }); return -(pl.cost + pl.toll); };
+      let nextAt = 2;
+      const picked = pool.slice(0, 2).map((first) => luckPick(book, p, first, () => pool[nextAt++], costOf));
+      const cands = picked.map(([a, b]) => ({ from: a, to: b, points: cur.points, done: false }));
       while (cands.length < 2) cands.push({ ...cur });
       s.aid[p] = { mission: m.mission, cands, picked: false };
     } else if (m.t === 'pick') {

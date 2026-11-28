@@ -6,6 +6,7 @@
  */
 import type { CharId } from '../data/characters';
 import type { Rng } from '../core/rng';
+import { luckNext, luckPick, newLuckBook, type LuckBook } from '../core/luck';
 import { skill, sortGroups, type AiCtx, type MatchEngine } from './types';
 
 export const S05_ROUNDS = 3;
@@ -38,7 +39,22 @@ export interface S05State {
   log: S05Result[];
   points: number[];
   stage: string;
+  /** 運の判定の記録と専用の乱数（古い保存には無い。その時は出目から作る） */
+  luck?: LuckBook;
 }
+
+/** 出目から決まる種（主の乱数を使わずに、運の専用の乱数を始めるため） */
+function luckSeed(s: Pick<S05State, 'base' | 're'>): number {
+  let h = 2166136261;
+  for (const d of [...s.base.flat(), ...s.re.flat(2)]) h = Math.imul(h ^ d, 16777619) >>> 0;
+  return h;
+}
+
+/**
+ * 運の評価：本人がその時選んだ条件（公開）を満たせば 1、満たさなければ 0。
+ * 得点は満たすかどうかだけで決まるので、大きい目や近さは評価しない（同じなら最初の出目のまま）。
+ */
+const luckScore = (cond: number) => (dice: number[]) => (holds(cond, dice) ? 1 : 0);
 
 export interface S05View {
   self: CharId | 'spectator';
@@ -113,7 +129,7 @@ export const S05: MatchEngine<S05State, S05Move, S05View> = {
     const die = () => rng.int(1, 6);
     const base = Array.from({ length: S05_ROUNDS }, () => Array.from({ length: 5 }, die));
     const re = Array.from({ length: S05_ROUNDS }, () => players.map(() => Array.from({ length: 5 }, die)));
-    return { players: [...players], base, re, round: 0, current: players.map(() => null), phase: 'pick', acks: players.map(() => false), used: players.map(() => [false, false, false]), log: [], points: players.map(() => 0), stage: '0' };
+    return { players: [...players], base, re, luck: newLuckBook(luckSeed({ base, re })), round: 0, current: players.map(() => null), phase: 'pick', acks: players.map(() => false), used: players.map(() => [false, false, false]), log: [], points: players.map(() => 0), stage: '0' };
   },
   pending(s) {
     if (s.phase === 'pick') return s.players.filter((_, i) => s.current[i] === null);
@@ -147,8 +163,12 @@ export const S05: MatchEngine<S05State, S05Move, S05View> = {
     s.current[i] = { t: 'roll', re: [...m.re].sort((a, b) => a - b), cond: m.cond };
     if (s.current.some((c) => c === null)) return;
     const base = s.base[s.round];
+    const book = (s.luck ??= newLuckBook(luckSeed(s)));
     const picks = s.current.map((c, k) => {
-      const dice = base.map((d, j) => (c!.re.includes(j) ? s.re[s.round][k][j] : d));
+      // 振り直しの出目にだけ運が効く。発動したら、振り直したサイコロだけをもう 1 回振った出目を 2 つ目の候補にする
+      // （共通のサイコロ、相手の出目は変えない。振り直していなければ「候補なし」）
+      const rolled = base.map((d, j) => (c!.re.includes(j) ? s.re[s.round][k][j] : d));
+      const dice = luckPick(book, s.players[k], rolled, () => (c!.re.length ? base.map((d, j) => (c!.re.includes(j) ? 1 + Math.floor(luckNext(book) * 6) : d)) : undefined), luckScore(c!.cond));
       const ok = holds(c!.cond, dice);
       if (ok) s.points[k] += S05_POINT;
       s.used[k][c!.cond] = true;
