@@ -73,7 +73,7 @@ const { chromium, devices } = require('playwright');
   await page.getByRole('button', { name: '終了' }).tap(); await page.waitForTimeout(400);
   // 関係一覧
   await page.getByRole('button', { name: /手帳/ }).tap(); await page.waitForTimeout(400);
-  await page.getByRole('button', { name: '関係' }).tap(); await page.waitForTimeout(400);
+  await page.getByRole('button', { name: '人物', exact: true }).tap(); await page.waitForTimeout(400);
   const rel = (await page.locator('.layer').last().innerText()).replace(/\s+/g, ' ');
   check('関係一覧：話した相手は推定の好意、未接触は不明', rel.includes('推定の好意') && rel.includes('不明') && /好意的|ふつう/.test(rel), rel.slice(0, 160));
   await shot('social_relations');

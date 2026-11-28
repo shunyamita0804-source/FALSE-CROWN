@@ -1906,3 +1906,33 @@ html[data-ui-assets~="talk/window"] .dlg-next { right: -40px; bottom: -14px; }
 .bust.bust-art.dlg-portrait { top: auto; height: 360px; bottom: calc(150px + var(--safe-bottom)); }
 /* 台詞の枠は 2〜3 行が収まる高さにとどめ、人物の上半身が見える余白を残す */
 html[data-ui-assets~="talk/window"] .dlg-box { min-height: 96px; }
+
+/* ---------------- 手帳：関係一覧 ---------------- */
+.rl-note { margin-bottom: 6px; line-height: 1.5; }
+.rl-controls { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 2px 0 8px; }
+.rl-group { display: flex; gap: 6px; align-items: center; }
+.rl-group small { margin-right: 4px; }
+.rl-seg { min-height: 64px; padding: 4px 14px; font: inherit; font-size: 0.95em; color: var(--ivory-dim); background: rgba(10,14,28,0.6); border: 1px solid #3a4468; border-radius: 10px; cursor: pointer; }
+.rl-seg.on { color: #14110a; background: var(--gold2); border-color: var(--gold2); font-weight: 700; }
+.rl-seg:focus-visible, .rl-row:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(240,216,144,0.75); }
+body.touch .rl-seg { min-height: 76px; }
+.rl-table { display: flex; flex-direction: column; gap: 4px; }
+.rl-row { display: grid; grid-template-columns: minmax(250px, 1.3fr) 190px minmax(170px, 1fr) minmax(200px, 1.2fr) 150px; gap: 12px; align-items: center; width: 100%; min-height: 84px; padding: 6px 12px; text-align: left; font: inherit; color: var(--ivory); background: rgba(10,14,28,0.45); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; cursor: pointer; }
+.rl-row:hover { border-color: var(--gold-dim); }
+.rl-head { min-height: 0; padding: 2px 12px; background: none; border: none; cursor: default; font-size: 0.8em; color: var(--ivory-dim); }
+.rl-who { display: flex; gap: 12px; align-items: center; min-width: 0; }
+.rl-who b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rl-row .face { width: 64px; height: 64px; flex: none; }
+.rl-step { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; }
+.rl-cell { display: flex; flex-direction: column; gap: 2px; font-size: 0.88em; min-width: 0; }
+.rl-pv { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rl-out { opacity: 0.55; }
+.rl-empty { padding: 14px 4px; }
+.rl-other { display: flex; gap: 12px; align-items: center; }
+.rl-pair { display: flex; flex: none; }
+.rl-pair .face { width: 44px; height: 44px; }
+.rl-pair .face + .face { margin-left: -12px; }
+.rl-other .tag { margin-right: 6px; }
+.rl-dialog { width: min(1120px, 100%); }
+.rl-detail-scroll { max-height: 400px; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: 6px; }
+.rl-detail h4 { margin: 6px 0 0; }
