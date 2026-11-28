@@ -154,9 +154,9 @@ function p04Ai(v: P04View, ctx: AiCtx): P04Move {
   const n = set.a.filter((x) => x !== null).length;
   const time = v.showMs / SHOW_MS;
   // 覚えていられる図柄の数（表示時間が延びると増える）
-  const capacity = (2.9 + mem * 4.6 + obs * 1.3) * (0.75 + 0.25 * time) * Math.max(0.6, 1 - ctx.memoryLoss * 0.5);
+  const capacity = (3.6 + mem * 1.9 + obs * 2.7) * (0.75 + 0.25 * time) * Math.max(0.6, 1 - ctx.memoryLoss * 0.5);
   const pItem = Math.max(0.15, Math.min(0.97, capacity / n));
-  const pRot = pItem * (0.62 + mem * 0.25);
+  const pRot = pItem * (0.62 + obs * 0.25);
   const pEmpty = Math.max(0.2, Math.min(0.97, pItem * 0.9 + 0.08));
   const changed = changedCells(set);
   const picked: number[] = [];

@@ -109,11 +109,12 @@ function search(b: number[], who: number, me: number, depth: number, alpha: numb
 function ai(v: S03View, ctx: AiCtx): S03Move {
   if (!v.legal.length) return { t: 'pass' };
   const st = skill(ctx.stats.strategy);
+  const ob = skill(ctx.stats.observation); // 副：角や辺の危険に気づく
   const depth = st > 0.75 ? 3 : st > 0.4 ? 2 : 1;
   let best = v.legal[0];
   let bv = -Infinity;
   for (const m of v.legal) {
-    const val = search(apply(v.board, m, v.me), 1 - v.me, v.me, depth, -Infinity, Infinity) + ctx.rng.gauss(0, 3 + ctx.noise * 12 + (1 - st) * 8);
+    const val = search(apply(v.board, m, v.me), 1 - v.me, v.me, depth, -Infinity, Infinity) + ctx.rng.gauss(0, 3 + ctx.noise * 12 + (1 - st) * 6 + (1 - ob) * 2);
     if (val > bv) { bv = val; best = m; }
   }
   return { t: 'put', cell: best };

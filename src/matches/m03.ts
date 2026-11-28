@@ -185,8 +185,8 @@ function m03Ai(v: M03View, ctx: AiCtx): M03Move {
   const logic = skill(ctx.stats.logic);
   const obs = skill(ctx.stats.observation);
   if (!v.aidUsed && v.round >= 2 && ctx.pieces >= AID_COST + 2 && ctx.rng.chance(0.1 + ctx.personality.risk / 600) && ctx.spend(AID_COST, 'M03 補助')) return { t: 'aid', puzzle: PUZZLES - 1 };
-  const rate = (30 + logic * 55 + obs * 20) / Math.max(0.7, 0.55 + ctx.noise * 0.5);
-  const perCell = 0.8 + (1 - logic) * 0.5 + (1 - obs) * 0.2;
+  const rate = (45 + logic * 28 + obs * 18) / Math.max(0.7, 0.55 + ctx.noise * 0.5);
+  const perCell = 0.85 + (1 - logic) * 0.35 + (1 - obs) * 0.2;
   let clock = 0;
   const sols: LinkSol[] = [];
   const ms: number[] = [];

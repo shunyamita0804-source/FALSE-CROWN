@@ -8,6 +8,7 @@
  * - 他の人どうしの関係は、主人公の知っている情報（actors.hero.knows）から、出所（目撃・本人の発言・噂・公表）と確かさを付けて並べる。
  *   内部の同盟や好意から自動で作らない。
  */
+import { abilityStep, luckStep, SHOWN_ABILITIES } from '../data/abilities';
 import { displayName, NPC_BY_ID, NPC_IDS, type CharId, type NpcId } from '../data/characters';
 import { attitudeStep } from '../npc/social';
 import { shortName } from './state';
@@ -188,4 +189,11 @@ export function profileLine(s: GameState, id: NpcId): string | null {
   if (!s.flags[`heroMet_${id}`]) return null;
   const def = NPC_BY_ID[id];
   return `${def.age}歳・${def.job}`;
+}
+
+/** 表示する段階（会っていなければ null）。画面とテストで共用 */
+export function abilityRows(s: GameState, id: NpcId): { key: string; step: number }[] | null {
+  if (!s.flags[`heroMet_${id}`]) return null;
+  const st = NPC_BY_ID[id].stats;
+  return SHOWN_ABILITIES.map((k) => ({ key: k, step: k === 'luck' ? luckStep(st[k]) : abilityStep(st[k]) }));
 }

@@ -1,3 +1,6 @@
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { mkdirSync } from 'node:fs';
 import { writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../src/core/rng';
@@ -7,7 +10,8 @@ import { G, M07, SHAPES, START_TILES, alternatives, beaconCell, canPlace, cellsO
 import { simulate } from './helpers';
 
 const SIX = ALL_IDS.slice(0, 6);
-const S = '/tmp/claude-0/-home-claude/ced3d2db-bac9-5d25-8782-91ee7ff6cc58/scratchpad';
+// 試行の数字の書き出し先（環境に依らない一時フォルダ）
+const S = (() => { const d = join(tmpdir(), 'false-crown-sim'); mkdirSync(d, { recursive: true }); return d; })();
 
 describe('M07 六角領域', () => {
   it('盤面：半径 4 は 61 マス、中央は 7 マス。開始点と目印は 60 度回すと隣の席に重なる', () => {

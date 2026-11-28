@@ -1,0 +1,186 @@
+{
+  "version": 1,
+  "notes": "競技ごとに主に効く能力(main)と副(sub)。main は CPU の判断のぶれ(noise)の出所。talk は交渉力が効く場面、luck は運が効くランダム（試験導入 2026-11-28、src/core/luck.ts。M04・M06・S05 だけ）。M11 は種目ごとに違う（①③論理、②記憶、④⑤戦略）。docs/npc_traits.md",
+  "matches": {
+    "m01": {
+      "main": "logic",
+      "sub": "observation",
+      "talk": "組内のコツ共有、救済の約束"
+    },
+    "m02": {
+      "main": "memory",
+      "sub": "observation",
+      "talk": "出題者のカテゴリ情報の取引"
+    },
+    "m03": {
+      "main": "logic",
+      "sub": "observation",
+      "talk": "ペアのヒント記号の共有・取引"
+    },
+    "m04": {
+      "main": "strategy",
+      "sub": "logic",
+      "talk": "路線協力、通行の取り決め",
+      "luck": "任務交換の候補の生成（選ぶのは本人）"
+    },
+    "m05": {
+      "main": "logic",
+      "sub": "strategy",
+      "talk": "組内の解法・出題候補の共有"
+    },
+    "m06": {
+      "main": "strategy",
+      "sub": "memory",
+      "talk": "場交換の約束、狙いの共有",
+      "luck": "初期手札・補充・山札との交換"
+    },
+    "m07": {
+      "main": "strategy",
+      "sub": "observation",
+      "talk": "不可侵、進路確保、妨害の約束"
+    },
+    "m08": {
+      "main": "strategy",
+      "sub": "observation",
+      "talk": "壁の協力、救済の約束"
+    },
+    "m09": {
+      "main": "strategy",
+      "sub": "observation",
+      "talk": "共同攻撃、不可侵、合法な弱手"
+    },
+    "m10": {
+      "main": "strategy",
+      "sub": "observation",
+      "talk": "2 対 1 の協力と離反"
+    },
+    "m11": {
+      "main": "strategy"
+    },
+    "p01": {
+      "main": "logic",
+      "sub": "observation"
+    },
+    "p02": {
+      "main": "memory",
+      "sub": "observation",
+      "talk": "覚え方の共有"
+    },
+    "p03": {
+      "main": "observation",
+      "sub": "strategy",
+      "talk": "攻略法の共有"
+    },
+    "p04": {
+      "main": "observation",
+      "sub": "memory"
+    },
+    "p05": {
+      "main": "strategy",
+      "sub": "memory",
+      "talk": "合法手の約束、情報交換"
+    },
+    "p06": {
+      "main": "logic",
+      "sub": "observation"
+    },
+    "p07": {
+      "main": "strategy",
+      "sub": "observation",
+      "talk": "共同妨害、配置相談"
+    },
+    "p08": {
+      "main": "logic"
+    },
+    "p09": {
+      "main": "observation",
+      "sub": "logic"
+    },
+    "p10": {
+      "main": "strategy",
+      "sub": "observation",
+      "talk": "情報・貸借のみ"
+    },
+    "h01": {
+      "main": "logic",
+      "sub": "memory",
+      "talk": "自由時間のヒント売買"
+    },
+    "h02": {
+      "main": "strategy",
+      "sub": "memory"
+    },
+    "h03": {
+      "main": "logic",
+      "sub": "observation"
+    },
+    "h04": {
+      "main": "logic",
+      "sub": "memory"
+    },
+    "h05": {
+      "main": "logic",
+      "sub": "observation"
+    },
+    "h06": {
+      "main": "strategy",
+      "sub": "observation"
+    },
+    "h07": {
+      "main": "logic",
+      "sub": "memory"
+    },
+    "h08": {
+      "main": "logic",
+      "sub": "memory"
+    },
+    "s01": {
+      "main": "logic",
+      "sub": "memory"
+    },
+    "s02": {
+      "main": "strategy",
+      "sub": "observation"
+    },
+    "s03": {
+      "main": "strategy",
+      "sub": "observation"
+    },
+    "s04": {
+      "main": "memory",
+      "sub": "observation"
+    },
+    "s05": {
+      "main": "strategy",
+      "sub": "logic",
+      "luck": "振り直しの出目（共通のサイコロは対象外）"
+    },
+    "s06": {
+      "main": "observation",
+      "sub": "logic"
+    },
+    "tiebreak": {
+      "main": "logic"
+    },
+    "q02": {
+      "main": "memory",
+      "sub": "observation",
+      "talk": "出題者のカテゴリ情報の取引（監獄版）"
+    },
+    "q03": {
+      "main": "logic",
+      "sub": "observation",
+      "talk": "ペアのヒント記号の共有・取引（監獄版）"
+    },
+    "q05": {
+      "main": "logic",
+      "sub": "strategy",
+      "talk": "組内の解法・出題候補の共有（監獄版）"
+    },
+    "mk": {
+      "main": "logic",
+      "sub": "strategy",
+      "talk": "見せ合い（確か）、聞く・伝える（嘘もある）、作戦時間"
+    }
+  }
+}

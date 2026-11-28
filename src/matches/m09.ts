@@ -127,7 +127,7 @@ function m09Ai(v: M09View, ctx: AiCtx): M09Move {
   const all = legalMoves(v.pieces, seat);
   if (!all.length) return { t: 'pass' };
   const st = skill(ctx.stats.strategy);
-  const lg = skill(ctx.stats.logic);
+  const lg = skill(ctx.stats.observation); // 副：脅威に気づく（観察）
   const sd = 0.3 + ctx.noise * 1.0 + (1 - st) * 1.1;
   const turnIdx = v.order.indexOf(v.self as CharId);
   const lastInRound = turnIdx === v.order.length - 1;

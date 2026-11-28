@@ -219,10 +219,10 @@ function lookahead(hand: number[], piles: [number, number], depth: number): numb
 function p03Ai(v: P03View, ctx: AiCtx): P03Move {
   if (v.phase !== 'solve') return { t: 'ready' };
   const l = v.layout;
-  const logic = skill(ctx.stats.logic);
+  const strat = skill(ctx.stats.strategy); // 副：2〜4 手先の手順（主は観察）
   const obs = skill(ctx.stats.observation);
-  const depth = logic > 0.7 ? 4 : logic > 0.4 ? 3 : 2;
-  const slip = Math.max(0.01, 0.1 - logic * 0.07 + ctx.noise * 0.03);
+  const depth = strat > 0.7 ? 4 : strat > 0.4 ? 3 : 2;
+  const slip = Math.max(0.01, 0.1 - obs * 0.07 + ctx.noise * 0.03);
   const perAct = 2.6 + (1 - obs) * 1.6 + depth * 0.35;
   const t = startTable(l);
   const acts: P03Act[] = [];

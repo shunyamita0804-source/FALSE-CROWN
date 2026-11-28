@@ -161,7 +161,8 @@ function resolve(s: P01State): void {
 function p01Ai(v: P01View, ctx: AiCtx): P01Move {
   if (v.phase !== 'solve') return { t: 'ready' };
   const logic = skill(ctx.stats.logic);
-  const rate = (15 + logic * 6) * Math.max(0.5, 1 + ctx.rng.gauss(0, 0.3)) / Math.max(0.6, ctx.noise * 0.5 + 0.5); // 1 秒に調べられるマスの数
+  const obs = skill(ctx.stats.observation); // 副：盤面の数字を見渡す
+  const rate = (15 + logic * 4.5 + obs * 1.5) * Math.max(0.5, 1 + ctx.rng.gauss(0, 0.3)) / Math.max(0.6, ctx.noise * 0.5 + 0.5); // 1 秒に調べられるマスの数
   const read = 2.6 + (1 - logic) * 0.7;
   const limitSec = Q_MS / 1000 - 0.8;
   const budget = Math.floor((limitSec - read) * rate);
