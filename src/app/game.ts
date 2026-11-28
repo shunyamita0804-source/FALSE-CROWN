@@ -24,7 +24,7 @@ import endingsJson from '../data/endings.json';
 import { t } from '../i18n/i18n';
 import { clampPhaseLeft, CLOCK, clockMinutes, crossed, fmtClock, phaseDuration } from '../core/clock';
 import { isImplemented } from '../matches/registry';
-import { addInvite, clearSocial, INVITE_TIME, isBedroom, observeAttitude, ownerOf, visitVerdict, witnessEntry } from '../npc/social';
+import { addInvite, clearSocial, dismissGuest, endInvite, followersOf, INVITE_TIME, isBedroom, observeAttitude, ownerOf, visitVerdict, witnessEntry } from '../npc/social';
 
 /** その日のメインマッチと監獄マッチが両方とも実装済みか */
 const dayPlayable = (day: number) => { const s = G.state; return !!s && isImplemented(mainMatchId(s, day)) && (!prisonMatchId(s, day) || isImplemented(prisonMatchId(s, day)!)); };
@@ -88,6 +88,8 @@ export interface RankingView {
   ranking: CharId[];
   scores: Partial<Record<CharId, number>>;
   rewards?: Partial<Record<CharId, number>>;
+  /** 報酬を受け取った直後の残高（メインマッチの結果だけ。決勝と監獄マッチでは出さない） */
+  balances?: Partial<Record<CharId, number>>;
   /** 下位何人が監獄棟（または脱落） */
   cut: number;
   cutLabel: string;
@@ -188,6 +190,43 @@ export const G = {
         // 作戦時間の間は会場から出られない（全員同じ）
         if (!quiet) toast(t('strat.noExit'), 'info', 2200);
         return;
+      }
+      if (canEnter(s, 'hero', d.to, d.lock) && !leaveChecked && isBedroom(s.actors.hero.pos.room) && d.to !== s.actors.hero.pos.room) {
+        // 個室を出る時：密談の相手と「解散する／同行を続ける」を選ぶ。他人の部屋なら、出たところで密談は終わる
+        const here = s.actors.hero.pos.room;
+        const guests = followersOf(s, 'hero').filter((x) => x.pos.room === here);
+        const owner = ownerOfRoom(s, here);
+        if (owner && owner !== 'hero' && s.actors[owner]?.goal?.note === 'host:hero') {
+          endInvite(s, owner, 'hero');
+          s.actors[owner].goal = undefined;
+          toast(t('leaveRoom.visitEnd', { name: shortName(s, owner) }), 'info', 2600);
+        } else if (guests.length) {
+          G.heroBusy = true;
+          void (async () => {
+            const names = guests.map((x) => shortName(s, x.id)).join('・');
+            const pick = await choose<'dismiss' | 'keep' | 'stay'>(t('leaveRoom.title'), t('leaveRoom.text', { names }), [
+              { label: t('leaveRoom.dismiss'), value: 'dismiss', kind: 'primary' },
+              { label: t('leaveRoom.keep'), value: 'keep' },
+              { label: t('leaveRoom.stay'), value: 'stay' },
+            ], { cancel: 'stay' });
+            G.heroBusy = false;
+            G.doorHold = true;
+            if (G.state !== s || pick === 'stay') return;
+            if (pick === 'dismiss') {
+              for (const x of guests) dismissGuest(s, x.id);
+              toast(t('leaveRoom.dismissed', { names }), 'info', 2400);
+            } else {
+              // 同行を続ける：招待（と同行の期限）を延ばす
+              for (const x of guests) {
+                addInvite(s, 'hero', x.id);
+                if (x.goal?.kind === 'follow') x.goal.until = Math.max(x.goal.until, s.simTime + INVITE_TIME);
+              }
+            }
+            leaveChecked = true;
+            try { G.interact(target, true); } finally { leaveChecked = false; }
+          })();
+          return;
+        }
       }
       if (canEnter(s, 'hero', d.to, d.lock)) {
         // 部屋の切り替え：短く暗転して行き先の名前を出し、明けるまで操作を受け付けない。
@@ -328,6 +367,9 @@ async function knockAt(d: DoorDef): Promise<void> {
   }
   if (G.state === s && canEnter(s, 'hero', d.to, d.lock)) G.interact({ kind: 'door', door: d }, true);
 }
+
+/** 個室を出る時の確認を済ませた（同じ扉の通過で二度聞かない） */
+let leaveChecked = false;
 
 function onBrainEvent(e: BrainEvent): void {
   const s = G.state!;
@@ -771,6 +813,7 @@ async function step(s: GameState): Promise<boolean> {
       s.match = null;
       s.flags.lastNotes = JSON.stringify(notes);
       s.flags.lastRewards = JSON.stringify(res.rewards);
+      s.flags.lastBalances = JSON.stringify(res.balances);
       enter('reward');
       return true;
     }
@@ -796,6 +839,7 @@ async function step(s: GameState): Promise<boolean> {
         ranking,
         scores: s.today.mainScores ?? {},
         rewards: JSON.parse(String(s.flags.lastRewards ?? '{}')),
+        balances: JSON.parse(String(s.flags.lastBalances ?? '{}')),
         cut: nPrison,
         cutLabel: t(medalIssued(s.day) && s.today.rescue?.status !== 'used' && s.today.rescue?.status !== 'forgone' ? 'rank.toPrisonProv' : 'rank.toPrison'),
         notes: JSON.parse(String(s.flags.lastNotes ?? '[]')),
@@ -890,7 +934,7 @@ async function step(s: GameState): Promise<boolean> {
         for (const id of aliveIds(s)) {
           s.actors[id].house = null;
           s.actors[id].goal = undefined;
-          placeIn(s, id, id === 'hero' ? 'living_hallway' : 'living_lounge');
+          placeIn(s, id, id === 'hero' ? 'living_hallway' : 'dining');
         }
         s.phaseLeft = phaseDuration('night');
       }

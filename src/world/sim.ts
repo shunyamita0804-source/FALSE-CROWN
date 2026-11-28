@@ -1,18 +1,20 @@
 /**
  * フィールド上の移動シミュレーション（描画 FPS と無関係に、シミュレーション時間で進む）。
- * 1 タイルずつの 4 方向移動。プレイヤーも NPC も同じ規則で動く。
+ * 1 タイルずつの移動。NPC の経路は 4 方向。主人公はスティックとキーボードで斜めにも 1 マス進める
+ * （斜めの 1 歩は √2 倍の距離を同じ速さで歩くので、斜めだけ速くはならない）。
  */
 import { ALL_IDS, type CharId } from '../data/characters';
 import { CONFIG } from '../data/config';
 import type { Actor, Dir, GameState } from '../core/types';
 import { canEnter, passFn } from './access';
-import { ROOMS, buildCollision, doorApproach, doorAt, doorDir, findDoor, type DoorDef } from './maps';
+import { RETIRED_ROOMS, ROOMS, buildCollision, isRetired, doorApproach, doorAt, doorDir, findDoor, type DoorDef } from './maps';
 import { findPath, nearestFree, roomRoute } from './path';
 import { cellOf, cellSpots, gateOpen, seatAllowed, type CellRef } from './cells';
 import { gateKey } from './furnitureGrid';
 import type { Seat } from './furniture';
 import { homeOf } from './rooms';
 import { releaseSeat, seatTargetAt, seatTile } from './seats';
+import { face4, octant, type Vec } from '../input/stick';
 
 const gridCache = new Map<string, { key: string; grid: boolean[][] }>();
 
@@ -101,6 +103,58 @@ export function tryStep(state: GameState, a: Actor, dir: Dir): boolean {
   return true;
 }
 
+function dirOf(dx: number, dy: number): Dir {
+  return dx > 0 ? 'right' : dx < 0 ? 'left' : dy > 0 ? 'down' : 'up';
+}
+
+/** 壁（部屋の外を含む） */
+function wallAt(grid: boolean[][], x: number, y: number): boolean {
+  return y < 0 || x < 0 || y >= grid.length || x >= grid[0].length || grid[y][x];
+}
+
+/** 斜めに 1 歩。角は削らない（縦横どちらかの隣が壁なら通れない）。両隣が人でふさがっている時も通らない */
+export function tryDiagonal(state: GameState, a: Actor, dx: number, dy: number, face: Dir): boolean {
+  if (a.step) return false;
+  const nx = a.pos.x + dx;
+  const ny = a.pos.y + dy;
+  const grid = collisionOf(state, a.pos.room);
+  if (wallAt(grid, nx, ny) || wallAt(grid, nx, a.pos.y) || wallAt(grid, a.pos.x, ny)) return false;
+  const occ = occupiedSet(state, a.pos.room, a.id);
+  if (occ.has(`${nx},${ny}`)) return false;
+  if (occ.has(`${nx},${a.pos.y}`) && occ.has(`${a.pos.x},${ny}`)) return false;
+  if (a.seat) releaseSeat(state, a.id);
+  a.pos.dir = face;
+  a.step = { x: nx, y: ny, p: 0 };
+  return true;
+}
+
+/** 前の 1 歩の向き（境目で 8 方向がちらつかないようにする。保存しない） */
+const lastStep = new Map<string, { dx: number; dy: number }>();
+
+/**
+ * 入力の向き（スティックかキーボード）へ 1 歩。斜めに進めない時は、近い方の縦横へ壁沿いに進む。
+ * 向きは近い 4 方向で表す。成功したら true
+ */
+export function stepToward(state: GameState, a: Actor, v: Vec): boolean {
+  if (a.step) return false;
+  const o = octant(v, lastStep.get(a.id));
+  let face = face4(v, a.pos.dir);
+  let ok = false;
+  if (o.dx && o.dy) {
+    // 向きは斜めの成分のどちらかにする
+    if (face !== dirOf(o.dx, 0) && face !== dirOf(0, o.dy)) face = Math.abs(v.x) >= Math.abs(v.y) ? dirOf(o.dx, 0) : dirOf(0, o.dy);
+    ok = tryDiagonal(state, a, o.dx, o.dy, face);
+    if (!ok) {
+      const axes: [number, number][] = Math.abs(v.x) >= Math.abs(v.y) ? [[o.dx, 0], [0, o.dy]] : [[0, o.dy], [o.dx, 0]];
+      for (const [x, y] of axes) if ((ok = tryStep(state, a, dirOf(x, y)))) break;
+      if (!ok) a.pos.dir = face;
+    }
+  } else ok = tryStep(state, a, dirOf(o.dx, o.dy));
+  const st = (a as Actor).step as Actor['step'];
+  if (ok && st) lastStep.set(a.id, { dx: st.x - a.pos.x, dy: st.y - a.pos.y });
+  return ok;
+}
+
 /** 目的地（同じ部屋のタイル）までの経路を設定 */
 export function setPathTo(state: GameState, a: Actor, x: number, y: number): boolean {
   const grid = collisionOf(state, a.pos.room);
@@ -143,16 +197,18 @@ export function moveActor(state: GameState, a: Actor, dt: number, speed: number,
     // halt：いま踏み出している 1 マスだけ歩き切って、その場で立ち止まる（経路は残す）
     if (halt && !a.step) break;
     if (a.step) {
-      const need = 1 - a.step.p;
+      // 斜めの 1 歩は √2 倍の距離。進み具合（p）を距離で割って、速さを縦横と同じにする
+      const len = a.step.x !== a.pos.x && a.step.y !== a.pos.y ? Math.SQRT2 : 1;
+      const need = (1 - a.step.p) * len;
       if (budget >= need) {
         budget -= need;
         a.pos.x = a.step.x;
         a.pos.y = a.step.y;
         a.step = undefined;
         // 方向キーを押し続けている間は、余った時間を捨てずにそのまま次の 1 マスへ進む（速度を一定に保つ）
-        if (a.intent && !a.path.length && !a.route.length && !tryStep(state, a, a.intent)) break;
+        if (a.intentV && !a.path.length && !a.route.length && !stepToward(state, a, a.intentV)) break;
       } else {
-        a.step.p += budget;
+        a.step.p += budget / len;
         budget = 0;
       }
       continue;
@@ -290,7 +346,24 @@ export function relocateStranded(state: GameState): boolean {
   for (const id of ALL_IDS) {
     const a = state.actors[id];
     if (!a?.alive) continue;
-    if (ROOMS[a.pos.room] && !/^cell_p\d+$/.test(a.pos.room)) continue;
+    // 新しい館の構成で外した部屋（RETIRED_ROOMS）にいる人は、決めた移し先へ。入れない時は寝起きする場所へ
+    if (ROOMS[a.pos.room] && isRetired(a.pos.room)) {
+      const dest = RETIRED_ROOMS[a.pos.room];
+      if (canEnter(state, id, dest)) placeIn(state, id, dest); else placeHome(state, id);
+      a.goal = undefined;
+      moved = true;
+      continue;
+    }
+    // 行き先が外した部屋になっている予定は取り消す（外した部屋へは歩いて行けない）
+    const goalRoom = (a.goal as { room?: string } | undefined)?.room;
+    if (goalRoom && isRetired(goalRoom)) { a.goal = undefined; a.path = []; a.route = []; }
+    if (a.route?.some((r) => isRetired(r))) { a.path = []; a.route = []; }
+    if (ROOMS[a.pos.room] && !/^cell_p\d+$/.test(a.pos.room)) {
+      // 自分の寝起きする場所へ歩いて戻れない所（入れない部屋に囲まれた所）に残っている人も、寝起きする場所へ移す
+      const home = homeOf(state, id);
+      if (a.pos.room !== home && ROOMS[home] && roomRoute(a.pos.room, home, passFn(state, id)) === null) { placeHome(state, id); a.goal = undefined; moved = true; }
+      continue;
+    }
     placeHome(state, id);
     moved = true;
   }

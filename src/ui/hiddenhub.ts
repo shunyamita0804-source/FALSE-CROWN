@@ -223,7 +223,7 @@ async function liftUp(): Promise<void> {
   if (ends.length) opts.push({ label: t('endsel.lift'), value: 'end', kind: 'danger' });
   opts.push({ label: t('svc.lift.stay'), value: '' });
   const v = await choose(t('svc.lift.title'), t('svc.lift.upText'), opts, { cancel: '' });
-  if (v === 'up') { s.phaseLeft = Math.max(5000, s.phaseLeft - LIFT_MINUTES * 1000); await G.warpHero('common_hall'); }
+  if (v === 'up') { s.phaseLeft = Math.max(5000, s.phaseLeft - LIFT_MINUTES * 1000); await G.warpHero('main_hall'); }
   else if (v === 'end') await pickEnding(ends, t('endsel.title'), t('endsel.liftLead'));
 }
 

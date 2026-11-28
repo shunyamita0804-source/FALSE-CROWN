@@ -1,6 +1,7 @@
 import { Input } from './input/InputState';
 import { placeHome, placeIn, setPathTo, setRouteTo } from './world/sim';
-import { gatherAt } from './core/tournament';
+import { applyMainResult, endDay, gatherAt } from './core/tournament';
+import { applyRescue, forgoRescue, issueMedal, provisional } from './core/rescue';
 import { seatActor, standAll } from './world/seats';
 import { furnitureOf } from './world/furniture';
 import { assignCell } from './world/cells';
@@ -17,7 +18,7 @@ import { G, runGame } from './app/game';
 import { applyUiAssets } from './assets/registry';
 import { Sound } from './audio/audio';
 import { BACKGROUND_COLOR } from './config/display';
-import { newGame } from './core/state';
+import { newGame, transfer } from './core/state';
 import type { GameState } from './core/types';
 import { installNativeResolution } from './display/viewport';
 import { t } from './i18n/i18n';
@@ -146,7 +147,7 @@ document.addEventListener('visibilitychange', () => {
     toast(t('update.available'), 'info', 6000);
   });
 });
-if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input, Sound, sim: { placeIn, placeHome, setPathTo, setRouteTo, gatherAt, seatActor, assignCell, standAll, furnitureOf }, rooms: ROOMS, art: { bust, setBust, face, setHeroGender }, voice: { clip: voiceClip, play: playVoice } };
+if (import.meta.env.VITE_CHANNEL !== 'product') (window as unknown as { __fc?: unknown }).__fc = { G, Input, Sound, sim: { placeIn, placeHome, setPathTo, setRouteTo, gatherAt, seatActor, assignCell, standAll, furnitureOf }, rooms: ROOMS, art: { bust, setBust, face, setHeroGender }, voice: { clip: voiceClip, play: playVoice }, core: { applyMainResult, endDay, issueMedal, applyRescue, forgoRescue, provisional, transfer } };
 void boot();
 
 if (!isNative && 'serviceWorker' in navigator) registerSW({ immediate: true });

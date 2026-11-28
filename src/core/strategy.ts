@@ -68,6 +68,8 @@ export interface StrategyMeeting {
   resolved: boolean;
   /** 主人公が加わった */
   withHero?: boolean;
+  /** 途中で相談室を出た人（同じ枠のうちは戻れる） */
+  left?: CharId[];
 }
 
 export interface StrategyState {
@@ -311,6 +313,32 @@ export function tickStrategy(state: GameState, slot: MatchSlot, st: StrategyStat
   if (st.slotLeft > 0) return false;
   endSlot(state, slot, st, rng);
   return true;
+}
+
+/**
+ * 相談室を出る（相談を終える）。退出の決まり（本人の依頼 2026-11-28）：
+ * - 成立した約束（協力、緩い約束、救済の約束）は、退出しても取り消さない。
+ * - 出た人は、この枠の会議から外れる。この枠のうちは、同じ部屋へ戻れる（ほかの相談にも加われる）。
+ * - 残った人が 2 人以上なら、その人たちだけで相談を続ける（枠の終わりに NPC 同士で解決）。
+ *   1 人しか残らない時は会議を解散し、その人の予約（この枠の相談の予定）も解く。
+ * - 呼ばれて向かっている途中の人も、残った人として数える（着いても相手がいなければ解散と同じ）。
+ * 解決済みの会議（枠が終わった後）は何もしない。
+ */
+export function leaveMeeting(st: StrategyState, mt: StrategyMeeting, who: CharId): 'left' | 'dissolved' | 'none' {
+  if (mt.resolved || !mt.members.includes(who)) return 'none';
+  mt.members = mt.members.filter((m) => m !== who);
+  mt.left = [...new Set([...(mt.left ?? []), who])];
+  if (who === 'hero') mt.withHero = false;
+  if (st.engaged[who] === st.slot) delete st.engaged[who];
+  if (mt.members.length >= 2) {
+    if (mt.host === who) mt.host = mt.members[0];
+    return 'left';
+  }
+  for (const m of mt.members) if (st.engaged[m] === st.slot) delete st.engaged[m];
+  mt.members = [];
+  mt.resolved = true;
+  st.invites = st.invites.filter((i) => !(i.slot === st.slot && i.room === mt.room));
+  return 'dissolved';
 }
 
 /** 合計の残り時間（ミリ秒） */

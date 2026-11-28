@@ -42,9 +42,9 @@ describe('部屋に着いた人が入口に固まらない', () => {
     s.phase = 'free';
     const npcs = aliveIds(s).filter((id) => id !== 'hero');
     npcs.forEach((id, i) => {
-      placeIn(s, id, 'common_hall', { x: 10 + (i % 6), y: 6 + Math.floor(i / 6) });
-      s.actors[id].goal = { kind: 'wander', room: 'common_lounge', spot: ROOMS.common_lounge.spots[i % ROOMS.common_lounge.spots.length], until: s.simTime + 120_000, seat: '-' };
-      setRouteTo(s, s.actors[id], 'common_lounge');
+      placeIn(s, id, 'dining', { x: 6 + (i % 6), y: 14 + Math.floor(i / 6) });
+      s.actors[id].goal = { kind: 'wander', room: 'game_room', spot: ROOMS.game_room.spots[i % ROOMS.game_room.spots.length], until: s.simTime + 120_000, seat: '-' };
+      setRouteTo(s, s.actors[id], 'game_room');
     });
     const at: Record<string, { x: number; y: number }> = {};
     for (let t = 0; t < 60_000; t += 100) {
@@ -52,13 +52,13 @@ describe('部屋に着いた人が入口に固まらない', () => {
       tickNpcs(s, 100, false);
       for (const id of npcs) {
         const a = s.actors[id];
-        if (!at[id] && a.goal?.note === 'at' && a.pos.room === 'common_lounge') at[id] = { x: a.pos.x, y: a.pos.y };
+        if (!at[id] && a.goal?.note === 'at' && a.pos.room === 'game_room') at[id] = { x: a.pos.x, y: a.pos.y };
       }
     }
     const ids = Object.keys(at);
     expect(ids.length).toBeGreaterThanOrEqual(npcs.length - 1);
     // 入口のすぐそば（扉から 2 マス以内）で過ごし始めた人は、ほとんどいない
-    expect(ids.filter((id) => doorDist('common_lounge', at[id].x, at[id].y) <= 2).length).toBeLessThanOrEqual(1);
+    expect(ids.filter((id) => doorDist('game_room', at[id].x, at[id].y) <= 2).length).toBeLessThanOrEqual(1);
   });
 
   it('自分の部屋へ戻った NPC は、扉の前ではなく部屋の中で過ごす', () => {
