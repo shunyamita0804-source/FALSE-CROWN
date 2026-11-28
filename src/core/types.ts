@@ -87,6 +87,8 @@ export interface Actor {
   waitUntil?: number;
   /** 次に立ち止まって待てる時刻（待ち続けないための間隔） */
   waitCd?: number;
+  /** 座っている席（建物改修の家具。world/furniture.ts の席。座っている間は pos がその席の立つ位置のマス） */
+  seat?: { room: string; id: string };
 }
 
 export type DealKind =
