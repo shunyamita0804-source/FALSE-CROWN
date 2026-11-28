@@ -107,7 +107,8 @@ export type DealKind =
   | 'plan' // 作戦提示（競技内の具体的行動）
   | 'poach' // 引抜き
   | 'loan' // 貸借
-  | 'gift'; // 贈与
+  | 'gift' // 贈与
+  | 'pledge'; // 緩い約束「次は協力しよう」（生活中。支払いも行動の条件もない。破っても約束破りにならない）
 
 export type DealStatus = 'active' | 'fulfilled' | 'broken' | 'refused' | 'expired' | 'cancelled';
 
@@ -233,6 +234,8 @@ export interface GameState {
   log: { t: number; day: number; text: string; kind?: string }[];
   /** 席の予約（world/seats.ts。鍵は seatKey(部屋, 席)、値は取っている人）。古いセーブには無い */
   seatsTaken?: Record<string, CharId>;
+  /** 競技の作戦時間（ルール説明の後、開始前の相談。core/strategy.ts）。古いセーブには無い */
+  strategy?: import('./strategy').StrategyState;
   /** 監獄棟の房の割り当て（world/cells.ts。人物 → cellKey(部屋, 房)）。古いセーブには無い */
   cells?: Partial<Record<CharId, string>>;
   /** 個室の割り当て（world/rooms.ts。人物 → 寝起きする部屋）。古いセーブには無い */

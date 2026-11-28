@@ -117,7 +117,7 @@ function npcNegotiate(s: GameState, slot: MatchSlot, inbox: BrainEvent[]): void 
     cands.sort((x, y) => y.v - x.v);
     const b = cands[0]?.b;
     if (!b) continue;
-    const p = chooseProposal(s, a, b, rng);
+    const p = chooseProposal(s, a, b, rng, 'match');
     if (!p || (p.kind !== 'alliance' && p.kind !== 'nonaggression')) continue;
     if (b === 'hero') {
       if (toHero++ < 1 && slot.players.includes('hero')) inbox.push({ type: 'approach', npc: a, other: 'hero', proposal: p });
