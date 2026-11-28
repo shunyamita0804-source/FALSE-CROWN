@@ -15,7 +15,7 @@ import { t } from '../i18n/i18n';
 import type { MatchEngine } from '../matches/types';
 import { chooseProposal, type BrainEvent } from '../npc/brain';
 import { commit, evaluate, type Proposal } from '../npc/negotiation';
-import { face, icon } from './art';
+import { emblem, face, fxPop, icon } from './art';
 import { alertDialog, append, button, clear, clockPaused, closeLayer, fitMinWidth, fmtTime, h, openLayer, toast, type Child, type Layer } from './dom';
 import { reviewVoiced } from './tutorial';
 import { renderM01 } from './games/m01';
@@ -149,7 +149,7 @@ export function playMatch(slot: MatchSlot): Promise<void> {
     /** 進行の声：終わりの声は 1 回だけ。時間切れの声が鳴っていれば、その後に続ける */
     let endSaid = false;
     let voiceChain: Promise<unknown> = Promise.resolve();
-    const title = h('div', { class: 'match-title' }, `${slot.id === 'tiebreak' ? '' : slot.id.toUpperCase() + '　'}${engine.name}`);
+    const title = h('div', { class: 'match-title' }, emblem(slot.id, 'match-emblem'), `${slot.id === 'tiebreak' ? '' : slot.id.toUpperCase() + '　'}${engine.name}`);
     const stageEl = h('div', { class: 'match-stage' });
     const timerEl = h('div', { class: 'match-timer' });
     const gaugeClip = h('div', { class: 'gauge-clip' }, h('div', { class: 'gauge-fill' }));
@@ -229,6 +229,8 @@ export function playMatch(slot: MatchSlot): Promise<void> {
         if (key !== stageKey) {
           stageKey = key;
           stageTime = st.time ?? 0;
+          // 制限時間のある解答（1 分以上）が始まる時だけ、開始の帯を短く出す（手番ごとの短い時間では出さない）
+          if (!first && stageTime >= 60_000 && engine.pending(slot.state).includes('hero')) fxPop('round_start', st.label, 1400);
           if (!(first && slot.stageLeft > 0 && slot.stageLeft <= stageTime)) slot.stageLeft = stageTime;
           ui.local = {};
           ui.timeoutMove = undefined;
@@ -258,7 +260,7 @@ export function playMatch(slot: MatchSlot): Promise<void> {
         // 時間切れ：事前に明示した既定の合法手になる
         if (!st.negotiation) toast(t('match.timeout'), 'bad');
         // 進行の声：ステージの制限時間（1 分以上）が切れた時だけ。手番ごとの短い時間では鳴らさない
-        if ((st.time ?? 0) >= 60_000) voiceChain = announce('time_up');
+        if ((st.time ?? 0) >= 60_000) { voiceChain = announce('time_up'); fxPop('time_up', t('fx.timeUp'), 1800); }
         const own = ui.timeoutMove?.();
         engine.submit(slot.state, 'hero', own && engine.validate(slot.state, 'hero', own) ? own : engine.defaultMove(slot.state, 'hero'));
         sync();
@@ -266,7 +268,9 @@ export function playMatch(slot: MatchSlot): Promise<void> {
     }, 200);
 
     const rulesBtn = button(t('match.rules'), () => void (reviewVoiced(slot.id, sceneFor(slot.id, slot.players)) ?? alertDialog(engine.name, h('div', { class: 'col', style: 'gap:6px' }, engine.rules.map((r, i) => h('div', { class: 'entry small' }, `${i + 1}. ${r}`))), t('common.close'), true)), { small: true, kind: 'ghost' });
-    const el = h('div', { class: `match${slot.kind === 'prison' ? ' prison' : ''}` },
+    // 背景：監獄、裏ゲーム、サブゲーム、決勝（M11）で替える。素材が無ければ本戦と同じ
+    const venue = slot.kind === 'prison' ? ' prison' : slot.kind === 'hidden' || /^h\d/.test(slot.id) ? ' venue-hidden' : slot.kind === 'sub' || /^s\d/.test(slot.id) ? ' venue-sub' : slot.id === 'm11' || slot.kind === 'final' ? ' venue-final' : '';
+    const el = h('div', { class: `match${venue}` },
       h('div', { class: 'match-head' }, title, stageEl, inboxEl, h('div', { class: 'spacer' }), heroIn ? h('span', { class: 'row', style: 'gap:6px' }, face('hero'), h('span', { class: 'piece' }, String(s.actors.hero.pieces))) : null, rulesBtn, icon('timer'), gaugeEl, timerEl),
       h('div', { class: 'match-body' }, main, side),
     );

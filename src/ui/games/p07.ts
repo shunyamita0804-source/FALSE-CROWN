@@ -9,7 +9,7 @@ import { t } from '../../i18n/i18n';
 import { centerOf, countOf, flipsFor, legalFor, startBoard, type P07Move, type P07View } from '../../matches/p07';
 import { face } from '../art';
 import { button, h, type Child } from '../dom';
-import { FlipBoard, PIECE_COLORS, PIECE_EDGE, type FlipSel } from '../flipboard';
+import { FlipBoard, PIECE_ART, PIECE_COLORS, PIECE_EDGE, type FlipSel } from '../flipboard';
 import type { MatchUi } from '../matchui';
 
 interface Seen { n: number; timer?: ReturnType<typeof setTimeout>; sel: FlipSel; bad?: boolean }
@@ -17,7 +17,7 @@ const SEEN = new WeakMap<object, Seen>();
 const STEP_MS = 950;
 const SIZE = 43;
 
-export const chip = (seat: number) => h('i', { class: 'fb-chip', style: `background:${PIECE_COLORS[seat]};border-color:${PIECE_EDGE[seat]}` });
+export const chip = (seat: number) => h('i', { class: `fb-chip${PIECE_ART[seat] ? ' art' : ''}`, style: PIECE_ART[seat] ? `background-image:url("${PIECE_ART[seat]}")` : `background:${PIECE_COLORS[seat]};border-color:${PIECE_EDGE[seat]}` });
 
 export function renderP07(v: P07View, ui: MatchUi): { main: Child; side: Child } {
   const me = v.self as CharId;

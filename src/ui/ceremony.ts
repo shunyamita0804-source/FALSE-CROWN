@@ -14,6 +14,9 @@ import { ROOMS } from '../world/maps';
 
 const introPlace = () => ROOMS[INTRO.venue.room]?.name ?? '';
 import { bgUrl, bust, emblemUrl, icon } from './art';
+
+/** 開会式の背景：一枚絵（2026-11-28 受領）、無ければ従来の背景 */
+const bg2 = () => bgUrl('opening_ceremony') ?? bgUrl('opening');
 import { button, clear, closeLayer, h, openLayer, type Child, type Layer } from './dom';
 
 interface Line { who: 'host' | NpcId; text: string }
@@ -160,7 +163,7 @@ export function ceremonyScreen(opts: { review?: boolean; skippable?: boolean } =
     };
     draw();
     if (!opts.review) void announce('opening');
-    const bg = bgUrl('opening');
+    const bg = bgUrl('opening_ceremony') ?? bgUrl('opening');
     layer = openLayer(h('div', { class: 'overlay solid cer-bg', style: bg ? `background-image:url("${bg}")` : '' }, h('div', { class: 'tut cer' }, head, fig, say, foot)), { pausesClock: true, name: 'ceremony' });
   });
 }
@@ -171,7 +174,7 @@ export function handoutScreen(): Promise<void> {
     let layer: Layer;
     const done = () => { closeLayer(layer); resolve(); };
     Sound.se('coins');
-    layer = openLayer(h('div', { class: 'overlay solid cer-bg', style: bgUrl('opening') ? `background-image:url("${bgUrl('opening')}")` : '' }, h('div', { class: 'rs' },
+    layer = openLayer(h('div', { class: 'overlay solid cer-bg', style: bg2() ? `background-image:url("${bg2()}")` : '' }, h('div', { class: 'rs' },
       h('div', { class: 'cer-row pop' }, box('', h('div', { class: 'cer-piece' }, icon('piece_gold'), h('b', null, '× 3')), h('span', null, t('cer.give1'))), box('', icon('key_gold'), h('b', null, t('cer.give2t')), h('span', null, t('cer.give2')))),
       h('div', { class: 'rs-title' }, t('cer.next')),
       h('div', { class: 'rs-text' }, t('cer.nextText', { place: introPlace() })),

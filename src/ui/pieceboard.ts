@@ -9,9 +9,14 @@ const ART: Record<string, string | null> = {
   king: assetUrl('ui/v11/m09/king'),
   soldier: assetUrl('ui/v11/m09/soldier'),
   pawn: assetUrl('ui/v11/m08/pawn'),
+  // 2 陣営の駒（旧 P09 の素材の再利用）：色だけでなく形でも見分けられる。P10 と H06 で使う
+  side0: assetUrl('ui/games/p09/asset_01'),
+  side1: assetUrl('ui/games/p09/asset_01_01'),
 };
+/** 2 人対戦の駒の種類（素材が無ければ M08 の駒を着色） */
+export const duelKind = (seat: number): BoardPiece['kind'] => (ART[seat ? 'side1' : 'side0'] ? (seat ? 'side1' : 'side0') : 'pawn');
 
-export interface BoardPiece { pos: number; seat: number; kind: 'king' | 'soldier' | 'pawn' }
+export interface BoardPiece { pos: number; seat: number; kind: 'king' | 'soldier' | 'pawn' | 'side0' | 'side1' }
 
 export interface PieceBoardOpts {
   n: number;

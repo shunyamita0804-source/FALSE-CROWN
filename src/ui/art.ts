@@ -1,7 +1,7 @@
 /**
  * UI で使う人物画像（顔・立ち絵）。正式素材があればそれを、無ければ仮素材を返す。
  */
-import { assetUrl, charFolder, EXPRESSIONS, FX_ASSETS, iconUrl, type FxName, type GameArt } from '../assets/registry';
+import { assetUrl, charFolder, emblemOf, EXPRESSIONS, FX_ASSETS, iconUrl, type FxName, type GameArt } from '../assets/registry';
 import { drawEmblem, drawFace, drawPortrait } from '../assets/placeholders';
 import { HERO_PALETTES, NPC_BY_ID, type NpcId } from '../data/characters';
 import { hashString } from '../core/rng';
@@ -79,6 +79,25 @@ export function icon(name: string, cls = ''): HTMLImageElement | null {
   return url ? h('img', { class: `ic ${cls}`, src: url, alt: '', draggable: false }) : null;
 }
 
+/** 競技の紋章（素材が無い競技は null） */
+export function emblem(matchId: string, cls = ''): HTMLImageElement | null {
+  const url = emblemOf(matchId);
+  return url ? h('img', { class: `emblem ${cls}`, src: url, alt: '', draggable: false }) : null;
+}
+
+/** 順位の印。1〜3 位は正式のメダル（数字はプログラムで重ねる）、4 位以下は数字だけ */
+export function rankMark(i: number): HTMLElement {
+  const url = i < 3 ? assetUrl(`ui/v11/common/rank_${i + 1}`) : null;
+  return url
+    ? h('span', { class: `rank-medal r${i + 1}`, style: `background-image:url("${url}")` }, String(i + 1))
+    : h('span', { class: 'rank-plain' }, String(i + 1));
+}
+
+/** v11 の競技素材の URL（無ければ null）。path は ui/v11/ からの相対 */
+export function v11Url(path: string): string | null {
+  return assetUrl(`ui/v11/${path}`);
+}
+
 /**
  * 競技専用素材を、幅 w（px）で表示する。1 枚に複数の図柄が並ぶ素材は、画像を切り出さずに表示範囲だけを合わせる。
  * 縦横比は元の図柄のまま。
@@ -108,6 +127,14 @@ export function fxBanner(name: FxName, text: string, cls = ''): HTMLElement {
 export function gauge(ratio: number, cls = ''): HTMLElement {
   const pct = Math.max(0, Math.min(1, ratio)) * 100;
   return h('div', { class: `gauge ${cls}` }, h('div', { class: 'gauge-clip', style: `width:${pct}%` }, h('div', { class: 'gauge-fill' })));
+}
+
+const fxShown = new Set<string>();
+/** 同じ出来事（key）では 1 回だけ演出の帯を出す（画面の描き直しで何度も出さない） */
+export function fxOnce(key: string, name: FxName, text: string, ms = 2200): void {
+  if (fxShown.has(key)) return;
+  fxShown.add(key);
+  fxPop(name, text, ms);
 }
 
 /** 画面上部に演出の帯を短時間だけ出す（操作は妨げない） */

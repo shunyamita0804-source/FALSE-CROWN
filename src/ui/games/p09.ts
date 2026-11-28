@@ -4,7 +4,7 @@ import { transfer } from '../../core/state';
 import type { CharId, NpcId } from '../../data/characters';
 import { t } from '../../i18n/i18n';
 import { AID_COST, OK_PTS, PART_PTS, ROUND_MS, TIME_PTS, hintFor, type P09Move, type P09Result, type P09View } from '../../matches/p09';
-import { face } from '../art';
+import { face, fxOnce } from '../art';
 import { button, confirmDialog, h, type Child } from '../dom';
 import type { MatchUi } from '../matchui';
 import { MirrorBoard, tileEl, type MirrorTool } from '../mirrorboard';
@@ -41,6 +41,8 @@ export function renderP09(v: P09View, ui: MatchUi): { main: Child; side: Child }
 
   if (v.phase !== 'solve' || watching || v.submitted) {
     const review = v.lastMirror && mine && !v.submitted ? new MirrorBoard(v.lastMirror, { readonly: true, grid: mine.grid, marked: true, cell: Math.floor(300 / v.lastMirror.n) }).el : null;
+    // 全問正解・完全一致の時だけ、短い演出の帯（ラウンドごとに 1 回）
+    if (mine?.perfect) fxOnce(`p09:${ui.slot.id}:${ui.state.day}:${n}`, 'perfect', t('fx.perfect'));
     const main = h('div', { class: 'm02-break p09-break' },
       h('div', { class: 'm01-big' }, v.phase === 'done' ? t('p01.finished') : v.submitted ? t('p06.sent') : v.phase === 'break' ? t('p08.breakTitle', { n: v.round + 1 }) : t('m03.watching')),
       mine && !v.submitted ? h('div', { class: 'row', style: 'gap:22px;align-items:center' }, review, h('div', { class: 'col', style: 'gap:6px' },

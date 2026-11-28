@@ -12,7 +12,7 @@ import { availableAssets } from '../assets/registry';
 import { Sound } from '../audio/audio';
 import { fitsScene } from '../audio/voicefit';
 import { t } from '../i18n/i18n';
-import { bust } from './art';
+import { bust, emblem, setBust, v11Url } from './art';
 import { append, button, clear, closeLayer, autoFit, h, openLayer, type Child, type Layer } from './dom';
 
 /** fits：この収録が合う場面（競技の順番、組の数、ステージ数など）。合わない時は部品の声と字幕に切り替える */
@@ -135,10 +135,17 @@ export function voicedTutorial(matchId: string, g: VoicedGuide, opts: { review?:
     let view: StepView | null = null;
     let fired = new Set<number>();
 
-    const portrait = bust(TV.speaker, 'normal', 'vt-gm');
+    // ゲームマスターは盤面を手で示す姿勢（届いていなければ通常の立ち絵）。得点や終わり方の段階は指を立てる姿勢
+    const portrait = bust(TV.speaker, 'present', 'vt-gm');
+    const poseOf = (id: string) => (/scor|bonus|point|end|result|win/.test(id) ? 'point' : 'present');
     const head = h('div', { class: 'vt-head' });
     const fig = h('div', { class: 'vt-fig' });
     const prompt = h('div', { class: 'vt-prompt' });
+    // 押す所を示す手：光らせた所（.vt-hl）の最初の 1 つへ指先を合わせ、押す・離すをくり返す。操作が済んだら隠す
+    const handUrls = [v11Url('tutorial/hand_point'), v11Url('tutorial/hand_press')];
+    const hand = handUrls[0] && handUrls[1]
+      ? h('div', { class: 'vt-hand', 'aria-hidden': 'true' }, h('img', { class: 'pt', src: handUrls[0], alt: '', draggable: false }), h('img', { class: 'pr', src: handUrls[1], alt: '', draggable: false }))
+      : null;
     // 図は本来の大きさで並べ、枠に入りきらない時だけ全体を縮めて出す（ノッチのある iPhone など。2026-11-28 実機の指摘）
     const fitBox = h('div', { class: 'vt-fit' });
     autoFit(fig, fitBox);
@@ -148,10 +155,26 @@ export function voicedTutorial(matchId: string, g: VoicedGuide, opts: { review?:
     sub.append(h('b', { class: 'vt-who' }, t('vt.gm')), h('div', { class: 'vt-line' }, subText, subRest));
     const foot = h('div', { class: 'vt-foot' });
     const note = h('div', { class: 'vt-note dim small' });
+    let handTimer = 0;
+    const placeHand = () => {
+      if (!hand) return;
+      const stage = hand.parentElement;
+      const target = !taskDone ? fig.querySelector<HTMLElement>('.vt-hl') : null;
+      if (!stage || !target) { hand.classList.remove('on'); return; }
+      const sr = stage.getBoundingClientRect();
+      const tr = target.getBoundingClientRect();
+      const k = sr.width / (stage.offsetWidth || 1) || 1;
+      // 指先は手の絵の (64, 64)／256。指先を目標の中央より少し右下に置き、目標そのものは隠さない
+      const x = (tr.left + tr.width * 0.62 - sr.left) / k;
+      const y = (tr.top + tr.height * 0.62 - sr.top) / k;
+      hand.style.transform = `translate(${x}px, ${y}px)`;
+      hand.classList.add('on');
+    };
 
     const close = () => {
       if (!alive) return;
       alive = false;
+      clearInterval(handTimer);
       clearTimeout(readTimer);
       cancelAnimationFrame(raf);
       Sound.stopVoice();
@@ -260,11 +283,12 @@ export function voicedTutorial(matchId: string, g: VoicedGuide, opts: { review?:
 
     const renderHead = () => {
       clear(head);
-      head.append(
+      append(head, [
+        emblem(matchId, 'vt-emblem'),
         h('span', { class: 'vt-id' }, `${matchId.toUpperCase()}　${g.name}`),
         h('b', { class: 'vt-title' }, g.steps[idx].title),
         h('span', { class: 'tut-dots' }, g.steps.map((_, i) => h('i', { class: i === idx ? 'on' : i < idx ? 'past' : '' }))),
-      );
+      ]);
     };
 
     const renderFoot = () => {
@@ -307,6 +331,7 @@ export function voicedTutorial(matchId: string, g: VoicedGuide, opts: { review?:
         maybeAdvance();
       });
       prompt.classList.remove('done');
+      setBust(portrait, TV.speaker, poseOf(g.steps[idx].id));
       renderHead();
       play();
     };
@@ -314,10 +339,11 @@ export function voicedTutorial(matchId: string, g: VoicedGuide, opts: { review?:
     layer = openLayer(
       h('div', { class: 'overlay solid vt-wrap' },
         portrait,
-        h('div', { class: 'vt' }, head, h('div', { class: 'vt-stage' }, fig, prompt, note), sub, foot)),
+        h('div', { class: 'vt' }, head, h('div', { class: 'vt-stage' }, fig, prompt, note, hand), sub, foot)),
       { pausesClock: true, name: 'tutorial', onCancel: canSkipAll ? close : undefined },
     );
     go(0);
+    if (hand) handTimer = window.setInterval(placeHand, 120);
   });
 }
 
