@@ -17,7 +17,8 @@ import { ROOMS } from '../world/maps';
 import { nearestFree, roomRoute } from '../world/path';
 import { actorsIn, collisionOf, distance, homeSpot, moveActor, occupiedSet, seatUsable, setPathTo, setRouteTo, speedOf } from '../world/sim';
 import { reserveSeat, seatOf, seatTile, sitDown, standUp, sweepSeats, freeSeats } from '../world/seats';
-import { absorb, accuse, commit, evaluate, perceivedStrength, type Proposal } from './negotiation';
+import { absorb, accuse, commit, counterRounds, evaluate, perceivedStrength, type Proposal } from './negotiation';
+import { wantedPartners } from './group';
 import { addInvite, endInvite, invited, INVITE_TIME, inviteVerdict, isBedroom, isPrivate, othersPresent, ownerOf, visitVerdict, witnessEntry } from './social';
 
 export interface BrainEvent {
@@ -50,8 +51,8 @@ function prof(id: NpcId) {
 function allianceNeed(state: GameState, id: NpcId): number {
   const n = activeDeals(state, id).filter((d) => (d.kind === 'alliance' || d.kind === 'pledge') && d.untilDay >= state.day).length;
   const pre = state.phase === 'morning' || state.phase === 'strategy' ? 1 : state.phase === 'house' ? 0.5 : 0.3;
-  const per = NPC_BY_ID[id].personality;
-  const want = per.loyalty < 40 ? 3 : 2; // 忠誠の低い人物ほど同盟を多く持とうとする
+  // 持ちたい協力関係の数：集団を作りたい人・ついて行きたい人ほど多く、自立した人は 1 件（集団行動の性格）
+  const want = wantedPartners(id);
   return Math.max(0, (want - n) / want) * pre;
 }
 
@@ -148,12 +149,14 @@ function think(state: GameState, a: Actor, rng: Rng): void {
     const dist = reachable(state, a, b.pos.room);
     if (dist === null) continue;
     // 遠くの相手をわざわざ追いかけない（近くにいる相手と話す）
-    const u = talkUtility(state, id, o) - 0.1 * (dist * 16) * w.time - (b.pos.room === a.pos.room ? 0 : 3);
+    // 主導性の高い人は自分から話しかけに行く。自立志向の高い人は用がなければ行かない
+    const u = talkUtility(state, id, o) - 0.1 * (dist * 16) * w.time - (b.pos.room === a.pos.room ? 0 : 3) + (def.personality.initiative - 50) / 12 - Math.max(0, def.personality.independence - 60) / 15;
     cands.push({ u, run: () => { a.goal = { kind: 'talk', target: o, until: state.simTime + 60_000 }; } });
   }
   // 密談（v10）：人目のある場所で同盟を持ちかけたい相手を、自分の個室へ誘う。応じるかは相手しだい
   if (state.phase !== 'curfew' && !isBedroom(a.pos.room) && isPrivateRoom(homeOf(state, id)) && canEnter(state, id, homeOf(state, id)) && reachable(state, a, homeOf(state, id)) !== null && allianceNeed(state, id) > 0.25) {
-    const secrecy = 0.15 + def.stats.acting * 0.03 + (100 - def.personality.morality) / 500;
+    // 自分の個室に呼ぶのは、秘密好き（演技・道徳の低さ）と、自分を中心に集まりを作りたい人（支配欲）。自立志向の高い人は呼ばない
+    const secrecy = Math.max(0, 0.15 + def.stats.acting * 0.03 + (100 - def.personality.morality) / 500 + (def.personality.dominance - 50) / 250 - Math.max(0, def.personality.independence - 60) / 150);
     for (const o of aliveNpcs(state)) {
       if (o === id || allied(state, id, o)) continue;
       const b = state.actors[o];
@@ -408,7 +411,8 @@ export function chooseProposal(state: GameState, a: NpcId, b: CharId, rng: Rng, 
     const v = o.u + rng.gauss(0, 4);
     if (v > bv) { bv = v; best = o; }
   }
-  return bv > 8 ? best.p : null;
+  // 主導性の高い人ほど、見込みが薄くても自分から持ちかける
+  return bv > 8 - (per.initiative - 50) / 10 ? best.p : null;
 }
 
 function nearbyWitnesses(state: GameState, a: Actor, b: Actor): CharId[] {
@@ -468,8 +472,8 @@ function interact(state: GameState, a: Actor, b: Actor, rng: Rng, events: BrainE
   if (p) {
     let v = evaluate(state, p);
     let final = p;
-    // 対案は最大 2 往復
-    for (let i = 0; i < 2 && !v.accept && v.counter; i++) {
+    // 対案の往復は、言い出した側の交渉力で 1〜3 回（受ける側の判断は変わらない）
+    for (let i = 0; i < counterRounds(ida) && !v.accept && v.counter; i++) {
       const next: Proposal = { ...final, ...v.counter };
       // 提案者が対案（追加の支払い）を受け入れるか：自分の必要度と手持ちで判断
       const extra = (next.payNow ?? 0) - final.payNow;

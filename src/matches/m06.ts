@@ -180,7 +180,7 @@ function handValue(hand: number[], target: Target, next: Target | null, roundsLe
 function m06Ai(v: M06View, ctx: AiCtx): M06Move {
   if (v.phase === 'break') return { t: 'ready' };
   const st = skill(ctx.stats.strategy);
-  const lg = skill(ctx.stats.logic);
+  const mem = skill(ctx.stats.memory); // 副：捨札と公開された札の記憶
   const sd = 0.5 + ctx.noise * 1.2 + (1 - st) * 1.4;
   const last = v.round >= v.rounds - 1;
   const left = v.rounds - 1 - v.round;
@@ -199,7 +199,7 @@ function m06Ai(v: M06View, ctx: AiCtx): M06Move {
       let val = handValue(nh, v.target, v.nextTarget, left, tw);
       // 場に出すカードが、後の人の目標の助けになるなら少し控える（読める人ほど気にする）
       const helps = v.field.filter((x) => x !== f).some((x) => meets(v.target, x, h));
-      if (helps) val -= 0.5 * lg;
+      if (helps) val -= 0.5 * mem;
       val += ctx.rng.gauss(0, sd);
       if (val > bestVal + 0.3) { bestVal = val; best = { t: 'swap', hand: h, field: f }; }
     }

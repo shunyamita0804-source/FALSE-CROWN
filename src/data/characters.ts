@@ -22,6 +22,11 @@ export type NpcId =
   | 'npc_12_kuze';
 export type CharId = HeroId | NpcId;
 
+/**
+ * 能力（1〜10）。npc_profiles.json の ability が唯一の出所。
+ * 手帳に出すのは論理・記憶・観察・戦略・交渉・運の 6 つ（段階表示）。acting（本心を隠す力）は表示しない内部の値。
+ * 通常の NPC は 5 能力（論理・記憶・観察・戦略・交渉）の合計 35・運 5。強者（tier: strong）はこれを超えてよい。
+ */
 export interface Stats {
   logic: number;
   strategy: number;
@@ -29,6 +34,7 @@ export interface Stats {
   negotiation: number;
   acting: number;
   observation: number;
+  luck: number;
 }
 
 export interface Personality {
@@ -38,6 +44,14 @@ export interface Personality {
   morality: number;
   risk: number;
   explore: number;
+  /** 支配欲：自分を中心とした集団を作りたがる */
+  dominance: number;
+  /** 自立志向：集団に依存せず、必要な協力だけ選ぶ */
+  independence: number;
+  /** 主導性：自分から勧誘、提案、役割分担を行う */
+  initiative: number;
+  /** 追従性：信頼や実績のある相手の提案に乗りやすい */
+  followership: number;
 }
 
 export interface Palette {
@@ -58,6 +72,8 @@ export interface CharacterDef {
   readonly kana: string;
   gender: 'm' | 'f';
   age: number;
+  /** 通常の参加者か、将来追加する強者か（調整基準が違う） */
+  tier: 'normal' | 'strong';
   job: string;
   stats: Stats;
   personality: Personality;
@@ -71,29 +87,12 @@ export interface CharacterDef {
   rules: { refuseBetrayFriends?: boolean; requireRational?: boolean; profitFirst?: boolean; keepsContracts?: boolean };
 }
 
-const st = (logic: number, strategy: number, memory: number, negotiation: number, acting: number, observation: number): Stats => ({
-  logic,
-  strategy,
-  memory,
-  negotiation,
-  acting,
-  observation,
-});
-const pe = (greed: number, loyalty: number, ambition: number, morality: number, risk: number, explore: number): Personality => ({
-  greed,
-  loyalty,
-  ambition,
-  morality,
-  risk,
-  explore,
-});
 
-type CharacterBase = Omit<CharacterDef, 'name' | 'short' | 'kana'>;
+type CharacterBase = Omit<CharacterDef, 'name' | 'short' | 'kana' | 'stats' | 'personality' | 'tier'>;
 
 const BASE: CharacterBase[] = [
   {
     id: 'npc_02_kanzaki', gender: 'm', age: 28, job: '数学者',
-    stats: st(10, 9, 8, 4, 3, 7), personality: pe(30, 55, 60, 60, 35, 55),
     profile: '合理性を何より重んじる若き数学者。買収や情に訴える話には乗らない。',
     secret: 'CROWN計画の数理モデル開発に関与していた。',
     palette: { hair: '#1d1f2a', skin: '#f0d3bc', coat: '#3b4a6b', accent: '#c9d4e8', pants: '#22283a' },
@@ -102,7 +101,6 @@ const BASE: CharacterBase[] = [
   },
   {
     id: 'npc_03_kurose', gender: 'f', age: 32, job: '弁護士',
-    stats: st(9, 8, 7, 10, 7, 8), personality: pe(50, 70, 65, 55, 45, 50),
     profile: '契約は必ず守るが、条文の抜け穴は躊躇なく使う弁護士。',
     secret: '過去の被害者から真相究明の依頼を受けている。',
     palette: { hair: '#14141a', skin: '#f2d6c4', coat: '#1d1d26', accent: '#b8293d', pants: '#16161e' },
@@ -111,7 +109,6 @@ const BASE: CharacterBase[] = [
   },
   {
     id: 'npc_04_mido', gender: 'm', age: 45, job: '経営者',
-    stats: st(6, 9, 5, 10, 8, 7), personality: pe(95, 35, 90, 25, 60, 30),
     profile: '強欲な経営者。派閥を作り、高額の取引で人を動かす。',
     secret: 'CROWN計画の研究に出資していた。',
     palette: { hair: '#3a2c22', skin: '#e8c6a8', coat: '#5a1f24', accent: '#d8b25a', pants: '#2a1a1a' },
@@ -120,7 +117,6 @@ const BASE: CharacterBase[] = [
   },
   {
     id: 'npc_05_shiraishi', gender: 'f', age: 24, job: '心理学研究者',
-    stats: st(8, 8, 7, 9, 9, 10), personality: pe(55, 20, 70, 35, 60, 55),
     profile: '誰にでも親しげに話しかける心理学研究者。複数の同盟を同時に結ぶ。',
     secret: '「裏切り」の研究をしている。',
     palette: { hair: '#e6e2dc', skin: '#f6e0d2', coat: '#dfe6ee', accent: '#7aa0c8', pants: '#8c96a8' },
@@ -129,7 +125,6 @@ const BASE: CharacterBase[] = [
   },
   {
     id: 'npc_06_kiryu', gender: 'm', age: 21, job: 'プロゲーマー',
-    stats: st(8, 10, 7, 5, 4, 8), personality: pe(40, 90, 85, 60, 55, 40),
     profile: '負けず嫌いのプロゲーマー。一度仲間と認めた相手には忠実。',
     secret: '過去の大会のゲーム資料を持っている。',
     palette: { hair: '#2b2b33', skin: '#f0d0b8', coat: '#202a24', accent: '#4fd08a', pants: '#1a1f1c' },
@@ -138,7 +133,6 @@ const BASE: CharacterBase[] = [
   },
   {
     id: 'npc_07_tachibana', gender: 'f', age: 38, job: '医師',
-    stats: st(7, 5, 8, 6, 3, 8), personality: pe(15, 85, 30, 95, 25, 40),
     profile: '弱い立場の人を放っておけない医師。仲間を売る取引は大金でも断る。',
     secret: '過去の被害者の担当医だった。',
     palette: { hair: '#5a3a2a', skin: '#f2d8c6', coat: '#eef0f2', accent: '#6fa8a0', pants: '#4a5058' },
@@ -147,7 +141,6 @@ const BASE: CharacterBase[] = [
   },
   {
     id: 'npc_08_dojima', gender: 'm', age: 52, job: '元刑事',
-    stats: st(8, 7, 7, 7, 5, 10), personality: pe(30, 70, 45, 75, 30, 90),
     profile: '慎重で観察眼の鋭い元刑事。施設のあちこちを調べて回る。',
     secret: '過去の失踪事件を追っている。',
     palette: { hair: '#6a6660', skin: '#deb898', coat: '#4a4038', accent: '#a89878', pants: '#2e2a26' },
@@ -156,7 +149,6 @@ const BASE: CharacterBase[] = [
   },
   {
     id: 'npc_09_asahina', gender: 'f', age: 19, job: '大学生',
-    stats: st(5, 5, 10, 8, 5, 7), personality: pe(45, 60, 50, 65, 40, 70),
     profile: '人懐っこい大学生。一度聞いた話は決して忘れない。',
     secret: '兄が過去の大会に参加していた。',
     palette: { hair: '#b8743a', skin: '#f8e0cc', coat: '#e8b8b0', accent: '#f0e0a0', pants: '#5a4a6a' },
@@ -165,7 +157,6 @@ const BASE: CharacterBase[] = [
   },
   {
     id: 'npc_10_kujo', gender: 'm', age: 35, job: 'ギャンブラー',
-    stats: st(8, 9, 7, 8, 10, 9), personality: pe(60, 45, 70, 40, 95, 50),
     profile: 'ブラフを好むギャンブラー。元はプロ雀士。危険な賭けほど楽しむ。',
     secret: '過去の大会の参加者だった。',
     palette: { hair: '#101014', skin: '#e8ccb4', coat: '#2a2440', accent: '#9a6ad0', pants: '#18161e' },
@@ -174,7 +165,6 @@ const BASE: CharacterBase[] = [
   },
   {
     id: 'npc_11_kisaragi', gender: 'f', age: 29, job: '俳優',
-    stats: st(6, 6, 8, 9, 10, 8), personality: pe(80, 30, 75, 30, 55, 45),
     profile: '華やかな俳優。演技で本心を隠し、利益を優先する。',
     secret: '主催者から秘密の依頼を受けている。',
     palette: { hair: '#4a1a2a', skin: '#f8dccc', coat: '#6a1a38', accent: '#e8c0d0', pants: '#2a1020' },
@@ -183,7 +173,6 @@ const BASE: CharacterBase[] = [
   },
   {
     id: 'npc_12_kuze', gender: 'm', age: 62, job: '元大学教授',
-    stats: st(10, 8, 9, 6, 6, 8), personality: pe(25, 60, 40, 70, 30, 95),
     profile: '大学を退職した博識な元教授。古い書物や建物の構造に強い興味を示す。',
     secret: 'CROWN計画の創設者の一人。',
     palette: { hair: '#d8d4cc', skin: '#e8ccb0', coat: '#3a3a30', accent: '#b8a878', pants: '#2a2a24' },
@@ -235,18 +224,12 @@ export function saysCurrentName(id: string, spokenName: string): boolean {
   return strip(displayName(id, 'ja').name) === strip(spokenName);
 }
 
-export const NPCS: CharacterDef[] = BASE.map((b) => {
-  const def = { ...b } as CharacterDef;
-  for (const k of ['name', 'short', 'kana'] as const) {
-    Object.defineProperty(def, k, { get: () => displayName(b.id)[k], enumerable: true });
-  }
-  return def;
-});
-
-// 仕様 v03 の 02_NPC_PROFILES.json を正とし、人格値・基準価格・秘密の解放条件を上書きする
+// 仕様 v03 の 02_NPC_PROFILES.json を正とし、能力・人格値・基準価格・秘密の解放条件はここから読む（能力と性格の出所は 1 か所）
 interface ProfileJson {
   id: string;
-  personality: { greed: number; loyalty: number; ambition: number; morality: number; risk: number; exploration: number };
+  tier?: 'normal' | 'strong';
+  ability: Stats;
+  personality: { greed: number; loyalty: number; ambition: number; morality: number; risk: number; exploration: number; dominance: number; independence: number; initiative: number; followership: number };
   basePrices: { ALLIANCE: number; SELL_INFO: number; RECRUIT: number; PLAN: number };
   secretDay: number;
   secretTrust: number;
@@ -257,11 +240,17 @@ interface ProfileJson {
 }
 export const PROFILE_VERSION = (profilesJson as { version: number }).version;
 export const PROFILES: Record<string, ProfileJson> = Object.fromEntries((profilesJson as unknown as { profiles: ProfileJson[] }).profiles.map((p) => [p.id, p]));
-for (const n of NPCS) {
-  const p = PROFILES[n.id];
-  if (!p) continue;
-  n.personality = { greed: p.personality.greed, loyalty: p.personality.loyalty, ambition: p.personality.ambition, morality: p.personality.morality, risk: p.personality.risk, explore: p.personality.exploration };
-}
+
+export const NPCS: CharacterDef[] = BASE.map((b) => {
+  const p = PROFILES[b.id];
+  if (!p) throw new Error(`npc_profiles.json に ${b.id} がない`);
+  const { exploration, ...per } = p.personality;
+  const def = { ...b, tier: p.tier ?? 'normal', stats: { ...p.ability }, personality: { ...per, explore: exploration } } as CharacterDef;
+  for (const k of ['name', 'short', 'kana'] as const) {
+    Object.defineProperty(def, k, { get: () => displayName(b.id)[k], enumerable: true });
+  }
+  return def;
+});
 
 export const NPC_BY_ID: Record<NpcId, CharacterDef> = Object.fromEntries(NPCS.map((n) => [n.id, n])) as Record<NpcId, CharacterDef>;
 export const NPC_IDS = NPCS.map((n) => n.id);

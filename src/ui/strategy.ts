@@ -10,11 +10,12 @@ import { G } from '../app/game';
 import { Sound } from '../audio/audio';
 import { rngOf, shortName, nameOf, allied, rel } from '../core/state';
 import {
-  askTip, consultVerdict, finishStrategy, giveTip, groupOf, roomById, roomOfGroup, startStrategy, STRATEGY_ROOMS, strategyLeft, tickStrategy, tipsOf,
+  askTip, consultVerdict, finishStrategy, heroAnswerRole, heroSplitRoles, roleKey, splitRoles, giveTip, groupOf, roomById, roomOfGroup, startStrategy, STRATEGY_ROOMS, strategyLeft, tickStrategy, tipsOf,
   type StrategyMeeting, type StrategyRoom, type StrategyState,
 } from '../core/strategy';
 import type { CharId, NpcId } from '../data/characters';
 import type { MatchSlot } from '../core/types';
+import type { RoleId } from '../npc/group';
 import { medalIssued, promiseRescue, promised } from '../core/rescue';
 import { commit, evaluate, noteDeal } from '../npc/negotiation';
 import { say } from '../npc/lines';
@@ -302,6 +303,37 @@ export async function openStrategyRoom(roomId: string): Promise<void> {
       refresh();
     };
 
+    // 役割分担（集団行動）：言い出した人が割り振り、各自が引き受ける・別の役割を出す・断る・抜けるを選ぶ。主人公も同じ
+    const listen = async () => {
+      const r = splitRoles(s, slot, st, meeting, rngOf(s));
+      const out = r.lines.map((l) => `${shortName(s, l.id)}「${l.text}」`);
+      if (!out.length) return say1([t('role.none')]);
+      say1(out);
+      if (!r.heroRole || closed) return;
+      const role = r.heroRole;
+      const alt: RoleId = role === 'share' ? 'support' : 'share';
+      const pick = await choose<'accept' | 'counter' | 'refuse' | 'leave'>(t('role.heroTitle'), t('role.heroText', { name: shortName(s, meeting.host), role: t(`role.${role}`) }), [
+        { label: t('role.ansAccept'), value: 'accept' },
+        { label: t('role.ansCounter', { role: t(`role.${alt}`) }), value: 'counter' },
+        { label: t('role.ansRefuse'), value: 'refuse' },
+        { label: t('role.ansLeave'), value: 'leave' },
+      ], { cancel: 'refuse', pauses: false });
+      const reply = heroAnswerRole(s, st, meeting, role, pick, alt, rngOf(s));
+      say1([...out, `${shortName(s, meeting.host)}「${reply}」`]);
+      if (pick === 'leave') close();
+    };
+    const split = async () => {
+      const list = here();
+      if (list.length < 2) return say1([t('strat.nobody')]);
+      const pick = await choose<NpcId | null>(t('role.splitTitle'), t('role.splitText'), [...list.map((x) => ({ label: nameOf(s, x), value: x as NpcId | null })), { label: t('common.cancel'), value: null }], { cancel: null, pauses: false });
+      if (!pick || closed) return;
+      const others = list.filter((x) => x !== pick);
+      const assign: Partial<Record<CharId, RoleId>> = { [pick]: 'share' };
+      others.forEach((x, i) => { assign[x] = i === 0 ? 'scout' : 'support'; });
+      const lines = heroSplitRoles(s, slot, st, meeting, assign, rngOf(s));
+      say1(lines.map((l) => `${shortName(s, l.id)}「${l.text}」`));
+    };
+
     function buildMenu(): void {
       clear(menu);
       const n = here().length;
@@ -311,6 +343,8 @@ export async function openStrategyRoom(roomId: string): Promise<void> {
       add(t('strat.cmdTeach'), teach, !n);
       if (medalIssued(s.day)) add(t('strat.cmdRescue'), rescue, !n);
       add(t('strat.cmdCall'), call, meeting.members.length >= 4);
+      if (meeting.host === 'hero') add(t('role.cmdSplit'), split, n < 2 || !!s.flags[roleKey(st, 'hero')]);
+      else add(t('role.cmdListen'), listen, !here().includes(meeting.host as NpcId) || !!s.flags[roleKey(st, 'hero')]);
       menu.append(button(t('strat.leave'), () => close(), { kind: 'ghost', small: true }));
     }
 

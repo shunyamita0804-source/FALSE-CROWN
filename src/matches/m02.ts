@@ -182,10 +182,11 @@ function m02Ai(v: M02View, ctx: AiCtx): M02Move {
   }
   if (v.phase !== 'quiz' || !v.set) return { t: 'ready' };
   const mem = skill(ctx.stats.memory);
+  const obs = skill(ctx.stats.observation); // 副：図柄の細部に気づく
   const n = v.set.board.cells.filter((c) => c != null).length;
   const sec = v.set.showMs / 1000;
   // 覚えられる枚数の目安。能力差は小さめにして、回ごとの出来不出来を大きくする
-  const cap = 2.9 + mem * 1.2 + sec * 0.2 + ctx.rng.gauss(0, 1.2) - ctx.noise * 0.3;
+  const cap = 2.65 + mem * 1.2 + obs * 0.4 + sec * 0.2 + ctx.rng.gauss(0, 1.2) - ctx.noise * 0.3;
   let pLoc = Math.max(0.15, Math.min(0.95, cap / n));
   let pSeen = Math.max(0.3, Math.min(0.98, pLoc + 0.22));
   // 何が問われるかを知っている（と信じている）時は、そこに集中する

@@ -77,6 +77,7 @@ const BASE = [0.5, 0.45, 0.35];
 
 function ai(v: S05View, ctx: AiCtx): S05Move {
   if (v.phase === 'show') return { t: 'ok' };
+  const st = skill(ctx.stats.strategy); // 主：狙う条件と振り直しの選択
   const lg = skill(ctx.stats.logic);
   let best: S05Move = { t: 'roll', re: [], cond: 0 };
   let bv = -Infinity;
@@ -85,7 +86,7 @@ function ai(v: S05View, ctx: AiCtx): S05Move {
   for (const c of chances(v.base)) {
     for (const cond of left) {
       // あとのラウンドに残した時の見込み（ふつうの出目での成り立ちやすさ）を引いて比べる
-      const val = c.p[cond] - (left.length > 1 ? BASE[cond] * 0.6 : 0) + ctx.rng.gauss(0, 0.02 + ctx.noise * 0.08 + (1 - lg) * 0.1);
+      const val = c.p[cond] - (left.length > 1 ? BASE[cond] * 0.6 : 0) + ctx.rng.gauss(0, 0.02 + ctx.noise * 0.08 + (1 - st) * 0.07 + (1 - lg) * 0.03);
       if (val > bv) { bv = val; best = { t: 'roll', re: c.re, cond }; }
     }
   }

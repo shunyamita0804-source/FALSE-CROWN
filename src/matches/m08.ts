@@ -164,7 +164,7 @@ function m08Ai(v: M08View, ctx: AiCtx): M08Move {
   if (v.phase !== 'play') return { t: 'ready' };
   const i = v.me;
   const st = skill(ctx.stats.strategy);
-  const lg = skill(ctx.stats.logic);
+  const lg = skill(ctx.stats.observation); // 副：他者の進路と壁に気づく（観察）
   const goal = goalNode(v.seats[i]);
   // 他の人がいる点は、通れるが遠回りと同じくらい損だと見て道を選ぶ
   const occupied = new Set(v.pos.filter((p, k) => p >= 0 && k !== i));

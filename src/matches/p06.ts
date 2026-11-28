@@ -219,8 +219,8 @@ function p06Ai(v: P06View, ctx: AiCtx): P06Move {
   if (!r.path) return { t: 'solve', path: [m.start], ms: STAGE_MS };
   const cells = r.path.length;
   // 引き直し：盤面が大きいほど、行き止まりに入ってやり直すことが増える
-  const redo = 1 + Math.max(0, ctx.rng.gauss(0.6 + (1 - lg) * 1.0, 0.4)) * (m.size - 3.5) * 0.5;
-  const sec = (6 + (1 - ob) * 7 + cells * (0.95 + (1 - lg) * 0.6) * redo + r.nodes / (25 + lg * 60)) * Math.max(0.65, 1 + ctx.rng.gauss(0, 0.24)) * (1 + ctx.noise * 0.25);
+  const redo = 1 + Math.max(0, ctx.rng.gauss(0.75 + (1 - lg) * 0.4, 0.5)) * (m.size - 3.5) * 0.5;
+  const sec = (6 + (1 - ob) * 7 + cells * (1.05 + (1 - lg) * 0.25) * redo + r.nodes / (40 + lg * 25)) * Math.max(0.65, 1 + ctx.rng.gauss(0, 0.34)) * (1 + ctx.noise * 0.25);
   if (sec * 1000 <= STAGE_MS - 400) return { t: 'solve', path: r.path, ms: Math.round(sec * 1000) };
   // 時間切れ：進んだ所までの線を出す
   const part = Math.max(1, Math.floor((cells * (STAGE_MS / 1000)) / sec));

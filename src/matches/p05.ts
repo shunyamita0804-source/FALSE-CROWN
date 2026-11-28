@@ -110,7 +110,7 @@ function p05Ai(v: P05View, ctx: AiCtx): P05Move {
   const hand = v.hands[me];
   if (hand.length === 1) return { t: 'play', card: hand[0] };
   const st = skill(ctx.stats.strategy);
-  const lg = skill(ctx.stats.logic);
+  const lg = skill(ctx.stats.memory); // 副：使われた札の記憶
   const depth = Math.max(1, Math.min(5, Math.round(1 + st * 2.6 + lg * 1.2 + ctx.rng.gauss(0, 0.5))));
   const n = v.turn * k + v.order.indexOf(me);
   const hands = v.players.map((p) => [...v.hands[p]]);

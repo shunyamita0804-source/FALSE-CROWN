@@ -258,6 +258,7 @@ export function planFor(v: M04View['table'], seat: number, m: Mission): { builds
 function m04Ai(v: M04View, ctx: AiCtx): M04Move {
   if (v.phase === 'break') return { t: 'ready' };
   const strat = skill(ctx.stats.strategy);
+  const lg = skill(ctx.stats.logic); // 副：経路の計算
   if (v.phase === 'setup') {
     if (v.aid && !v.aid.picked) {
       const c = v.aid.cands.map((m) => baseCost(v.table.costs, m.from, m.to));
@@ -290,7 +291,7 @@ function m04Ai(v: M04View, ctx: AiCtx): M04Move {
     if (turns > tb.turnsLeft) return;
     // 得：任務の得点＋敷いた線路の点−使う資金の点（資金 3 で 1 点）。待つ手は資金が増えるので損にならない
     const gain = m.points + p.builds.length - need / 3 + wait;
-    const rate = gain / turns + ctx.rng.gauss(0, 0.25 + (1 - strat) * 0.5 + ctx.noise * 0.2);
+    const rate = gain / turns + ctx.rng.gauss(0, 0.25 + (1 - strat) * 0.38 + (1 - lg) * 0.15 + ctx.noise * 0.2);
     let act: RailAct;
     if (!p.builds.length) act = funds >= p.toll ? { t: 'transport', mission: i } : { t: 'fund' };
     else {

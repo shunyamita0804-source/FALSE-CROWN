@@ -4,6 +4,7 @@
  */
 import { NPC_BY_ID, type CharId, type NpcId } from '../data/characters';
 import { CONFIG } from '../data/config';
+import { mainAbility } from '../data/abilities';
 import { MATCHES } from '../matches/registry';
 import { TIEBREAK } from '../matches/tiebreak';
 import { skill, type AiCtx, type MatchEngine } from '../matches/types';
@@ -22,7 +23,7 @@ export function buildCtx(state: GameState, id: CharId, matchId: string, rng: Rng
   const def = NPC_BY_ID[id as NpcId];
   const diff = CONFIG.difficulty[state.difficulty];
   const stats = def?.stats ?? HERO_STANDIN;
-  const personality = def?.personality ?? { greed: 50, loyalty: 50, ambition: 50, morality: 50, risk: 50, explore: 50 };
+  const personality = def?.personality ?? { greed: 50, loyalty: 50, ambition: 50, morality: 50, risk: 50, explore: 50, dominance: 50, independence: 50, initiative: 50, followership: 50 };
   const deals = activeDeals(state, id);
   const partner = (d: { from: CharId; to: CharId }) => (d.from === id ? d.to : d.from);
   return {
@@ -30,7 +31,8 @@ export function buildCtx(state: GameState, id: CharId, matchId: string, rng: Rng
     stats,
     personality,
     rng,
-    noise: diff.noise * (1.25 - skill(stats.strategy) * 0.5),
+    // 判断のぶれは、その競技で主に効く能力から（戦略だけが全競技に効く隠れた共通能力にしない）
+    noise: diff.noise * (1.25 - skill(stats[mainAbility(matchId)]) * 0.5),
     depth: Math.max(0, Math.round(diff.depth + skill(stats.strategy) * 2 - 1)),
     memoryLoss: diff.memoryLoss * (1.5 - skill(stats.memory)),
     // 参加者ではない相手（仮面のディーラーなど）には、関係の記録が無い
@@ -59,7 +61,8 @@ export function buildCtx(state: GameState, id: CharId, matchId: string, rng: Rng
 }
 
 /** プレイヤーの代わりに CPU が動かすとき（自動対戦、開発用の検証）の能力値。NPC 11 人の平均に合わせる（旧値は全て 6 で、平均より低く、自動対戦では主人公だけ早く脱落していた） */
-const HERO_STANDIN = { logic: 8, strategy: 8, memory: 8, negotiation: 7, acting: 6, observation: 8 };
+/** 自動進行で主人公を動かす時の能力（通常の NPC の平均：5 能力の合計 35、運 5） */
+const HERO_STANDIN = { logic: 7, strategy: 7, memory: 7, negotiation: 7, acting: 6, observation: 7, luck: 5 };
 
 /** 手番待ちの NPC 全員に手を出させる。プレイヤーの手番は触らない。戻り値は進行があったか */
 export function stepNpcs(state: GameState, slot: MatchSlot, opts: { includeHero?: boolean; holdNegotiation?: boolean } = {}): boolean {

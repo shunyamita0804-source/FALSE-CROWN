@@ -27,10 +27,11 @@ export const h07Wrong = (a: H07Answer[]): number[] => H07_QUESTIONS.map((q, i) =
 
 function ai(v: H07View, ctx: AiCtx): H07Move {
   const lg = skill(ctx.stats.logic);
+  const mem = skill(ctx.stats.memory); // 副：読んだ資料の記憶
   // 資料には名前が書いてあるので、読めば合う。読み違いが時々ある。食い違いを指摘された項目は読み直す
   return { t: 'answer', a: H07_QUESTIONS.map((q, i) => {
     if (v.last && v.wrong && !v.wrong.includes(i)) return v.last[i];
-    const slip = ctx.rng.chance((1 - lg) * 0.12 + ctx.noise * 0.05);
+    const slip = ctx.rng.chance((1 - lg) * 0.09 + (1 - mem) * 0.03 + ctx.noise * 0.05);
     return { opt: slip ? ctx.rng.int(0, 2) : q.answer, ev: q.evidence[0] };
   }) };
 }

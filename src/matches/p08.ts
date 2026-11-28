@@ -146,7 +146,7 @@ function p08Ai(v: P08View, ctx: AiCtx): P08Move {
   if (!sols.length) return { t: 'answer', place: v.scale.tiles.map(() => 0), ms: ROUND_MS };
   // 正解が少ないほど、また使う枚数が多いほど、見つけるのに時間がかかる
   const hard = Math.min(0.6, 1 / Math.sqrt(sols.length));
-  const sec = (8 + (1 - lg) * 12 + hard * (56 + (1 - lg) * 80) + v.scale.minUse * 2.4) * Math.max(0.6, 1 + ctx.rng.gauss(0, 0.3)) * (1 + ctx.noise * 0.3);
+  const sec = (9 + (1 - lg) * 5 + hard * (62 + (1 - lg) * 30) + v.scale.minUse * 2.4) * Math.max(0.6, 1 + ctx.rng.gauss(0, 0.4)) * (1 + ctx.noise * 0.3);
   if (sec * 1000 > ROUND_MS - 500) {
     // 時間切れ：載せかけの配置（つり合っていない）
     const place = [...sols[0]];

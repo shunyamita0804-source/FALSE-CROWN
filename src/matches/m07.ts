@@ -218,7 +218,7 @@ function m07Ai(v: M07View, ctx: AiCtx): M07Move {
   const all = placements(v.owner, seat, tiles, v.cap);
   if (!all.length) return { t: 'pass' };
   const st = skill(ctx.stats.strategy);
-  const lg = skill(ctx.stats.logic);
+  const lg = skill(ctx.stats.observation); // 副：他者の進路と封鎖に気づく（観察）
   const before = linkDist(v.owner, seat);
   const wasLinked = linked(v.owner, seat);
   const others = v.seats.filter((i) => i !== seat);

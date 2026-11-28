@@ -139,10 +139,10 @@ function nextStage(s: M01State): void {
 function m01Ai(v: M01View, ctx: AiCtx): M01Move {
   if (v.phase !== 'solve') return { t: 'ready' };
   const logic = skill(ctx.stats.logic);
-  const strat = skill(ctx.stats.strategy);
+  const obs = skill(ctx.stats.observation); // 副：盤面と形の見極め
   const pieces = v.puzzle.pieces.length;
   // 1 秒あたりに試せる配置の数と、1 片を置くのにかかる時間
-  const rate = (5 + logic * 4.5 + strat * 1.5) / Math.max(0.6, ctx.noise * 0.55 + 0.45);
+  const rate = (5 + logic * 4.5 + obs * 1.5) / Math.max(0.6, ctx.noise * 0.55 + 0.45);
   const read = 5 + (1 - logic) * 3.5;
   const perPiece = 2.6 + (1 - logic) * 1.1;
   const jitter = 1 + ctx.rng.gauss(0, 0.2);
